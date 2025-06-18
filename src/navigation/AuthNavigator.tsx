@@ -17,8 +17,7 @@ export default function AuthNavigator() {
     <Stack.Navigator
       initialRouteName="Login"
       screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
+        headerShown: false, // Sin headers para mantenerlo simple
         contentStyle: { backgroundColor: '#F5EED5' }, // Fondo InstaScore
       }}
     >

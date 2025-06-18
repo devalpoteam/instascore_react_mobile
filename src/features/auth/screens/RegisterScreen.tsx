@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { registerStart, registerSuccess, registerFailure } from "../store/authSlice";
-import Button from "@/shared/components/ui/Button";
+import Button from "@/design/components/InstaScoreButton";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Opciones para el selector de sexo
