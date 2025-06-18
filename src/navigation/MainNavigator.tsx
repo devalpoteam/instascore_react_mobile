@@ -1,17 +1,48 @@
 // src/navigation/MainNavigator.tsx
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { View, Text } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { useAppDispatch } from '@/store/hooks'
+import { logout } from '@/features/auth/store/authSlice'
 
 const Tab = createBottomTabNavigator()
 
-// Pantallas temporales
-const CampeonatosScreen = () => (
-  <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-    <Text>Campeonatos</Text>
-  </View>
-)
+// Pantalla temporal de Campeonatos con botón de logout
+const CampeonatosScreen = () => {
+  const dispatch = useAppDispatch()
 
+  const handleLogout = () => {
+    dispatch(logout())
+  }
+
+  return (
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20}}>
+      <Text style={{fontSize: 18, marginBottom: 20}}>Pantalla de Campeonatos</Text>
+      <Text style={{textAlign: 'center', marginBottom: 30}}>
+        Esta es una pantalla temporal para pruebas. Cuando hayas implementado la funcionalidad completa, 
+        esta pantalla será reemplazada por la verdadera lista de campeonatos.
+      </Text>
+      
+      {/* Botón de Logout */}
+      <TouchableOpacity
+        onPress={handleLogout}
+        style={{
+          backgroundColor: '#f5a201',
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+          borderRadius: 8,
+          alignItems: 'center',
+          width: '80%',
+          marginTop: 20
+        }}
+      >
+        <Text style={{color: 'white', fontWeight: 'bold'}}>CERRAR SESIÓN</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+// Pantalla temporal de Resultados
 const ResultadosScreen = () => (
   <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
     <Text>Resultados</Text>
