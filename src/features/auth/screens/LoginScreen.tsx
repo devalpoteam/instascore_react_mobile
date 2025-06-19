@@ -1,19 +1,12 @@
 // src/features/auth/screens/LoginScreen.tsx
 import React, { useState } from "react";
-import { 
-  View, 
-  Image, 
-  TouchableOpacity, 
-  TextInput,
-  StatusBar,
-  Alert,
-  Text
-} from "react-native";
+import { View, Image, TouchableOpacity, TextInput, StatusBar, Alert, Text } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { colors, shadows } from '@/design/colors';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/features/auth/store/authSlice';
 import { useNavigation } from '@react-navigation/native';
+import { useResponsive } from "@/shared/hooks/useResponsive";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -25,6 +18,8 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const responsive = useResponsive();
 
   // 🔧 VALIDACIONES LOCALES SIMPLES
   const validateEmail = (email: string): boolean => {
@@ -114,6 +109,12 @@ export default function LoginScreen() {
     setPassword('123456');
   };
 
+  // ✅ NUEVO HANDLER PARA OLVIDASTE CONTRASEÑA
+  const handleForgotPassword = () => {
+    console.log('🔑 Forgot password');
+    Alert.alert('Recuperar contraseña', 'Funcionalidad no implementada aún');
+  };
+
   // 🎯 HANDLERS PARA INPUTS
   const handleEmailChange = (text: string) => {
     setEmail(text);
@@ -131,7 +132,7 @@ export default function LoginScreen() {
       
       <View style={{ 
         flex: 1, 
-        backgroundColor: colors.background.primary, 
+        backgroundColor: colors.background.lighter, 
         padding: 20, 
         justifyContent: 'center' 
       }}>
@@ -282,7 +283,7 @@ export default function LoginScreen() {
             borderColor: passwordError ? colors.error[500] : colors.gray[300],
             borderRadius: 8,
             backgroundColor: colors.background.primary,
-            marginBottom: passwordError ? 4 : 24,
+            marginBottom: passwordError ? 4 : 8,
             paddingHorizontal: 15,
           }}>
             <Ionicons 
@@ -320,12 +321,27 @@ export default function LoginScreen() {
             <Text style={{
               fontSize: 12,
               color: colors.error[500],
-              marginBottom: 24,
+              marginBottom: 8,
               fontFamily: 'Nunito'
             }}>
               {passwordError}
             </Text>
           )}
+
+          {/* ¿OLVIDASTE TU CONTRASEÑA? */}
+          <TouchableOpacity 
+            onPress={handleForgotPassword}
+            style={{ alignSelf: 'flex-end', marginBottom: responsive.isIOS ? 18 : 20 }}
+          >
+            <Text style={{
+              fontSize: 14,
+              color: colors.primary[500],
+              fontWeight: '500',
+              fontFamily: 'Nunito'
+            }}>
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
 
           {/* ✅ BOTÓN LOGIN CON COLORES OFICIALES */}
           <TouchableOpacity

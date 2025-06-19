@@ -70,6 +70,7 @@ export const colors = {
   
   // Backgrounds
   background: {
+    lighter: '#F5EED5',
     primary: '#FFFFFF',
     secondary: '#FAFAFA',
     brand: '#E8E6FF',
