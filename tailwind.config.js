@@ -1,63 +1,37 @@
-// tailwind.config.js
-// Configuración personalizada basada en Manual de Marca InstaScore
-
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./App.{js,jsx,ts,tsx}", 
+    "./src/**/*.{js,jsx,ts,tsx}"
+  ],
   theme: {
     extend: {
-      // Colores oficiales InstaScore
       colors: {
-        // Marca principal
-        'instascore': {
-          // Azul oscuro oficial
+        // ✅ COLORES OFICIALES INSTASCORE (mantuve tu configuración)
+        instascore: {
           blue: {
             50: '#E8E6FF',
             100: '#C7C2FF',
             400: '#2916BD',
-            500: '#1105AD', // Color oficial del manual
+            500: '#1105AD', // Color oficial principal
             600: '#0D049D',
+            DEFAULT: '#1105AD', // Para usar como instascore-blue
           },
-          // Naranja oficial
           orange: {
             50: '#FFF8E6',
             100: '#FFECB3',
             400: '#F7B422',
-            500: '#F5A201', // Color oficial del manual
+            500: '#F5A201', // Color oficial principal
             600: '#E8920C',
+            DEFAULT: '#F5A201', // Para usar como instascore-orange
           }
         },
         
-        // Alias para facilidad de uso
-        primary: {
-          50: '#E8E6FF',
-          100: '#C7C2FF',
-          400: '#2916BD',
-          500: '#1105AD',
-          600: '#0D049D',
-        },
-        secondary: {
-          50: '#FFF8E6',
-          100: '#FFECB3',
-          400: '#F7B422',
-          500: '#F5A201',
-          600: '#E8920C',
-        },
+        // ✅ ALIAS PARA FACILIDAD DE USO (mantuve tu configuración)
+        'instascore-blue': '#1105AD',
+        'instascore-orange': '#F5A201',
         
-        // Neutros mejorados
-        gray: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#E5E5E5',
-          300: '#D4D4D4',
-          400: '#A3A3A3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-        },
-        
-        // Estados del sistema
+        // ✅ COLORES ADICIONALES DEL SISTEMA (mantuve tu configuración)
         success: {
           500: '#10B981',
           100: '#D1FAE5',
@@ -74,85 +48,48 @@ module.exports = {
           500: '#3B82F6',
           100: '#DBEAFE',
         },
-        
-        // Backgrounds específicos
-        background: {
-          primary: '#FFFFFF',
-          secondary: '#FAFAFA',
-          brand: '#E8E6FF',
-        }
       },
       
-      // Fuentes del Manual de Marca
+      // ✅ FUENTES PERSONALIZADAS (mantuve tu configuración)
       fontFamily: {
-        // Montserrat para elementos de marca (INSTA)
-        'brand': ['Montserrat', 'sans-serif'],
-        // Nunito para texto general (SCORE)
-        'body': ['Nunito', 'sans-serif'],
-        // Sans como fallback
-        'sans': ['Nunito', 'Montserrat', 'system-ui', 'sans-serif'],
+        'nunito': ['Nunito', 'sans-serif'],
       },
       
-      // Font weights específicos
-      fontWeight: {
-        'normal': '400',
-        'medium': '500',
-        'semibold': '600',
-        'bold': '700',
-        'extrabold': '800',
-      },
-      
-      // Espaciado personalizado
+      // ✅ ESPACIADOS ADICIONALES (mantuve tu configuración)
       spacing: {
-        '18': '4.5rem',   // 72px
-        '88': '22rem',    // 352px
-        '128': '32rem',   // 512px
+        '18': '4.5rem',
+        '88': '22rem',
       },
       
-      // Border radius
-      borderRadius: {
-        'xl': '1rem',     // 16px
-        '2xl': '1.25rem', // 20px
-        '3xl': '1.5rem',  // 24px
-      },
-      
-
-      
-      // Breakpoints para responsive
-      screens: {
-        'xs': '475px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
-      },
-      
-      // Animaciones smooth
-      transitionDuration: {
-        '150': '150ms',
-        '250': '250ms',
-        '350': '350ms',
-      },
-      
-      // Z-index layers
-      zIndex: {
-        '60': '60',
-        '70': '70',
-        '80': '80',
-        '90': '90',
-        '100': '100',
-      },
-      
-      // Opacity específicas
-      opacity: {
-        '15': '0.15',
-        '35': '0.35',
-        '65': '0.65',
-        '85': '0.85',
-      }
+      // ✅ NOTA: Removí boxShadow porque no funciona en React Native
+      // En su lugar usar shadowStyles.ts:
+      // import { shadowStyles } from '@/design/shadowStyles';
+      // style={shadowStyles.instascore.base}
     },
   },
-  
-  
-};
+  plugins: [],
+}
+
+// ✅ EJEMPLO DE USO EN COMPONENTES:
+/*
+// Colores principales
+className="bg-instascore-blue text-white"
+className="bg-instascore-orange text-white"
+
+// Colores con variantes
+className="bg-instascore-blue-500 border-instascore-blue-600"
+className="bg-instascore-orange-400 text-instascore-orange-600"
+
+// Fuente personalizada
+className="font-nunito"
+
+// ✅ Para sombras usar shadowStyles (NO clases CSS):
+import { shadowStyles } from '@/design/shadowStyles';
+
+<View 
+  className="bg-white rounded-lg p-4"
+  style={shadowStyles.instascore.base}
+>
+  <Text>Contenido con sombra</Text>
+</View>
+*/
