@@ -116,20 +116,7 @@ module.exports = {
         '3xl': '1.5rem',  // 24px
       },
       
-      // ❌ COMENTAMOS LAS SOMBRAS PROBLEMÁTICAS PARA REACT NATIVE
-      /*
-      boxShadow: {
-        'instascore-sm': '0 1px 2px 0 rgba(17, 5, 173, 0.05)',
-        'instascore': '0 2px 4px 0 rgba(17, 5, 173, 0.1)',
-        'instascore-md': '0 4px 6px 0 rgba(17, 5, 173, 0.12)',
-        'instascore-lg': '0 8px 12px 0 rgba(17, 5, 173, 0.15)',
-        'instascore-xl': '0 12px 16px 0 rgba(17, 5, 173, 0.18)',
-        
-        // Sombras con naranja para elementos especiales
-        'orange': '0 2px 4px 0 rgba(245, 162, 1, 0.2)',
-        'orange-lg': '0 8px 12px 0 rgba(245, 162, 1, 0.25)',
-      },
-      */
+
       
       // Breakpoints para responsive
       screens: {
@@ -167,84 +154,5 @@ module.exports = {
     },
   },
   
-  // ❌ COMENTAMOS LOS PLUGINS PROBLEMÁTICOS PARA REACT NATIVE
-  /*
-  plugins: [
-    // Plugin personalizado para utilidades de InstaScore
-    function({ addUtilities, theme }) {
-      const newUtilities = {
-        // Utilidades de texto de marca
-        '.text-brand': {
-          fontFamily: theme('fontFamily.brand'),
-          fontWeight: theme('fontWeight.bold'),
-          color: theme('colors.primary.500'),
-        },
-        '.text-logo-insta': {
-          fontFamily: theme('fontFamily.brand'),
-          color: theme('colors.primary.500'),
-        },
-        '.text-logo-score': {
-          fontFamily: theme('fontFamily.body'),
-          color: theme('colors.secondary.500'),
-        },
-        
-        // Botones de marca
-        '.btn-instascore': {
-          backgroundColor: theme('colors.primary.500'),
-          color: '#ffffff',
-          fontFamily: theme('fontFamily.body'),
-          fontWeight: theme('fontWeight.semibold'),
-          borderRadius: theme('borderRadius.lg'),
-          paddingTop: theme('spacing.3'),
-          paddingBottom: theme('spacing.3'),
-          paddingLeft: theme('spacing.6'),
-          paddingRight: theme('spacing.6'),
-          boxShadow: theme('boxShadow.instascore'), // ← ESTO CAUSA PROBLEMAS
-          '&:hover': {
-            backgroundColor: theme('colors.primary.600'),
-          },
-          '&:active': {
-            backgroundColor: theme('colors.primary.600'),
-            transform: 'translateY(1px)',
-          }
-        },
-        
-        '.btn-instascore-secondary': {
-          backgroundColor: theme('colors.secondary.500'),
-          color: '#ffffff',
-          fontFamily: theme('fontFamily.body'),
-          fontWeight: theme('fontWeight.semibold'),
-          borderRadius: theme('borderRadius.lg'),
-          paddingTop: theme('spacing.3'),
-          paddingBottom: theme('spacing.3'),
-          paddingLeft: theme('spacing.6'),
-          paddingRight: theme('spacing.6'),
-          boxShadow: theme('boxShadow.orange'), // ← ESTO CAUSA PROBLEMAS
-          '&:hover': {
-            backgroundColor: theme('colors.secondary.600'),
-          }
-        },
-        
-        // Cards de InstaScore
-        '.card-instascore': {
-          backgroundColor: theme('colors.background.primary'),
-          borderRadius: theme('borderRadius.xl'),
-          padding: theme('spacing.6'),
-          boxShadow: theme('boxShadow.instascore'), // ← ESTO CAUSA PROBLEMAS
-        },
-        
-        // Gradientes de marca
-        '.gradient-instascore': {
-          background: `linear-gradient(135deg, ${theme('colors.primary.500')} 0%, ${theme('colors.secondary.500')} 100%)`,
-        },
-        
-        '.gradient-instascore-soft': {
-          background: `linear-gradient(135deg, ${theme('colors.primary.50')} 0%, ${theme('colors.secondary.50')} 100%)`,
-        }
-      };
-      
-      addUtilities(newUtilities);
-    }
-  ],
-  */
+  
 };

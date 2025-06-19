@@ -1,4 +1,3 @@
-// App.tsx - VERSIÓN SEGURA
 import 'react-native-gesture-handler'
 import React from 'react'
 import { StatusBar } from 'expo-status-bar'

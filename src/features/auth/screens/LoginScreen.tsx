@@ -9,34 +9,22 @@ import {
   Alert,
   Text
 } from "react-native";
-
-// 🎨 COLORES DIRECTOS (sin imports problemáticos)
-const COLORS = {
-  primary: '#1105AD',
-  secondary: '#F5A201', 
-  background: '#FFFFFF',
-  neutral: {
-    300: '#D4D4D4',
-    400: '#A3A3A3',
-    500: '#737373',
-    600: '#525252',
-    700: '#404040',
-    800: '#262626',
-  },
-  status: {
-    error: '#EF4444',
-    errorLight: '#FEE2E2',
-  }
-};
+import { Ionicons } from '@expo/vector-icons';
+import { colors, shadows } from '@/design/colors';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { loginStart, loginSuccess, loginFailure } from '@/features/auth/store/authSlice';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
-  // ✅ SOLO ESTADO LOCAL - SIN REDUX NI HOOKS PROBLEMÁTICOS
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const { isLoading, error: authError } = useAppSelector((state) => state.auth);
+  // ✅ ESTADO LOCAL PARA VALIDACIONES + REDUX PARA AUTH
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // 🔧 VALIDACIONES LOCALES SIMPLES
   const validateEmail = (email: string): boolean => {
@@ -66,12 +54,11 @@ export default function LoginScreen() {
     return true;
   };
 
-  // 🔐 HANDLE LOGIN SIMPLE (SIN KEYBOARD.DISMISS)
+  // 🔐 HANDLE LOGIN CON REDUX
   const handleLogin = async () => {
-    console.log('🔐 Login attempt - SIN Keyboard.dismiss()');
+    console.log('🔐 Login attempt with Redux');
     
     // Limpiar errores previos
-    setError('');
     setEmailError('');
     setPasswordError('');
 
@@ -83,20 +70,30 @@ export default function LoginScreen() {
       return;
     }
 
-    setIsLoading(true);
+    dispatch(loginStart());
 
     try {
-      // Simular login
+      // Simular login exitoso
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      console.log('✅ Login successful');
-      Alert.alert('Éxito', 'Login exitoso!');
+      const mockUser = {
+        id: Math.random().toString(36).substring(2, 9),
+        email: email,
+        name: "Usuario Demo",
+        isPro: false,
+        role: "user"
+      };
+
+      dispatch(loginSuccess({
+        token: "mock-jwt-token-login",
+        user: mockUser,
+      }));
       
-    } catch (err) {
+      console.log('✅ Login successful');
+      
+    } catch (err: any) {
       console.error('❌ Login error:', err);
-      setError('Error al iniciar sesión. Intenta nuevamente.');
-    } finally {
-      setIsLoading(false);
+      dispatch(loginFailure(err.message || 'Error al iniciar sesión'));
     }
   };
 
@@ -107,8 +104,8 @@ export default function LoginScreen() {
   };
 
   const navigateToRegister = () => {
-    console.log('📝 Navigate to register - SIN Keyboard.dismiss()');
-    Alert.alert('Info', 'Registro no implementado aún');
+    console.log('📝 Navigate to register');
+    navigation.navigate('Register' as never); // ✅ NAVEGACIÓN A REGISTER
   };
 
   const showDevCredentials = () => {
@@ -130,9 +127,14 @@ export default function LoginScreen() {
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background.primary} translucent={false} />
       
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF', padding: 20, justifyContent: 'center' }}>
+      <View style={{ 
+        flex: 1, 
+        backgroundColor: colors.background.primary, 
+        padding: 20, 
+        justifyContent: 'center' 
+      }}>
         
         {/* BOTÓN DEV */}
         <TouchableOpacity
@@ -142,14 +144,18 @@ export default function LoginScreen() {
             top: 50,
             right: 20,
             zIndex: 10,
-            backgroundColor: COLORS.neutral[600],
+            backgroundColor: colors.gray[600],
             borderRadius: 20,
             paddingHorizontal: 12,
             paddingVertical: 6,
           }}
           activeOpacity={0.7}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' }}>
+          <Text style={{ 
+            color: colors.background.primary, 
+            fontSize: 12, 
+            fontWeight: 'bold' 
+          }}>
             DEV
           </Text>
         </TouchableOpacity>
@@ -163,38 +169,33 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* ✅ CONTENEDOR SIMPLE - SIN InstaScoreCard QUE TIENE TouchableOpacity */}
+        {/* ✅ CONTENEDOR PRINCIPAL CON SOMBRA OFICIAL */}
         <View style={{
           width: '100%',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.background.primary,
           padding: 20,
           borderRadius: 12,
           borderWidth: 1,
-          borderColor: COLORS.neutral[300],
-          // Sombra simple
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 4,
+          borderColor: colors.gray[300],
+          ...shadows.instascore, // ✅ SOMBRA OFICIAL INSTASCORE
         }}>
           
-          {/*  ERROR GLOBAL */}
-          {error && (
+          {/* ERROR GLOBAL */}
+          {authError && (
             <View style={{
-              backgroundColor: COLORS.status.errorLight,
+              backgroundColor: colors.error[100],
               borderWidth: 1,
-              borderColor: COLORS.status.error,
+              borderColor: colors.error[500],
               padding: 12,
               borderRadius: 8,
               marginBottom: 16,
             }}>
               <Text style={{
                 fontSize: 14,
-                color: COLORS.status.error,
+                color: colors.error[500],
                 textAlign: 'center'
               }}>
-                {error}
+                {authError}
               </Text>
             </View>
           )}
@@ -203,43 +204,58 @@ export default function LoginScreen() {
           <Text style={{
             fontSize: 16,
             fontWeight: '500',
-            color: COLORS.neutral[700],
+            color: colors.gray[700],
             marginBottom: 8,
             fontFamily: 'Nunito'
           }}>
             Correo Electrónico *
           </Text>
 
-          {/* ✅ EMAIL INPUT */}
-          <TextInput
-            placeholder="Ingresa tu email"
-            value={email}
-            onChangeText={handleEmailChange}
-            style={{
-              borderWidth: 1,
-              borderColor: emailError ? COLORS.status.error : COLORS.neutral[300],
-              borderRadius: 8,
-              padding: 15,
-              fontSize: 16,
-              backgroundColor: '#FFFFFF',
-              marginBottom: emailError ? 4 : 16,
-              fontFamily: 'Nunito',
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            textContentType="emailAddress"
-            returnKeyType="next"
-            blurOnSubmit={false}
-            enablesReturnKeyAutomatically={false}
-          />
+          {/* ✅ EMAIL INPUT CON ICONO */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: emailError ? colors.error[500] : colors.gray[300],
+            borderRadius: 8,
+            backgroundColor: colors.background.primary,
+            marginBottom: emailError ? 4 : 16,
+            paddingHorizontal: 15,
+          }}>
+            <Ionicons 
+              name="mail-outline" 
+              size={20} 
+              color={emailError ? colors.error[500] : colors.gray[500]} 
+              style={{ marginRight: 12 }}
+            />
+            <TextInput
+              placeholder="Ingresa tu email"
+              value={email}
+              onChangeText={handleEmailChange}
+              style={{
+                flex: 1,
+                padding: 15,
+                fontSize: 16,
+                fontFamily: 'Nunito',
+                color: colors.gray[900],
+              }}
+              placeholderTextColor={colors.gray[400]}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              enablesReturnKeyAutomatically={false}
+            />
+          </View>
 
           {/* EMAIL ERROR */}
           {emailError && (
             <Text style={{
               fontSize: 12,
-              color: COLORS.status.error,
+              color: colors.error[500],
               marginBottom: 16,
               fontFamily: 'Nunito'
             }}>
@@ -251,44 +267,59 @@ export default function LoginScreen() {
           <Text style={{
             fontSize: 16,
             fontWeight: '500',
-            color: COLORS.neutral[700],
+            color: colors.gray[700],
             marginBottom: 8,
             fontFamily: 'Nunito'
           }}>
             Contraseña *
           </Text>
 
-          {/* ✅ PASSWORD INPUT */}
-          <TextInput
-            placeholder="Ingresa tu contraseña"
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry={true}
-            style={{
-              borderWidth: 1,
-              borderColor: passwordError ? COLORS.status.error : COLORS.neutral[300],
-              borderRadius: 8,
-              padding: 15,
-              fontSize: 16,
-              backgroundColor: '#FFFFFF',
-              marginBottom: passwordError ? 4 : 24,
-              fontFamily: 'Nunito',
-            }}
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="password"
-            textContentType="password"
-            returnKeyType="done"
-            blurOnSubmit={false}
-            enablesReturnKeyAutomatically={false}
-            onSubmitEditing={handleLogin}
-          />
+          {/* ✅ PASSWORD INPUT CON ICONO */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: passwordError ? colors.error[500] : colors.gray[300],
+            borderRadius: 8,
+            backgroundColor: colors.background.primary,
+            marginBottom: passwordError ? 4 : 24,
+            paddingHorizontal: 15,
+          }}>
+            <Ionicons 
+              name="lock-closed-outline" 
+              size={20} 
+              color={passwordError ? colors.error[500] : colors.gray[500]} 
+              style={{ marginRight: 12 }}
+            />
+            <TextInput
+              placeholder="Ingresa tu contraseña"
+              value={password}
+              onChangeText={handlePasswordChange}
+              secureTextEntry={true}
+              style={{
+                flex: 1,
+                padding: 15,
+                fontSize: 16,
+                fontFamily: 'Nunito',
+                color: colors.gray[900],
+              }}
+              placeholderTextColor={colors.gray[400]}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="done"
+              blurOnSubmit={false}
+              enablesReturnKeyAutomatically={false}
+              onSubmitEditing={handleLogin}
+            />
+          </View>
 
           {/* PASSWORD ERROR */}
           {passwordError && (
             <Text style={{
               fontSize: 12,
-              color: COLORS.status.error,
+              color: colors.error[500],
               marginBottom: 24,
               fontFamily: 'Nunito'
             }}>
@@ -296,22 +327,23 @@ export default function LoginScreen() {
             </Text>
           )}
 
-          {/* ✅ BOTÓN LOGIN SIMPLE - SIN InstaScoreButton */}
+          {/* ✅ BOTÓN LOGIN CON COLORES OFICIALES */}
           <TouchableOpacity
             style={{
-              backgroundColor: isLoading ? COLORS.neutral[300] : COLORS.primary,
+              backgroundColor: isLoading ? colors.gray[300] : colors.primary[500], // ✅ AZUL OFICIAL
               borderRadius: 8,
               padding: 15,
               alignItems: 'center',
               marginBottom: 16,
               opacity: isLoading ? 0.6 : 1,
+              ...shadows.instascore, // ✅ SOMBRA OFICIAL
             }}
             onPress={handleLogin}
             disabled={isLoading}
             activeOpacity={0.8}
           >
             <Text style={{
-              color: '#FFFFFF',
+              color: colors.background.primary,
               fontSize: 16,
               fontWeight: '600',
               fontFamily: 'Nunito'
@@ -324,9 +356,9 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={{
               width: '100%',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: colors.background.primary,
               borderWidth: 1,
-              borderColor: COLORS.neutral[300],
+              borderColor: colors.gray[300],
               borderRadius: 8,
               paddingVertical: 12,
               paddingHorizontal: 16,
@@ -349,7 +381,7 @@ export default function LoginScreen() {
             <Text style={{
               fontSize: 16,
               fontWeight: '500',
-              color: COLORS.neutral[700],
+              color: colors.gray[700],
               fontFamily: 'Nunito'
             }}>
               {isLoading ? "Conectando..." : "Continuar con Google"}
@@ -362,25 +394,36 @@ export default function LoginScreen() {
             alignItems: 'center',
             marginVertical: 16,
           }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.neutral[300] }} />
+            <View style={{ 
+              flex: 1, 
+              height: 1, 
+              backgroundColor: colors.gray[300] 
+            }} />
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={{ fontSize: 14, color: COLORS.neutral[500] }}>o</Text>
+              <Text style={{ 
+                fontSize: 14, 
+                color: colors.gray[500] 
+              }}>o</Text>
             </View>
-            <View style={{ flex: 1, height: 1, backgroundColor: COLORS.neutral[300] }} />
+            <View style={{ 
+              flex: 1, 
+              height: 1, 
+              backgroundColor: colors.gray[300] 
+            }} />
           </View>
 
-          {/* ✅ ENLACE DE REGISTRO SIMPLE */}
+          {/* ENLACE DE REGISTRO CON COLORES OFICIALES */}
           <TouchableOpacity onPress={navigateToRegister}>
             <Text style={{
               fontSize: 16,
               textAlign: 'center',
-              color: COLORS.neutral[600],
+              color: colors.gray[600],
               fontFamily: 'Nunito'
             }}>
               ¿No tienes cuenta?{" "}
               <Text style={{
                 fontSize: 16,
-                color: COLORS.primary,
+                color: colors.primary[500], // ✅ AZUL OFICIAL INSTASCORE
                 fontWeight: '600',
                 fontFamily: 'Nunito'
               }}>

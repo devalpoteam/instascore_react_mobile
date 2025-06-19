@@ -1,4 +1,4 @@
-// src/features/auth/screens/RegisterScreenOption2.tsx
+// src/features/auth/screens/RegisterScreen.tsx
 import React, { useState } from "react";
 import { 
   View, 
@@ -10,338 +10,640 @@ import {
   Image, 
   TouchableOpacity, 
   ScrollView, 
-  Pressable,
-  TouchableWithoutFeedback,
-  Keyboard
+  StatusBar
 } from "react-native";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { registerStart, registerSuccess, registerFailure } from "../store/authSlice";
-import Button from "@/design/components/InstaScoreButton";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from '@expo/vector-icons';
+import { colors, shadows } from '@/design/colors';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { registerStart, registerSuccess, registerFailure } from '@/features/auth/store/authSlice';
+import { useNavigation } from '@react-navigation/native';
 
 // Opciones para el selector de sexo
 const genderOptions = [
-  { value: "M", label: "Masculino" },
-  { value: "F", label: "Femenino" }
+  { value: "M", label: "Masculino", icon: "man-outline" },
+  { value: "F", label: "Femenino", icon: "woman-outline" }
 ];
 
-export default function RegisterScreenOption2({ navigation }: any) {
+export default function RegisterScreen() {
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const { isLoading, error: authError } = useAppSelector((state) => state.auth);
+  
+  // ✅ ESTADO LOCAL PARA VALIDACIONES + REDUX PARA AUTH
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   
-  const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  // Estados de errores individuales para validaciones
+  const [nameError, setNameError] = useState("");
+  const [genderError, setGenderError] = useState("");
+  const [ageError, setAgeError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  // Función para ocultar el teclado
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
+  // 🔧 VALIDACIONES LOCALES
+  const validateName = (name: string): boolean => {
+    if (!name.trim()) {
+      setNameError('El nombre es requerido');
+      return false;
+    }
+    if (name.trim().length < 2) {
+      setNameError('El nombre debe tener al menos 2 caracteres');
+      return false;
+    }
+    setNameError('');
+    return true;
+  };
+
+  const validateGender = (gender: string): boolean => {
+    if (!gender) {
+      setGenderError('Selecciona tu sexo');
+      return false;
+    }
+    setGenderError('');
+    return true;
+  };
+
+  const validateAge = (age: string): boolean => {
+    const ageNum = parseInt(age, 10);
+    if (!age || isNaN(ageNum)) {
+      setAgeError('La edad es requerida');
+      return false;
+    }
+    if (ageNum < 5 || ageNum > 120) {
+      setAgeError('Edad debe estar entre 5 y 120 años');
+      return false;
+    }
+    setAgeError('');
+    return true;
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError('El correo es requerido');
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError('Ingresa un correo válido');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    if (!password) {
+      setPasswordError('La contraseña es requerida');
+      return false;
+    }
+    if (password.length < 6) {
+      setPasswordError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+    setPasswordError('');
+    return true;
   };
 
   const handleRegister = async () => {
-    // Ocultar el teclado
-    Keyboard.dismiss();
+    console.log('📝 Register attempt with Redux');
     
-    // Validación básica
-    if (!name || !gender || !age || !email || !password) {
-      Alert.alert("Error", "Por favor completa todos los campos");
-      return;
-    }
+    // Limpiar errores previos
+    setNameError('');
+    setGenderError('');
+    setAgeError('');
+    setEmailError('');
+    setPasswordError('');
 
-    // Validación de email con regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor ingresa un correo electrónico válido");
-      return;
-    }
+    // Validar todos los campos
+    const isNameValid = validateName(name);
+    const isGenderValid = validateGender(gender);
+    const isAgeValid = validateAge(age);
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
 
-    // Validación de edad
-    const ageNum = parseInt(age, 10);
-    if (isNaN(ageNum) || ageNum < 5 || ageNum > 120) {
-      Alert.alert("Error", "Por favor ingresa una edad válida (entre 5 y 120 años)");
-      return;
-    }
-
-    // Longitud mínima de contraseña
-    if (password.length < 6) {
-      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres");
+    if (!isNameValid || !isGenderValid || !isAgeValid || !isEmailValid || !isPasswordValid) {
       return;
     }
 
     dispatch(registerStart());
 
     try {
-      // Mock del registro exitoso
-      setTimeout(() => {
-        const mockUser = {
-          id: Math.random().toString(36).substring(2, 9), // ID aleatorio
-          email: email,
-          name: name,
-          gender: gender,
-          age: ageNum,
-          isPro: false,
-          role: "user"
-        };
+      // Simular registro exitoso
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockUser = {
+        id: Math.random().toString(36).substring(2, 9),
+        email: email,
+        name: name,
+        gender: gender,
+        age: parseInt(age, 10),
+        isPro: false,
+        role: "user"
+      };
 
-        dispatch(
-          registerSuccess({
-            token: "mock-jwt-token-new-user",
-            user: mockUser,
-          })
-        );
-      }, 1500);
+      dispatch(registerSuccess({
+        token: "mock-jwt-token-new-user",
+        user: mockUser,
+      }));
+      
+      console.log('✅ Register successful');
+      Alert.alert('Éxito', 'Cuenta creada exitosamente!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Login' as never)
+        }
+      ]);
+      
     } catch (err: any) {
-      dispatch(registerFailure(err.message || "Error al registrar usuario"));
+      console.error('❌ Register error:', err);
+      dispatch(registerFailure(err.message || 'Error al crear la cuenta'));
     }
   };
 
   const navigateToLogin = () => {
-    // Ocultar el teclado
-    Keyboard.dismiss();
-    navigation.navigate("Login");
+    navigation.navigate('Login' as never);
   };
 
-  const toggleSecureEntry = () => {
-    setSecureTextEntry(!secureTextEntry);
+  const showDevCredentials = () => {
+    console.log('🛠️ Dev credentials for register');
+    setName('Usuario Test');
+    setGender('M');
+    setAge('25');
+    setEmail('test@register.com');
+    setPassword('123456');
+  };
+
+  // 🎯 HANDLERS PARA INPUTS
+  const handleNameChange = (text: string) => {
+    setName(text);
+    if (nameError) setNameError('');
+  };
+
+  const handleAgeChange = (text: string) => {
+    setAge(text);
+    if (ageError) setAgeError('');
+  };
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (emailError) setEmailError('');
+  };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    if (passwordError) setPasswordError('');
   };
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <SafeAreaView className="flex-1 bg-[#F5EED5]">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background.primary} translucent={false} />
+      
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: colors.background.primary }}
+      >
+        <ScrollView 
+          style={{ flex: 1 }}
+          contentContainerStyle={{ 
+            flexGrow: 1,
+            padding: 20,
+            justifyContent: 'center'
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <ScrollView 
-            className="flex-1" 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ 
-              paddingBottom: Platform.OS === "ios" ? 20 : 30,
-              ...(Platform.OS === "ios" && { paddingTop: 5 })
+          
+          {/* BOTÓN DEV */}
+          <TouchableOpacity
+            onPress={showDevCredentials}
+            style={{
+              position: 'absolute',
+              top: 50,
+              right: 20,
+              zIndex: 10,
+              backgroundColor: colors.gray[600],
+              borderRadius: 20,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
             }}
-            keyboardShouldPersistTaps="handled"
+            activeOpacity={0.7}
           >
-            {/* Header with logo and gradient background */}
-            <View className="items-center pt-3 px-6 mb-2">
-              <Image
-                source={require("../../../../assets/images/logo.png")}
-                style={{
-                  width: 120,
-                  height: 75,
-                }}
-                resizeMode="contain"
+            <Text style={{ 
+              color: colors.background.primary, 
+              fontSize: 12, 
+              fontWeight: 'bold' 
+            }}>
+              DEV
+            </Text>
+          </TouchableOpacity>
+
+          {/* LOGO Y ENCABEZADO */}
+          <View style={{ alignItems: 'center', marginBottom: 40 }}>
+            <Image
+              source={require("../../../../assets/images/logo.png")}
+              style={{ width: 200, height: 120 }}
+              resizeMode="contain"
+            />
+            <Text style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: colors.primary[500],
+              textAlign: 'center',
+              marginTop: 10,
+              fontFamily: 'Nunito'
+            }}>
+              Bienvenido a InstaScore
+            </Text>
+            <Text style={{
+              fontSize: 16,
+              color: colors.gray[600],
+              textAlign: 'center',
+              marginTop: 5,
+              fontFamily: 'Nunito'
+            }}>
+              Crea tu cuenta y comienza a seguir los eventos
+            </Text>
+          </View>
+
+          {/* ✅ CONTENEDOR PRINCIPAL CON SOMBRA OFICIAL */}
+          <View style={{
+            width: '100%',
+            backgroundColor: colors.background.primary,
+            padding: 20,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.gray[300],
+            ...shadows.instascore,
+          }}>
+            
+            {/* ERROR GLOBAL */}
+            {authError && (
+              <View style={{
+                backgroundColor: colors.error[100],
+                borderWidth: 1,
+                borderColor: colors.error[500],
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 16,
+              }}>
+                <Text style={{
+                  fontSize: 14,
+                  color: colors.error[500],
+                  textAlign: 'center'
+                }}>
+                  {authError}
+                </Text>
+              </View>
+            )}
+
+            {/* NOMBRE COMPLETO */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.gray[700],
+              marginBottom: 8,
+              fontFamily: 'Nunito'
+            }}>
+              Nombre completo *
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: nameError ? colors.error[500] : colors.gray[300],
+              borderRadius: 8,
+              backgroundColor: colors.background.primary,
+              marginBottom: nameError ? 4 : 16,
+              paddingHorizontal: 15,
+            }}>
+              <Ionicons 
+                name="person-outline" 
+                size={20} 
+                color={nameError ? colors.error[500] : colors.gray[500]} 
+                style={{ marginRight: 12 }}
               />
-              <Text className={`text-xl font-bold text-instascore-blue mt-2 text-center ${Platform.OS === "ios" ? "mb-2" : "mb-2"}`}>
-                Bienvenido a InstaScore
-              </Text>
-              <Text className={`text-sm text-gray-600 text-center mt-0 ${Platform.OS === "ios" ? "mb-2" : "mb-4"}`}>
-                Crea tu cuenta y comienza a seguir los eventos
-              </Text>
+              <TextInput
+                placeholder="Ingresa tu nombre completo"
+                value={name}
+                onChangeText={handleNameChange}
+                style={{
+                  flex: 1,
+                  padding: 15,
+                  fontSize: 16,
+                  fontFamily: 'Nunito',
+                  color: colors.gray[900],
+                }}
+                placeholderTextColor={colors.gray[400]}
+                autoCapitalize="words"
+              />
             </View>
+            {nameError && (
+              <Text style={{
+                fontSize: 12,
+                color: colors.error[500],
+                marginBottom: 16,
+                fontFamily: 'Nunito'
+              }}>
+                {nameError}
+              </Text>
+            )}
 
-            {/* Form fields - directly on the background */}
-            <View className="px-5">
-              {error && (
-                <View className="bg-red-100 rounded-lg p-3 mb-4">
-                  <Text className="text-red-600 text-sm">{error}</Text>
-                </View>
-              )}
-
-              {/* Nombre */}
-              <View style={{ marginBottom: Platform.OS === "ios" ? 12 : 16 }}>
-                <Text className="text-sm font-semibold text-gray-700 mb-1.5 ml-1">
-                  Nombre completo
-                </Text>
-                <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-[54px] shadow-sm">
-                  <Text className="mr-2 text-base">👤</Text>
-                  <TextInput
-                    className="flex-1 text-base text-gray-800"
-                    placeholder="Ingresa tu nombre completo"
-                    placeholderTextColor="#9ca3af"
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                    style={{ 
-                      flex: 1,
-                      fontSize: 16,
-                      height: 54,
-                      // Ajustes para iOS para centrar el texto verticalmente
-                      ...(Platform.OS === 'ios' && {
-                        lineHeight: 20,
-                        paddingTop: 18,
-                        paddingBottom: 12,
-                        transform: [{ translateY: -2 }]
-                      })
-                    }}
+            {/* SEXO */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.gray[700],
+              marginBottom: 8,
+              fontFamily: 'Nunito'
+            }}>
+              Sexo *
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: genderError ? 4 : 16,
+            }}>
+              {genderOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={{
+                    flex: 1,
+                    marginHorizontal: 4,
+                    paddingVertical: 12,
+                    borderRadius: 8,
+                    backgroundColor: gender === option.value ? colors.primary[500] : colors.background.primary,
+                    borderWidth: 1,
+                    borderColor: gender === option.value ? colors.primary[500] : colors.gray[300],
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                  }}
+                  onPress={() => {
+                    setGender(option.value);
+                    if (genderError) setGenderError('');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons 
+                    name={option.icon as any} 
+                    size={18} 
+                    color={gender === option.value ? colors.background.primary : colors.gray[600]} 
+                    style={{ marginRight: 8 }}
                   />
-                </View>
-              </View>
-
-              {/* Sexo */}
-              <View style={{ marginBottom: Platform.OS === "ios" ? 12 : 16 }}>
-                <Text className="text-sm font-semibold text-gray-700 mb-1.5 ml-1">
-                  Sexo
-                </Text>
-                <View className="flex-row justify-between">
-                  {genderOptions.map((option) => (
-                    <TouchableOpacity
-                      key={option.value}
-                      className={`flex-1 mx-1 py-3.5 rounded-2xl ${
-                        gender === option.value
-                          ? "bg-instascore-blue border-instascore-blue"
-                          : "bg-white border border-gray-300"
-                      } items-center shadow-sm`}
-                      onPress={() => setGender(option.value)}
-                    >
-                      <Text 
-                        className={`text-sm font-semibold ${
-                          gender === option.value ? "text-white" : "text-gray-600"
-                        }`}
-                      >
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Edad */}
-              <View style={{ marginBottom: Platform.OS === "ios" ? 12 : 16 }}>
-                <Text className="text-sm font-semibold text-gray-700 mb-1.5 ml-1">
-                  Edad
-                </Text>
-                <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-[54px] shadow-sm">
-                  <Text className="mr-2 text-base">🎂</Text>
-                  <TextInput
-                    className="flex-1 text-base text-gray-800"
-                    placeholder="Ingresa tu edad"
-                    placeholderTextColor="#9ca3af"
-                    value={age}
-                    onChangeText={setAge}
-                    keyboardType="number-pad"
-                    maxLength={3}
-                    style={{ 
-                      flex: 1,
-                      fontSize: 16,
-                      height: 54,
-                      // Ajustes para iOS para centrar el texto verticalmente
-                      ...(Platform.OS === 'ios' && {
-                        lineHeight: 20,
-                        paddingTop: 18,
-                        paddingBottom: 12,
-                        transform: [{ translateY: -2 }]
-                      })
-                    }}
-                  />
-                </View>
-              </View>
-
-              {/* Email */}
-              <View style={{ marginBottom: Platform.OS === "ios" ? 12 : 16 }}>
-                <Text className="text-sm font-semibold text-gray-700 mb-1.5 ml-1">
-                  Correo Electrónico
-                </Text>
-                <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-[54px] shadow-sm">
-                  <Text className="mr-2 text-base">✉️</Text>
-                  <TextInput
-                    className="flex-1 text-base text-gray-800"
-                    placeholder="ejemplo@correo.com"
-                    placeholderTextColor="#9ca3af"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    style={{ 
-                      flex: 1,
-                      fontSize: 16,
-                      height: 54,
-                      // Ajustes para iOS para centrar el texto verticalmente
-                      ...(Platform.OS === 'ios' && {
-                        lineHeight: 20,
-                        paddingTop: 18,
-                        paddingBottom: 12,
-                        transform: [{ translateY: -2 }]
-                      })
-                    }}
-                  />
-                </View>
-              </View>
-
-              {/* Contraseña */}
-              <View style={{ marginBottom: Platform.OS === "ios" ? 12 : 8 }}>
-                <Text className="text-sm font-semibold text-gray-700 mb-1.5 ml-1">
-                  Contraseña
-                </Text>
-                <View className="flex-row items-center bg-white border border-gray-300 rounded-2xl px-4 h-[54px] shadow-sm">
-                  <Text className="mr-2 text-base">🔒</Text>
-                  <TextInput
-                    className="flex-1 text-base text-gray-800"
-                    placeholder="Mínimo 6 caracteres"
-                    placeholderTextColor="#9ca3af"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={secureTextEntry}
-                    autoCapitalize="none"
-                    style={{ 
-                      flex: 1,
-                      fontSize: 16,
-                      height: 54,
-                      // Ajustes para iOS para centrar el texto verticalmente
-                      ...(Platform.OS === 'ios' && {
-                        lineHeight: 20,
-                        paddingTop: 18,
-                        paddingBottom: 12,
-                        transform: [{ translateY: -2 }]
-                      })
-                    }}
-                  />
-                  <TouchableOpacity onPress={toggleSecureEntry}>
-                    <Text className="text-gray-500 text-lg">👁</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text className="text-xs text-gray-500 mt-1 ml-1">
-                  Debe contener al menos 6 caracteres
-                </Text>
-              </View>
-
-              {/* Espaciador adicional en iOS */}
-              {Platform.OS === "ios" && <View style={{ height: 8.5 }} />}
-
-              {/* Register Button */}
-              <TouchableOpacity
-                style={{ marginTop: Platform.OS === "ios" ? 2 : 20 }}
-                className={`bg-instascore-orange rounded-2xl py-4 items-center shadow-md ${
-                  isLoading ? "opacity-80" : ""
-                }`}
-                onPress={handleRegister}
-                disabled={isLoading}
-                activeOpacity={0.8}
-              >
-                <Text className="text-white font-bold text-base">
-                  {isLoading ? "Creando cuenta..." : "CREAR CUENTA"}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Espaciador adicional en iOS */}
-              {Platform.OS === "ios" && <View style={{ height: 9.5 }} />}
-
-              {/* Login link */}
-              <View style={{ marginTop: Platform.OS === "ios" ? 3 : 20 }} className="flex-row justify-center">
-                <Text className="text-gray-600 text-sm">¿Ya tienes una cuenta? </Text>
-                <TouchableOpacity onPress={navigateToLogin}>
-                  <Text className="text-instascore-blue font-semibold text-sm">
-                    Inicia sesión
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: gender === option.value ? colors.background.primary : colors.gray[600],
+                    fontFamily: 'Nunito'
+                  }}>
+                    {option.label}
                   </Text>
                 </TouchableOpacity>
-              </View>
+              ))}
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+            {genderError && (
+              <Text style={{
+                fontSize: 12,
+                color: colors.error[500],
+                marginBottom: 16,
+                fontFamily: 'Nunito'
+              }}>
+                {genderError}
+              </Text>
+            )}
+
+            {/* EDAD */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.gray[700],
+              marginBottom: 8,
+              fontFamily: 'Nunito'
+            }}>
+              Edad *
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: ageError ? colors.error[500] : colors.gray[300],
+              borderRadius: 8,
+              backgroundColor: colors.background.primary,
+              marginBottom: ageError ? 4 : 16,
+              paddingHorizontal: 15,
+            }}>
+              <Ionicons 
+                name="calendar-outline" 
+                size={20} 
+                color={ageError ? colors.error[500] : colors.gray[500]} 
+                style={{ marginRight: 12 }}
+              />
+              <TextInput
+                placeholder="Ingresa tu edad"
+                value={age}
+                onChangeText={handleAgeChange}
+                style={{
+                  flex: 1,
+                  padding: 15,
+                  fontSize: 16,
+                  fontFamily: 'Nunito',
+                  color: colors.gray[900],
+                }}
+                placeholderTextColor={colors.gray[400]}
+                keyboardType="number-pad"
+                maxLength={3}
+              />
+            </View>
+            {ageError && (
+              <Text style={{
+                fontSize: 12,
+                color: colors.error[500],
+                marginBottom: 16,
+                fontFamily: 'Nunito'
+              }}>
+                {ageError}
+              </Text>
+            )}
+
+            {/* EMAIL */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.gray[700],
+              marginBottom: 8,
+              fontFamily: 'Nunito'
+            }}>
+              Correo Electrónico *
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: emailError ? colors.error[500] : colors.gray[300],
+              borderRadius: 8,
+              backgroundColor: colors.background.primary,
+              marginBottom: emailError ? 4 : 16,
+              paddingHorizontal: 15,
+            }}>
+              <Ionicons 
+                name="mail-outline" 
+                size={20} 
+                color={emailError ? colors.error[500] : colors.gray[500]} 
+                style={{ marginRight: 12 }}
+              />
+              <TextInput
+                placeholder="ejemplo@correo.com"
+                value={email}
+                onChangeText={handleEmailChange}
+                style={{
+                  flex: 1,
+                  padding: 15,
+                  fontSize: 16,
+                  fontFamily: 'Nunito',
+                  color: colors.gray[900],
+                }}
+                placeholderTextColor={colors.gray[400]}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            {emailError && (
+              <Text style={{
+                fontSize: 12,
+                color: colors.error[500],
+                marginBottom: 16,
+                fontFamily: 'Nunito'
+              }}>
+                {emailError}
+              </Text>
+            )}
+
+            {/* CONTRASEÑA */}
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '500',
+              color: colors.gray[700],
+              marginBottom: 8,
+              fontFamily: 'Nunito'
+            }}>
+              Contraseña *
+            </Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: passwordError ? colors.error[500] : colors.gray[300],
+              borderRadius: 8,
+              backgroundColor: colors.background.primary,
+              marginBottom: passwordError ? 4 : 8,
+              paddingHorizontal: 15,
+            }}>
+              <Ionicons 
+                name="lock-closed-outline" 
+                size={20} 
+                color={passwordError ? colors.error[500] : colors.gray[500]} 
+                style={{ marginRight: 12 }}
+              />
+              <TextInput
+                placeholder="Mínimo 6 caracteres"
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry={!showPassword}
+                style={{
+                  flex: 1,
+                  padding: 15,
+                  fontSize: 16,
+                  fontFamily: 'Nunito',
+                  color: colors.gray[900],
+                }}
+                placeholderTextColor={colors.gray[400]}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity 
+                onPress={() => setShowPassword(!showPassword)}
+                style={{ padding: 5 }}
+              >
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={20} 
+                  color={colors.gray[500]} 
+                />
+              </TouchableOpacity>
+            </View>
+            {passwordError && (
+              <Text style={{
+                fontSize: 12,
+                color: colors.error[500],
+                marginBottom: 8,
+                fontFamily: 'Nunito'
+              }}>
+                {passwordError}
+              </Text>
+            )}
+            
+            {/* HINT DE CONTRASEÑA */}
+            <Text style={{
+              fontSize: 12,
+              color: colors.gray[500],
+              marginBottom: 24,
+              fontFamily: 'Nunito'
+            }}>
+              Debe contener al menos 6 caracteres
+            </Text>
+
+            {/* ✅ BOTÓN REGISTRO CON COLORES OFICIALES */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: isLoading ? colors.gray[300] : colors.secondary[500], // ✅ NARANJA OFICIAL
+                borderRadius: 8,
+                padding: 15,
+                alignItems: 'center',
+                marginBottom: 16,
+                opacity: isLoading ? 0.6 : 1,
+                ...shadows.orange, // ✅ SOMBRA NARANJA OFICIAL
+              }}
+              onPress={handleRegister}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
+              <Text style={{
+                color: colors.background.primary,
+                fontSize: 16,
+                fontWeight: '600',
+                fontFamily: 'Nunito'
+              }}>
+                {isLoading ? 'CREANDO CUENTA...' : 'CREAR CUENTA'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* ✅ ENLACE A LOGIN CON COLORES OFICIALES */}
+            <TouchableOpacity onPress={navigateToLogin}>
+              <Text style={{
+                fontSize: 16,
+                textAlign: 'center',
+                color: colors.gray[600],
+                fontFamily: 'Nunito'
+              }}>
+                ¿Ya tienes cuenta?{" "}
+                <Text style={{
+                  fontSize: 16,
+                  color: colors.primary[500], // ✅ AZUL OFICIAL INSTASCORE
+                  fontWeight: '600',
+                  fontFamily: 'Nunito'
+                }}>
+                  Inicia sesión
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
