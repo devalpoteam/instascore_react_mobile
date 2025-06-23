@@ -78,7 +78,8 @@ module.exports = {
         // Backgrounds específicos
         background: {
           primary: '#FFFFFF',
-          secondary: '#FAFAFA',
+          secondary: '#FAFAFA', 
+          lighter: '#F5EED5', // ✅ AGREGADO: background más claro
           brand: '#E8E6FF',
         }
       },
@@ -116,8 +117,6 @@ module.exports = {
         '3xl': '1.5rem',  // 24px
       },
       
-
-      
       // Breakpoints para responsive
       screens: {
         'xs': '475px',
@@ -153,6 +152,4 @@ module.exports = {
       }
     },
   },
-  
-  
 };

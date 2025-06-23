@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import {View, Text, TextInput, KeyboardAvoidingView, Platform, Alert, Image, TouchableOpacity, ScrollView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, shadows } from "@/design/colors";
+import { getColor } from "@/design/colorHelper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {  registerStart, registerSuccess, registerFailure } from "@/features/auth/store/authSlice";
 import { useNavigation } from "@react-navigation/native";
@@ -201,13 +201,13 @@ export default function RegisterScreen() {
     <>
       <StatusBar
         barStyle="dark-content"
-        backgroundColor={colors.background.primary}
+        backgroundColor={getColor.background.primary}
         translucent={false}
       />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1, backgroundColor: colors.background.lighter }}
+        style={{ flex: 1, backgroundColor: getColor.background.lighter }}
       >
         <ScrollView
           style={{ flex: 1 }}
@@ -228,7 +228,7 @@ export default function RegisterScreen() {
               top: 50,
               right: 20,
               zIndex: 10,
-              backgroundColor: colors.gray[600],
+              backgroundColor: getColor.gray[600],
               borderRadius: 20,
               paddingHorizontal: 12,
               paddingVertical: 6,
@@ -237,7 +237,7 @@ export default function RegisterScreen() {
           >
             <Text
               style={{
-                color: colors.background.primary,
+                color: getColor.background.primary,
                 fontSize: 12,
                 fontWeight: "bold",
               }}
@@ -262,7 +262,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 24,
                 fontWeight: "bold",
-                color: colors.primary[500],
+                color: getColor.primary[500],
                 textAlign: "center",
                 marginTop: responsive.isIOS ? -10 : 5,
                 fontFamily: "Nunito",
@@ -273,7 +273,7 @@ export default function RegisterScreen() {
             <Text
               style={{
                 fontSize: 16,
-                color: colors.gray[600],
+                color: getColor.gray[600],
                 textAlign: "center",
                 marginTop: 5,
                 marginBottom: responsive.isIOS ? 4 : 0,
@@ -288,21 +288,25 @@ export default function RegisterScreen() {
           <View
             style={{
               width: "100%",
-              backgroundColor: colors.background.primary,
+              backgroundColor: getColor.background.primary,
               padding: 20,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: colors.gray[300],
-              ...shadows.instascore,
+              borderColor: getColor.gray[300],
+              shadowColor: getColor.primary[500],
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
             }}
           >
             {/* ERROR GLOBAL */}
             {authError && (
               <View
                 style={{
-                  backgroundColor: colors.error[100],
+                  backgroundColor: getColor.error[100],
                   borderWidth: 1,
-                  borderColor: colors.error[500],
+                  borderColor: getColor.error[500],
                   padding: 12,
                   borderRadius: 8,
                   marginBottom: 16,
@@ -311,7 +315,7 @@ export default function RegisterScreen() {
                 <Text
                   style={{
                     fontSize: 14,
-                    color: colors.error[500],
+                    color: getColor.error[500],
                     textAlign: "center",
                   }}
                 >
@@ -325,7 +329,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: colors.gray[700],
+                color: getColor.gray[700],
                 marginBottom: 8,
                 fontFamily: "Nunito",
               }}
@@ -337,9 +341,9 @@ export default function RegisterScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 borderWidth: 1,
-                borderColor: nameError ? colors.error[500] : colors.gray[300],
+                borderColor: nameError ? getColor.error[500] : getColor.gray[300],
                 borderRadius: 8,
-                backgroundColor: colors.background.primary,
+                backgroundColor: getColor.background.primary,
                 marginBottom: nameError ? 4 : 16,
                 paddingHorizontal: 15,
               }}
@@ -347,7 +351,7 @@ export default function RegisterScreen() {
               <Ionicons
                 name="person-outline"
                 size={20}
-                color={nameError ? colors.error[500] : colors.gray[500]}
+                color={nameError ? getColor.error[500] : getColor.gray[500]}
                 style={{ marginRight: 12 }}
               />
               <TextInput
@@ -359,9 +363,9 @@ export default function RegisterScreen() {
                   padding: 15,
                   fontSize: 16,
                   fontFamily: "Nunito",
-                  color: colors.gray[900],
+                  color: getColor.gray[900],
                 }}
-                placeholderTextColor={colors.gray[400]}
+                placeholderTextColor={getColor.gray[400]}
                 autoCapitalize="words"
               />
             </View>
@@ -369,7 +373,7 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: colors.error[500],
+                  color: getColor.error[500],
                   marginBottom: 16,
                   fontFamily: "Nunito",
                 }}
@@ -383,7 +387,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: colors.gray[700],
+                color: getColor.gray[700],
                 marginBottom: 8,
                 fontFamily: "Nunito",
               }}
@@ -407,13 +411,13 @@ export default function RegisterScreen() {
                     borderRadius: 8,
                     backgroundColor:
                       gender === option.value
-                        ? colors.primary[500]
-                        : colors.background.primary,
+                        ? getColor.primary[500]
+                        : getColor.background.primary,
                     borderWidth: 1,
                     borderColor:
                       gender === option.value
-                        ? colors.primary[500]
-                        : colors.gray[300],
+                        ? getColor.primary[500]
+                        : getColor.gray[300],
                     alignItems: "center",
                     flexDirection: "row",
                     justifyContent: "center",
@@ -429,8 +433,8 @@ export default function RegisterScreen() {
                     size={18}
                     color={
                       gender === option.value
-                        ? colors.background.primary
-                        : colors.gray[600]
+                        ? getColor.background.primary
+                        : getColor.gray[600]
                     }
                     style={{ marginRight: 8 }}
                   />
@@ -440,8 +444,8 @@ export default function RegisterScreen() {
                       fontWeight: "600",
                       color:
                         gender === option.value
-                          ? colors.background.primary
-                          : colors.gray[600],
+                          ? getColor.background.primary
+                          : getColor.gray[600],
                       fontFamily: "Nunito",
                     }}
                   >
@@ -454,7 +458,7 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: colors.error[500],
+                  color: getColor.error[500],
                   marginBottom: 16,
                   fontFamily: "Nunito",
                 }}
@@ -468,7 +472,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: colors.gray[700],
+                color: getColor.gray[700],
                 marginBottom: 8,
                 fontFamily: "Nunito",
               }}
@@ -480,9 +484,9 @@ export default function RegisterScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 borderWidth: 1,
-                borderColor: ageError ? colors.error[500] : colors.gray[300],
+                borderColor: ageError ? getColor.error[500] : getColor.gray[300],
                 borderRadius: 8,
-                backgroundColor: colors.background.primary,
+                backgroundColor: getColor.background.primary,
                 marginBottom: ageError ? 4 : 16,
                 paddingHorizontal: 15,
               }}
@@ -490,7 +494,7 @@ export default function RegisterScreen() {
               <Ionicons
                 name="calendar-outline"
                 size={20}
-                color={ageError ? colors.error[500] : colors.gray[500]}
+                color={ageError ? getColor.error[500] : getColor.gray[500]}
                 style={{ marginRight: 12 }}
               />
               <TextInput
@@ -502,9 +506,9 @@ export default function RegisterScreen() {
                   padding: 15,
                   fontSize: 16,
                   fontFamily: "Nunito",
-                  color: colors.gray[900],
+                  color: getColor.gray[900],
                 }}
-                placeholderTextColor={colors.gray[400]}
+                placeholderTextColor={getColor.gray[400]}
                 keyboardType="number-pad"
                 maxLength={3}
               />
@@ -513,7 +517,7 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: colors.error[500],
+                  color: getColor.error[500],
                   marginBottom: 16,
                   fontFamily: "Nunito",
                 }}
@@ -527,7 +531,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: colors.gray[700],
+                color: getColor.gray[700],
                 marginBottom: 8,
                 fontFamily: "Nunito",
               }}
@@ -539,9 +543,9 @@ export default function RegisterScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 borderWidth: 1,
-                borderColor: emailError ? colors.error[500] : colors.gray[300],
+                borderColor: emailError ? getColor.error[500] : getColor.gray[300],
                 borderRadius: 8,
-                backgroundColor: colors.background.primary,
+                backgroundColor: getColor.background.primary,
                 marginBottom: emailError ? 4 : 16,
                 paddingHorizontal: 15,
               }}
@@ -549,7 +553,7 @@ export default function RegisterScreen() {
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={emailError ? colors.error[500] : colors.gray[500]}
+                color={emailError ? getColor.error[500] : getColor.gray[500]}
                 style={{ marginRight: 12 }}
               />
               <TextInput
@@ -561,9 +565,9 @@ export default function RegisterScreen() {
                   padding: 15,
                   fontSize: 16,
                   fontFamily: "Nunito",
-                  color: colors.gray[900],
+                  color: getColor.gray[900],
                 }}
-                placeholderTextColor={colors.gray[400]}
+                placeholderTextColor={getColor.gray[400]}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -573,7 +577,7 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: colors.error[500],
+                  color: getColor.error[500],
                   marginBottom: 16,
                   fontFamily: "Nunito",
                 }}
@@ -587,7 +591,7 @@ export default function RegisterScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: "500",
-                color: colors.gray[700],
+                color: getColor.gray[700],
                 marginBottom: 8,
                 fontFamily: "Nunito",
               }}
@@ -600,10 +604,10 @@ export default function RegisterScreen() {
                 alignItems: "center",
                 borderWidth: 1,
                 borderColor: passwordError
-                  ? colors.error[500]
-                  : colors.gray[300],
+                  ? getColor.error[500]
+                  : getColor.gray[300],
                 borderRadius: 8,
-                backgroundColor: colors.background.primary,
+                backgroundColor: getColor.background.primary,
                 marginBottom: passwordError ? 4 : 8,
                 paddingHorizontal: 15,
               }}
@@ -611,7 +615,7 @@ export default function RegisterScreen() {
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color={passwordError ? colors.error[500] : colors.gray[500]}
+                color={passwordError ? getColor.error[500] : getColor.gray[500]}
                 style={{ marginRight: 12 }}
               />
               <TextInput
@@ -624,9 +628,9 @@ export default function RegisterScreen() {
                   padding: 15,
                   fontSize: 16,
                   fontFamily: "Nunito",
-                  color: colors.gray[900],
+                  color: getColor.gray[900],
                 }}
-                placeholderTextColor={colors.gray[400]}
+                placeholderTextColor={getColor.gray[400]}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -637,7 +641,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={20}
-                  color={colors.gray[500]}
+                  color={getColor.gray[500]}
                 />
               </TouchableOpacity>
             </View>
@@ -645,7 +649,7 @@ export default function RegisterScreen() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: colors.error[500],
+                  color: getColor.error[500],
                   marginBottom: 8,
                   fontFamily: "Nunito",
                 }}
@@ -658,7 +662,7 @@ export default function RegisterScreen() {
             <Text
               style={{
                 fontSize: 12,
-                color: colors.gray[500],
+                color: getColor.gray[500],
                 marginBottom: 24,
                 fontFamily: "Nunito",
               }}
@@ -670,14 +674,18 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={{
                 backgroundColor: isLoading
-                  ? colors.gray[300]
-                  : colors.secondary[500], // ✅ NARANJA OFICIAL
+                  ? getColor.gray[300]
+                  : getColor.secondary[500], // ✅ NARANJA OFICIAL
                 borderRadius: 8,
                 padding: 15,
                 alignItems: "center",
                 marginBottom: 16,
                 opacity: isLoading ? 0.6 : 1,
-                ...shadows.orange, // ✅ SOMBRA NARANJA OFICIAL
+                shadowColor: getColor.secondary[500],
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 3,
               }}
               onPress={handleRegister}
               disabled={isLoading}
@@ -685,7 +693,7 @@ export default function RegisterScreen() {
             >
               <Text
                 style={{
-                  color: colors.background.primary,
+                  color: getColor.background.primary,
                   fontSize: 16,
                   fontWeight: "600",
                   fontFamily: "Nunito",
@@ -701,7 +709,7 @@ export default function RegisterScreen() {
                 style={{
                   fontSize: 16,
                   textAlign: "center",
-                  color: colors.gray[600],
+                  color: getColor.gray[600],
                   fontFamily: "Nunito",
                 }}
               >
@@ -709,7 +717,7 @@ export default function RegisterScreen() {
                 <Text
                   style={{
                     fontSize: 16,
-                    color: colors.primary[500], // ✅ AZUL OFICIAL INSTASCORE
+                    color: getColor.primary[500], // ✅ AZUL OFICIAL INSTASCORE
                     fontWeight: "600",
                     fontFamily: "Nunito",
                   }}

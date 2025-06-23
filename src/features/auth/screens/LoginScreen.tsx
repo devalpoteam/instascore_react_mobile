@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { View, Image, TouchableOpacity, TextInput, StatusBar, Alert, Text } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
-import { colors, shadows } from '@/design/colors';
+import { getColor } from '@/design/colorHelper';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/features/auth/store/authSlice';
 import { useNavigation } from '@react-navigation/native';
@@ -128,11 +128,11 @@ export default function LoginScreen() {
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background.primary} translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor={getColor.background.primary} translucent={false} />
       
       <View style={{ 
         flex: 1, 
-        backgroundColor: colors.background.lighter, 
+        backgroundColor: getColor.background.lighter, 
         padding: 20, 
         justifyContent: 'center' 
       }}>
@@ -145,7 +145,7 @@ export default function LoginScreen() {
             top: 50,
             right: 20,
             zIndex: 10,
-            backgroundColor: colors.gray[600],
+            backgroundColor: getColor.gray[600],
             borderRadius: 20,
             paddingHorizontal: 12,
             paddingVertical: 6,
@@ -153,7 +153,7 @@ export default function LoginScreen() {
           activeOpacity={0.7}
         >
           <Text style={{ 
-            color: colors.background.primary, 
+            color: getColor.background.primary, 
             fontSize: 12, 
             fontWeight: 'bold' 
           }}>
@@ -173,27 +173,31 @@ export default function LoginScreen() {
         {/* ✅ CONTENEDOR PRINCIPAL CON SOMBRA OFICIAL */}
         <View style={{
           width: '100%',
-          backgroundColor: colors.background.primary,
+          backgroundColor: getColor.background.primary,
           padding: 20,
           borderRadius: 12,
           borderWidth: 1,
-          borderColor: colors.gray[300],
-          ...shadows.instascore, // ✅ SOMBRA OFICIAL INSTASCORE
+          borderColor: getColor.gray[300],
+          shadowColor: getColor.primary[500],
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
         }}>
           
           {/* ERROR GLOBAL */}
           {authError && (
             <View style={{
-              backgroundColor: colors.error[100],
+              backgroundColor: getColor.error[100],
               borderWidth: 1,
-              borderColor: colors.error[500],
+              borderColor: getColor.error[500],
               padding: 12,
               borderRadius: 8,
               marginBottom: 16,
             }}>
               <Text style={{
                 fontSize: 14,
-                color: colors.error[500],
+                color: getColor.error[500],
                 textAlign: 'center'
               }}>
                 {authError}
@@ -205,7 +209,7 @@ export default function LoginScreen() {
           <Text style={{
             fontSize: 16,
             fontWeight: '500',
-            color: colors.gray[700],
+            color: getColor.gray[700],
             marginBottom: 8,
             fontFamily: 'Nunito'
           }}>
@@ -217,16 +221,16 @@ export default function LoginScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: emailError ? colors.error[500] : colors.gray[300],
+            borderColor: emailError ? getColor.error[500] : getColor.gray[300],
             borderRadius: 8,
-            backgroundColor: colors.background.primary,
+            backgroundColor: getColor.background.primary,
             marginBottom: emailError ? 4 : 16,
             paddingHorizontal: 15,
           }}>
             <Ionicons 
               name="mail-outline" 
               size={20} 
-              color={emailError ? colors.error[500] : colors.gray[500]} 
+              color={emailError ? getColor.error[500] : getColor.gray[500]} 
               style={{ marginRight: 12 }}
             />
             <TextInput
@@ -238,9 +242,9 @@ export default function LoginScreen() {
                 padding: 15,
                 fontSize: 16,
                 fontFamily: 'Nunito',
-                color: colors.gray[900],
+                color: getColor.gray[900],
               }}
-              placeholderTextColor={colors.gray[400]}
+              placeholderTextColor={getColor.gray[400]}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -256,7 +260,7 @@ export default function LoginScreen() {
           {emailError && (
             <Text style={{
               fontSize: 12,
-              color: colors.error[500],
+              color: getColor.error[500],
               marginBottom: 16,
               fontFamily: 'Nunito'
             }}>
@@ -268,7 +272,7 @@ export default function LoginScreen() {
           <Text style={{
             fontSize: 16,
             fontWeight: '500',
-            color: colors.gray[700],
+            color: getColor.gray[700],
             marginBottom: 8,
             fontFamily: 'Nunito'
           }}>
@@ -280,16 +284,16 @@ export default function LoginScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: passwordError ? colors.error[500] : colors.gray[300],
+            borderColor: passwordError ? getColor.error[500] : getColor.gray[300],
             borderRadius: 8,
-            backgroundColor: colors.background.primary,
+            backgroundColor: getColor.background.primary,
             marginBottom: passwordError ? 4 : 8,
             paddingHorizontal: 15,
           }}>
             <Ionicons 
               name="lock-closed-outline" 
               size={20} 
-              color={passwordError ? colors.error[500] : colors.gray[500]} 
+              color={passwordError ? getColor.error[500] : getColor.gray[500]} 
               style={{ marginRight: 12 }}
             />
             <TextInput
@@ -302,9 +306,9 @@ export default function LoginScreen() {
                 padding: 15,
                 fontSize: 16,
                 fontFamily: 'Nunito',
-                color: colors.gray[900],
+                color: getColor.gray[900],
               }}
-              placeholderTextColor={colors.gray[400]}
+              placeholderTextColor={getColor.gray[400]}
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="password"
@@ -320,7 +324,7 @@ export default function LoginScreen() {
           {passwordError && (
             <Text style={{
               fontSize: 12,
-              color: colors.error[500],
+              color: getColor.error[500],
               marginBottom: 8,
               fontFamily: 'Nunito'
             }}>
@@ -335,7 +339,7 @@ export default function LoginScreen() {
           >
             <Text style={{
               fontSize: 14,
-              color: colors.primary[500],
+              color: getColor.primary[500],
               fontWeight: '500',
               fontFamily: 'Nunito'
             }}>
@@ -346,20 +350,24 @@ export default function LoginScreen() {
           {/* ✅ BOTÓN LOGIN CON COLORES OFICIALES */}
           <TouchableOpacity
             style={{
-              backgroundColor: isLoading ? colors.gray[300] : colors.primary[500], // ✅ AZUL OFICIAL
+              backgroundColor: isLoading ? getColor.gray[300] : getColor.primary[500], // ✅ AZUL OFICIAL
               borderRadius: 8,
               padding: 15,
               alignItems: 'center',
               marginBottom: 16,
               opacity: isLoading ? 0.6 : 1,
-              ...shadows.instascore, // ✅ SOMBRA OFICIAL
+              shadowColor: getColor.primary[500],
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
             }}
             onPress={handleLogin}
             disabled={isLoading}
             activeOpacity={0.8}
           >
             <Text style={{
-              color: colors.background.primary,
+              color: getColor.background.primary,
               fontSize: 16,
               fontWeight: '600',
               fontFamily: 'Nunito'
@@ -372,9 +380,9 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={{
               width: '100%',
-              backgroundColor: colors.background.primary,
+              backgroundColor: getColor.background.primary,
               borderWidth: 1,
-              borderColor: colors.gray[300],
+              borderColor: getColor.gray[300],
               borderRadius: 8,
               paddingVertical: 12,
               paddingHorizontal: 16,
@@ -397,7 +405,7 @@ export default function LoginScreen() {
             <Text style={{
               fontSize: 16,
               fontWeight: '500',
-              color: colors.gray[700],
+              color: getColor.gray[700],
               fontFamily: 'Nunito'
             }}>
               {isLoading ? "Conectando..." : "Continuar con Google"}
@@ -413,18 +421,18 @@ export default function LoginScreen() {
             <View style={{ 
               flex: 1, 
               height: 1, 
-              backgroundColor: colors.gray[300] 
+              backgroundColor: getColor.gray[300] 
             }} />
             <View style={{ paddingHorizontal: 16 }}>
               <Text style={{ 
                 fontSize: 14, 
-                color: colors.gray[500] 
+                color: getColor.gray[500] 
               }}>o</Text>
             </View>
             <View style={{ 
               flex: 1, 
               height: 1, 
-              backgroundColor: colors.gray[300] 
+              backgroundColor: getColor.gray[300] 
             }} />
           </View>
 
@@ -433,13 +441,13 @@ export default function LoginScreen() {
             <Text style={{
               fontSize: 16,
               textAlign: 'center',
-              color: colors.gray[600],
+              color: getColor.gray[600],
               fontFamily: 'Nunito'
             }}>
               ¿No tienes cuenta?{" "}
               <Text style={{
                 fontSize: 16,
-                color: colors.primary[500], // ✅ AZUL OFICIAL INSTASCORE
+                color: getColor.primary[500], // ✅ AZUL OFICIAL INSTASCORE
                 fontWeight: '600',
                 fontFamily: 'Nunito'
               }}>
