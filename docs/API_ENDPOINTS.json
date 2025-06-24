@@ -1,0 +1,1449 @@
+{
+	"info": {
+		"_postman_id": "3f7a500d-bad0-4a7e-be93-ee1b325de6be",
+		"name": "InstaScore Mobile API Collection",
+		"description": "Colección de endpoints específicos para la aplicación móvil de InstaScore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39547514"
+	},
+	"item": [
+		{
+			"name": "01. Authentication",
+			"item": [
+				{
+					"name": "Sign In with Google",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url_login}}/api/Auth/signin",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Google Callback",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url_login}}/api/Auth/callback",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"callback"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"password\": \"password123\",\n  \"fullName\": \"Nombre Completo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Auth/register",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"daniel.toledo@devalpo.cl\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Auth/login",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/Auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"Auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticación para la app móvil"
+		},
+		{
+			"name": "02. User Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_login}}/api/Roles/profile",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Roles",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"123\",\n  \"userName\": \"NuevoNombre\",\n  \"email\": \"nuevo@ejemplo.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Users/update",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Users",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"passwordActual\",\n  \"newPassword\": \"passwordNuevo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Users/change-password",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Users",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@ejemplo.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Users/forgot-password",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Users",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@ejemplo.com\",\n  \"token\": \"reset_token\",\n  \"newPassword\": \"passwordNuevo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url_login}}/api/Users/reset-password",
+							"host": [
+								"{{base_url_login}}"
+							],
+							"path": [
+								"api",
+								"Users",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Gestión del perfil de usuario"
+		},
+		{
+			"name": "03. Campeonatos",
+			"item": [
+				{
+					"name": "Get All Campeonatos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Campeonato/GetAll",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Campeonato",
+								"GetAll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Campeonato By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Campeonato/GetById?id={{campeonatoId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Campeonato",
+								"GetById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{campeonatoId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logo By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Campeonato/GetLogoById?id={{campeonatoId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Campeonato",
+								"GetLogoById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{campeonatoId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Información de campeonatos"
+		},
+		{
+			"name": "04. Categorías",
+			"item": [
+				{
+					"name": "Get All Categorias",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Categoria/GetAll",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Categoria",
+								"GetAll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Categorias By Campeonato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Categoria/GetByCampeonato?campeonatoId={{campeonatoId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Categoria",
+								"GetByCampeonato"
+							],
+							"query": [
+								{
+									"key": "campeonatoId",
+									"value": "{{campeonatoId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Categoria By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Categoria/GetById?id={{categoriaId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Categoria",
+								"GetById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{categoriaId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Información de categorías"
+		},
+		{
+			"name": "05. Delegaciones",
+			"item": [
+				{
+					"name": "Get All Delegaciones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Delegacion/GetAll",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Delegacion",
+								"GetAll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delegacion By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Delegacion/GetById?id={{delegacionId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Delegacion",
+								"GetById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{delegacionId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logo By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_crud}}/Delegacion/GetLogoById?id={{delegacionId}}",
+							"host": [
+								"{{base_url_crud}}"
+							],
+							"path": [
+								"Delegacion",
+								"GetLogoById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{delegacionId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Información de delegaciones/clubes"
+		},
+		{
+			"name": "06. Aparatos & Niveles",
+			"item": [
+				{
+					"name": "Aparatos",
+					"item": [
+						{
+							"name": "Get All Aparatos",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Aparatos/GetAll",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Aparatos",
+										"GetAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Aparatos By Nivel",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Aparatos/GetByNivel?nivelId={{nivelId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Aparatos",
+										"GetByNivel"
+									],
+									"query": [
+										{
+											"key": "nivelId",
+											"value": "{{nivelId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Aparato By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Aparatos/GetByIdAparato?id={{aparatoId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Aparatos",
+										"GetByIdAparato"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "{{aparatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Niveles",
+					"item": [
+						{
+							"name": "Get All Niveles",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Nivel/GetAll",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Nivel",
+										"GetAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Nivel By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Nivel/GetById?id={{nivelId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Nivel",
+										"GetById"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "{{nivelId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Franjas",
+					"item": [
+						{
+							"name": "Get All Franjas",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Franja/GetAll",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Franja",
+										"GetAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Franja By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Franja/GetById?id={{franjaId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Franja",
+										"GetById"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "{{franjaId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Información de aparatos, niveles y franjas"
+		},
+		{
+			"name": "07. Dashboard Statistics",
+			"item": [
+				{
+					"name": "Por Campeonato",
+					"item": [
+						{
+							"name": "Count Categorias",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Home/countCategorias?campeonatoId={{campeonatoId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Home",
+										"countCategorias"
+									],
+									"query": [
+										{
+											"key": "campeonatoId",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count Delegaciones",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Home/countDelegaciones?campeonatoId={{campeonatoId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Home",
+										"countDelegaciones"
+									],
+									"query": [
+										{
+											"key": "campeonatoId",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count Dias Campeonato",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Home/countDiasCampeonatos?campeonatoId={{campeonatoId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Home",
+										"countDiasCampeonatos"
+									],
+									"query": [
+										{
+											"key": "campeonatoId",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count Participantes",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_crud}}/Home/countParticipantes?campeonatoId={{campeonatoId}}",
+									"host": [
+										"{{base_url_crud}}"
+									],
+									"path": [
+										"Home",
+										"countParticipantes"
+									],
+									"query": [
+										{
+											"key": "campeonatoId",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Totales Generales",
+					"item": [
+						{
+							"name": "Count Categorias Total",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/HomeControllerGeneral/countCategorias",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"HomeControllerGeneral",
+										"countCategorias"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count Delegaciones Total",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/HomeControllerGeneral/countDelegaciones",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"HomeControllerGeneral",
+										"countDelegaciones"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count Participantes Total",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/HomeControllerGeneral/countParticipantes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"HomeControllerGeneral",
+										"countParticipantes"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Estadísticas y contadores para el dashboard"
+		},
+		{
+			"name": "08. Participantes & Divisiones",
+			"item": [
+				{
+					"name": "Participantes",
+					"item": [
+						{
+							"name": "Cantidad Participantes Por Campeonato",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_inscripcion}}/api/Inscripciones/CantidadParticipantesPorCampeonato?idCampeonato={{campeonatoId}}",
+									"host": [
+										"{{base_url_inscripcion}}"
+									],
+									"path": [
+										"api",
+										"Inscripciones",
+										"CantidadParticipantesPorCampeonato"
+									],
+									"query": [
+										{
+											"key": "idCampeonato",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Lista Participantes Campeonato",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_inscripcion}}/api/Inscripciones/ListaParticipantesCampeonato?id={{campeonatoId}}",
+									"host": [
+										"{{base_url_inscripcion}}"
+									],
+									"path": [
+										"api",
+										"Inscripciones",
+										"ListaParticipantesCampeonato"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Divisiones",
+					"item": [
+						{
+							"name": "Get All Divisiones",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_inscripcion}}/api/Divisiones/GetAll?idCampeonato={{campeonatoId}}",
+									"host": [
+										"{{base_url_inscripcion}}"
+									],
+									"path": [
+										"api",
+										"Divisiones",
+										"GetAll"
+									],
+									"query": [
+										{
+											"key": "idCampeonato",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Participantes Por Franja",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_inscripcion}}/api/Divisiones/ParticipantesPorFranja?idCampeonato={{campeonatoId}}",
+									"host": [
+										"{{base_url_inscripcion}}"
+									],
+									"path": [
+										"api",
+										"Divisiones",
+										"ParticipantesPorFranja"
+									],
+									"query": [
+										{
+											"key": "idCampeonato",
+											"value": "{{campeonatoId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Participantes Por Club Franja",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url_inscripcion}}/api/Divisiones/ParticipantesPorClubFranja?idFranja={{franjaId}}",
+									"host": [
+										"{{base_url_inscripcion}}"
+									],
+									"path": [
+										"api",
+										"Divisiones",
+										"ParticipantesPorClubFranja"
+									],
+									"query": [
+										{
+											"key": "idFranja",
+											"value": "{{franjaId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Información de participantes y divisiones"
+		},
+		{
+			"name": "09. Puntajes",
+			"item": [
+				{
+					"name": "Get Participante Puntaje",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PuntajesAparato/participantePuntaje?idParticipante={{participanteId}}",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PuntajesAparato",
+								"participantePuntaje"
+							],
+							"query": [
+								{
+									"key": "idParticipante",
+									"value": "{{participanteId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Puntajes Campeonato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PuntajesAparato/PuntajesCampeonato?campeonatoId={{campeonatoId}}&categoriaId={{categoriaId}}&nivelId={{nivelId}}&aparatoId={{aparatoId}}&disciplina={{disciplina}}&delegacionId={{delegacionId}}&franjaId={{franjaId}}",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PuntajesAparato",
+								"PuntajesCampeonato"
+							],
+							"query": [
+								{
+									"key": "campeonatoId",
+									"value": "{{campeonatoId}}"
+								},
+								{
+									"key": "categoriaId",
+									"value": "{{categoriaId}}"
+								},
+								{
+									"key": "nivelId",
+									"value": "{{nivelId}}"
+								},
+								{
+									"key": "aparatoId",
+									"value": "{{aparatoId}}"
+								},
+								{
+									"key": "disciplina",
+									"value": "{{disciplina}}"
+								},
+								{
+									"key": "delegacionId",
+									"value": "{{delegacionId}}"
+								},
+								{
+									"key": "franjaId",
+									"value": "{{franjaId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Consulta de puntajes y resultados"
+		},
+		{
+			"name": "10. Premiaciones & Resultados",
+			"item": [
+				{
+					"name": "Get All Resultados",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PremiacionesResultados/GetAllResultados",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PremiacionesResultados",
+								"GetAllResultados"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resultados By Campeonato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PremiacionesResultados/ResultadosGetByIdCampeonato?campeonatoId={{campeonatoId}}",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PremiacionesResultados",
+								"ResultadosGetByIdCampeonato"
+							],
+							"query": [
+								{
+									"key": "campeonatoId",
+									"value": "{{campeonatoId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Premiaciones Individuales",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PremiacionesResultados/individuales?campeonatoId={{campeonatoId}}&categoriaId={{categoriaId}}&nivelId={{nivelId}}&aparatoId={{aparatoId}}&disciplina={{disciplina}}&delegacionId={{delegacionId}}&franjaId={{franjaId}}",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PremiacionesResultados",
+								"individuales"
+							],
+							"query": [
+								{
+									"key": "campeonatoId",
+									"value": "{{campeonatoId}}"
+								},
+								{
+									"key": "categoriaId",
+									"value": "{{categoriaId}}"
+								},
+								{
+									"key": "nivelId",
+									"value": "{{nivelId}}"
+								},
+								{
+									"key": "aparatoId",
+									"value": "{{aparatoId}}"
+								},
+								{
+									"key": "disciplina",
+									"value": "{{disciplina}}"
+								},
+								{
+									"key": "delegacionId",
+									"value": "{{delegacionId}}"
+								},
+								{
+									"key": "franjaId",
+									"value": "{{franjaId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Premiaciones Equipos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url_inscripcion}}/api/PremiacionesResultados/equipos?campeonatoId={{campeonatoId}}&delegacionId={{delegacionId}}&categoriaId={{categoriaId}}&nivelId={{nivelId}}",
+							"host": [
+								"{{base_url_inscripcion}}"
+							],
+							"path": [
+								"api",
+								"PremiacionesResultados",
+								"equipos"
+							],
+							"query": [
+								{
+									"key": "campeonatoId",
+									"value": "{{campeonatoId}}"
+								},
+								{
+									"key": "delegacionId",
+									"value": "{{delegacionId}}"
+								},
+								{
+									"key": "categoriaId",
+									"value": "{{categoriaId}}"
+								},
+								{
+									"key": "nivelId",
+									"value": "{{nivelId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Consulta de premiaciones y resultados finales"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url_login",
+			"value": "https://api-login-uat.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "campeonatoId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "categoriaId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "delegacionId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "participanteId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "aparatoId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "nivelId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "franjaId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "disciplina",
+			"value": "Individual",
+			"type": "string"
+		},
+		{
+			"key": "base_url_crud",
+			"value": "https://api-cruds-uat.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "base_url_inscripcion",
+			"value": "https://api-inscripcion-uat.up.railway.app",
+			"type": "string"
+		}
+	]
+}
