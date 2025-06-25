@@ -7,17 +7,23 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/features/auth/store/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import { useResponsive } from "@/shared/hooks/useResponsive";
+// ✅ IMPORTAR EL NUEVO MODAL
+import ForgotPasswordModal from '@/features/auth/components/ForgotPasswordModal';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const { isLoading, error: authError } = useAppSelector((state) => state.auth);
+  
   // ✅ ESTADO LOCAL PARA VALIDACIONES + REDUX PARA AUTH
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // ✅ ESTADO PARA EL MODAL DE FORGOT PASSWORD
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   const responsive = useResponsive();
 
@@ -94,25 +100,30 @@ export default function LoginScreen() {
 
   // 🔧 OTROS HANDLERS SIMPLES
   const handleGoogleLogin = () => {
-    console.log('🔍 Google login - SIN Keyboard.dismiss()');
+    console.log('🔍 Google login');
     Alert.alert('Info', 'Google login no implementado aún');
   };
 
   const navigateToRegister = () => {
     console.log('📝 Navigate to register');
-    navigation.navigate('Register' as never); // ✅ NAVEGACIÓN A REGISTER
+    navigation.navigate('Register' as never);
   };
 
   const showDevCredentials = () => {
-    console.log('🛠️ Dev credentials - SIN Keyboard.dismiss()');
+    console.log('🛠️ Dev credentials');
     setEmail('dev@test.com');
     setPassword('123456');
   };
 
-  // ✅ NUEVO HANDLER PARA OLVIDASTE CONTRASEÑA
+  // ✅ NUEVO HANDLER PARA FORGOT PASSWORD MODAL
   const handleForgotPassword = () => {
-    console.log('🔑 Forgot password');
-    Alert.alert('Recuperar contraseña', 'Funcionalidad no implementada aún');
+    console.log('🔑 Opening forgot password modal');
+    setShowForgotPasswordModal(true);
+  };
+
+  const handleCloseForgotPasswordModal = () => {
+    console.log('🔑 Closing forgot password modal');
+    setShowForgotPasswordModal(false);
   };
 
   // 🎯 HANDLERS PARA INPUTS
@@ -300,7 +311,7 @@ export default function LoginScreen() {
               placeholder="Ingresa tu contraseña"
               value={password}
               onChangeText={handlePasswordChange}
-              secureTextEntry={true}
+              secureTextEntry={!showPassword}
               style={{
                 flex: 1,
                 padding: 15,
@@ -318,6 +329,16 @@ export default function LoginScreen() {
               enablesReturnKeyAutomatically={false}
               onSubmitEditing={handleLogin}
             />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={{ padding: 5 }}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color={getColor.gray[500]}
+              />
+            </TouchableOpacity>
           </View>
 
           {/* PASSWORD ERROR */}
@@ -332,7 +353,7 @@ export default function LoginScreen() {
             </Text>
           )}
 
-          {/* ¿OLVIDASTE TU CONTRASEÑA? */}
+          {/* ✅ ¿OLVIDASTE TU CONTRASEÑA? - ACTUALIZADO */}
           <TouchableOpacity 
             onPress={handleForgotPassword}
             style={{ alignSelf: 'flex-end', marginBottom: responsive.isIOS ? 18 : 20 }}
@@ -350,7 +371,7 @@ export default function LoginScreen() {
           {/* ✅ BOTÓN LOGIN CON COLORES OFICIALES */}
           <TouchableOpacity
             style={{
-              backgroundColor: isLoading ? getColor.gray[300] : getColor.primary[500], // ✅ AZUL OFICIAL
+              backgroundColor: isLoading ? getColor.gray[300] : getColor.primary[500],
               borderRadius: 8,
               padding: 15,
               alignItems: 'center',
@@ -447,7 +468,7 @@ export default function LoginScreen() {
               ¿No tienes cuenta?{" "}
               <Text style={{
                 fontSize: 16,
-                color: getColor.primary[500], // ✅ AZUL OFICIAL INSTASCORE
+                color: getColor.primary[500],
                 fontWeight: '600',
                 fontFamily: 'Nunito'
               }}>
@@ -457,6 +478,12 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ✅ FORGOT PASSWORD MODAL */}
+      <ForgotPasswordModal
+        visible={showForgotPasswordModal}
+        onClose={handleCloseForgotPasswordModal}
+      />
     </>
   );
 }

@@ -1,3 +1,4 @@
+// src/styles/shadowStyles.ts
 import { Platform } from 'react-native';
 
 /**
