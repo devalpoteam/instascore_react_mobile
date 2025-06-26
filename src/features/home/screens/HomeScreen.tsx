@@ -1,4 +1,4 @@
-// src/features/home/screens/HomeScreen.tsx
+// src/features/home/screens/HomeScreen.tsx - OPCIÓN 1: MODAL
 import React, { useState } from 'react';
 import { 
   View, 
@@ -12,11 +12,20 @@ import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
+import CampeonatoSelectorModal from '@/features/home/components/CampeonatoSelectorModal';
 
-// Mock data - será reemplazado por APIs
+// Mock data expandido - 10 campeonatos - CORREGIDO
 const mockCampeonatos = [
-  { id: '1', nombre: 'Copa Valparaíso 2024', activo: true },
-  { id: '2', nombre: 'Gimnasia Artística Valparaíso', activo: false },
+  { id: '1', nombre: 'Copa Valparaíso 2024', activo: true, fecha: '15-20 Nov' },
+  { id: '2', nombre: 'Gimnasia Artística Valparaíso', activo: false, fecha: '5-10 Oct' },
+  { id: '3', nombre: 'Campeonato Nacional Juvenil', activo: true, fecha: '25-30 Nov' },
+  { id: '4', nombre: 'Copa Regional Centro', activo: false, fecha: '1-5 Sep' },
+  { id: '5', nombre: 'Torneo Interclubes', activo: true, fecha: '10-15 Dic' },
+  { id: '6', nombre: 'Campeonato Escolar', activo: false, fecha: '20-25 Ago' },
+  { id: '7', nombre: 'Copa Internacional', activo: true, fecha: '5-10 Ene' },
+  { id: '8', nombre: 'Torneo de Verano', activo: false, fecha: '15-20 Jul' },
+  { id: '9', nombre: 'Campeonato Adulto Mayor', activo: true, fecha: '25-30 Dic' },
+  { id: '10', nombre: 'Copa Primavera', activo: false, fecha: '10-15 Sep' },
 ];
 
 const mockStats = {
@@ -30,10 +39,10 @@ export default function HomeScreen() {
   const [selectedCampeonato, setSelectedCampeonato] = useState(mockCampeonatos[0]);
   const [refreshing, setRefreshing] = useState(false);
   const [showStats, setShowStats] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Simular refresh
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -46,10 +55,8 @@ export default function HomeScreen() {
 
   const handleNotificationPress = () => {
     console.log('🔔 Notifications pressed');
-    // Aquí se implementará la lógica de notificaciones
   };
 
-  // Calcular padding bottom dinámico para el ScrollView
   const getScrollViewPaddingBottom = () => {
     if (responsive.isTablet) return 40;
     if (responsive.isIOS) return responsive.insets.bottom > 0 ? 25 : 20;
@@ -58,7 +65,6 @@ export default function HomeScreen() {
 
   return (
     <BaseLayout>
-      {/* Header con logo - SIN SUBTÍTULO */}
       <Header 
         showLogo={true}
         onNotificationPress={handleNotificationPress}
@@ -68,7 +74,7 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ 
           padding: responsive.spacing.md,
-          paddingBottom: getScrollViewPaddingBottom(), // Espaciado dinámico para BottomNav
+          paddingBottom: getScrollViewPaddingBottom(),
         }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -81,92 +87,94 @@ export default function HomeScreen() {
         }
       >
         
-        {/* SELECTOR DE CAMPEONATO */}
-        <View style={{
-          backgroundColor: getColor.background.primary,
-          borderRadius: 12,
-          padding: responsive.spacing.lg,
-          marginBottom: responsive.spacing.lg,
-          borderWidth: 1,
-          borderColor: getColor.gray[200],
-          shadowColor: getColor.primary[500],
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}>
-          <Text style={{
-            fontSize: responsive.fontSize.lg,
-            fontWeight: '600',
-            color: getColor.gray[800],
-            fontFamily: 'Nunito',
-            marginBottom: responsive.spacing.md,
-          }}>
-            Seleccionar Campeonato
-          </Text>
-          
-          {mockCampeonatos.map((campeonato) => (
-            <TouchableOpacity
-              key={campeonato.id}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: responsive.spacing.md,
-                borderRadius: 8,
-                backgroundColor: selectedCampeonato?.id === campeonato.id 
-                  ? getColor.primary[50] 
-                  : 'transparent',
-                borderWidth: 1,
-                borderColor: selectedCampeonato?.id === campeonato.id 
-                  ? getColor.primary[500] 
-                  : getColor.gray[200],
-                marginBottom: responsive.spacing.sm,
-              }}
-              onPress={() => handleCampeonatoSelect(campeonato)}
-              activeOpacity={0.7}
-            >
-              <View style={{
-                width: 12,
-                height: 12,
-                borderRadius: 6,
-                backgroundColor: campeonato.activo 
-                  ? getColor.success[500] 
-                  : getColor.gray[400],
-                marginRight: 12,
-              }} />
+        {/* SELECTOR DE CAMPEONATO CON MODAL */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: getColor.background.primary,
+            borderRadius: 12,
+            padding: responsive.spacing.lg,
+            marginBottom: responsive.spacing.lg,
+            borderWidth: 1,
+            borderColor: getColor.gray[200],
+            shadowColor: getColor.primary[500],
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}
+          onPress={() => setShowModal(true)}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: responsive.fontSize.lg,
+                fontWeight: '600',
+                color: getColor.gray[800],
+                fontFamily: 'Nunito',
+                marginBottom: 4,
+              }}>
+                Campeonato Seleccionado
+              </Text>
               
-              <View style={{ flex: 1 }}>
-                <Text style={{
-                  fontSize: responsive.fontSize.base,
-                  fontWeight: selectedCampeonato?.id === campeonato.id ? '600' : '400',
-                  color: selectedCampeonato?.id === campeonato.id 
-                    ? getColor.primary[600] 
-                    : getColor.gray[700],
-                  fontFamily: 'Nunito',
-                }}>
-                  {campeonato.nombre}
-                </Text>
-                <Text style={{
-                  fontSize: responsive.fontSize.sm,
-                  color: getColor.gray[500],
-                  fontFamily: 'Nunito',
-                  marginTop: 2,
-                }}>
-                  {campeonato.activo ? 'En curso' : 'Finalizado'}
-                </Text>
-              </View>
+              {selectedCampeonato && (
+                <>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <View style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: selectedCampeonato.activo ? getColor.success[500] : getColor.gray[400],
+                      marginRight: 8,
+                    }} />
+                    <Text style={{
+                      fontSize: responsive.fontSize.base,
+                      color: getColor.primary[600],
+                      fontFamily: 'Nunito',
+                      fontWeight: '500',
+                      flex: 1,
+                    }}>
+                      {selectedCampeonato.nombre}
+                    </Text>
+                  </View>
+                  <Text style={{
+                    fontSize: responsive.fontSize.sm,
+                    color: getColor.gray[500],
+                    fontFamily: 'Nunito',
+                  }}>
+                    {selectedCampeonato.activo ? 'En curso' : 'Finalizado'} • {selectedCampeonato.fecha}
+                  </Text>
+                </>
+              )}
               
-              <Ionicons 
-                name="chevron-forward" 
-                size={20} 
-                color={selectedCampeonato?.id === campeonato.id 
-                  ? getColor.primary[500] 
-                  : getColor.gray[400]} 
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                color: getColor.gray[400],
+                fontFamily: 'Nunito',
+                marginTop: 8,
+              }}>
+                Toca aquí para ver otros campeonatos • {mockCampeonatos.length} disponibles
+              </Text>
+            </View>
+            
+            <View style={{
+              backgroundColor: getColor.primary[50],
+              borderRadius: 20,
+              padding: 8,
+            }}>
+              <Ionicons name="chevron-down" size={20} color={getColor.primary[500]} />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* MODAL DE SELECCIÓN */}
+        <CampeonatoSelectorModal
+          visible={showModal}
+          campeonatos={mockCampeonatos}
+          selectedCampeonato={selectedCampeonato}
+          onSelect={handleCampeonatoSelect}
+          onClose={() => setShowModal(false)}
+        />
 
         {/* ESTADÍSTICAS DEL CAMPEONATO */}
         {showStats && selectedCampeonato && (
@@ -182,14 +190,10 @@ export default function HomeScreen() {
               {selectedCampeonato.nombre}
             </Text>
             
-            {/* GRID DE ESTADÍSTICAS */}
-            <View style={{
-              gap: responsive.spacing.md,
-            }}>
-              
+            <View style={{ gap: responsive.spacing.md }}>
               {/* Card Categorías */}
               <View style={{
-                backgroundColor: getColor.primary[500], // Azul oficial
+                backgroundColor: getColor.primary[500],
                 borderRadius: 16,
                 padding: responsive.spacing.xl,
                 alignItems: 'center',
@@ -205,7 +209,7 @@ export default function HomeScreen() {
                   fontSize: responsive.fontSize['4xl'],
                   fontWeight: '700',
                   color: getColor.background.primary,
-                  fontFamily: 'Montserrat', // Fuente de marca para números
+                  fontFamily: 'Montserrat',
                   lineHeight: responsive.fontSize['4xl'] * 1.1,
                 }}>
                   {mockStats.categorias}
@@ -224,7 +228,7 @@ export default function HomeScreen() {
 
               {/* Card Delegaciones */}
               <View style={{
-                backgroundColor: getColor.primary[500], // Azul oficial
+                backgroundColor: getColor.primary[500],
                 borderRadius: 16,
                 padding: responsive.spacing.xl,
                 alignItems: 'center',
@@ -240,7 +244,7 @@ export default function HomeScreen() {
                   fontSize: responsive.fontSize['4xl'],
                   fontWeight: '700',
                   color: getColor.background.primary,
-                  fontFamily: 'Montserrat', // Fuente de marca para números
+                  fontFamily: 'Montserrat',
                   lineHeight: responsive.fontSize['4xl'] * 1.1,
                 }}>
                   {mockStats.delegaciones}
@@ -259,7 +263,7 @@ export default function HomeScreen() {
 
               {/* Card Participantes */}
               <View style={{
-                backgroundColor: getColor.primary[500], // Azul oficial
+                backgroundColor: getColor.primary[500],
                 borderRadius: 16,
                 padding: responsive.spacing.xl,
                 alignItems: 'center',
@@ -275,7 +279,7 @@ export default function HomeScreen() {
                   fontSize: responsive.fontSize['4xl'],
                   fontWeight: '700',
                   color: getColor.background.primary,
-                  fontFamily: 'Montserrat', // Fuente de marca para números
+                  fontFamily: 'Montserrat',
                   lineHeight: responsive.fontSize['4xl'] * 1.1,
                 }}>
                   {mockStats.participantes}
@@ -324,10 +328,9 @@ export default function HomeScreen() {
             gap: responsive.spacing.sm,
           }}>
             
-            {/* Botón Resultados en Vivo */}
             <TouchableOpacity style={{
               flex: 1,
-              backgroundColor: getColor.secondary[500], // Naranja oficial
+              backgroundColor: getColor.secondary[500],
               borderRadius: 12,
               padding: responsive.spacing.md,
               alignItems: 'center',
@@ -354,7 +357,6 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Botón Ver Gimnastas */}
             <TouchableOpacity style={{
               flex: 1,
               backgroundColor: getColor.background.primary,
