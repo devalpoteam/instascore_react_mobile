@@ -1,4 +1,4 @@
-// src/navigation/MainNavigator.tsx
+// src/navigation/MainNavigator.tsx - ACTUALIZADO CON CAMPEONATO DETAIL
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -10,8 +10,10 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
-// Importar la nueva HomeScreen
+// Screens importadas
 import HomeScreen from '@/features/home/screens/HomeScreen';
+import CampeonatosScreen from '@/features/campeonatos/screens/CampeonatosScreen';
+import CampeonatoDetailScreen from '@/features/campeonatos/screens/CampeonatoDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,7 +26,7 @@ const ResultadosLiveScreen = () => {
       <Header 
         title="Resultados en Vivo"
         subtitle="Seguimiento en tiempo real"
-        showLogo={false} // Asegurar que no muestre logo
+        showLogo={false}
       />
       <View style={{
         flex: 1, 
@@ -62,87 +64,6 @@ const ResultadosLiveScreen = () => {
   );
 };
 
-// Pantalla temporal de Campeonatos
-const CampeonatosScreen = () => {
-  const dispatch = useAppDispatch();
-  const responsive = useResponsive();
-  
-  const handleLogout = () => {
-    dispatch(logout());
-  };
-  
-  return (
-    <BaseLayout>
-      <Header 
-        title="Campeonatos"
-        subtitle="Lista de competencias"
-        showLogo={false} // Asegurar que no muestre logo
-      />
-      <View style={{
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        padding: 20,
-      }}>
-        <Ionicons 
-          name="trophy" 
-          size={64} 
-          color={getColor.primary[500]} 
-          style={{ marginBottom: 20 }}
-        />
-        <Text style={{
-          fontSize: responsive.fontSize.xl,
-          fontWeight: '600',
-          color: getColor.primary[500],
-          fontFamily: 'Nunito',
-          marginBottom: 12,
-        }}>
-          Lista de Campeonatos
-        </Text>
-        <Text style={{
-          textAlign: 'center', 
-          marginBottom: 30,
-          color: getColor.gray[600],
-          fontFamily: 'Nunito',
-          fontSize: responsive.fontSize.base,
-          lineHeight: 24,
-        }}>
-          Esta pantalla mostrará todos los{'\n'}campeonatos disponibles
-        </Text>
-       
-        {/* Botón de Logout con estilo consistente */}
-        <TouchableOpacity
-          onPress={handleLogout}
-          style={{
-            backgroundColor: getColor.secondary[500],
-            paddingVertical: 12,
-            paddingHorizontal: 24,
-            borderRadius: 8,
-            alignItems: 'center',
-            width: '80%',
-            marginTop: 20,
-            shadowColor: getColor.secondary[500],
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 4,
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={{
-            color: getColor.background.primary, 
-            fontWeight: '600',
-            fontSize: responsive.fontSize.base,
-            fontFamily: 'Nunito',
-          }}>
-            CERRAR SESIÓN
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </BaseLayout>
-  );
-};
-
 // Pantalla temporal de Gimnastas
 const GimnastasScreen = () => {
   const responsive = useResponsive();
@@ -152,7 +73,7 @@ const GimnastasScreen = () => {
       <Header 
         title="Gimnastas"
         subtitle="Perfiles y búsqueda"
-        showLogo={false} // Asegurar que no muestre logo
+        showLogo={false}
       />
       <View style={{
         flex: 1, 
@@ -192,14 +113,19 @@ const GimnastasScreen = () => {
 
 // Pantalla temporal de Ajustes
 const AjustesScreen = () => {
+  const dispatch = useAppDispatch();
   const responsive = useResponsive();
+  
+  const handleLogout = () => {
+    dispatch(logout());
+  };
   
   return (
     <BaseLayout>
       <Header 
         title="Configuración"
         subtitle="Ajustes y perfil"
-        showLogo={false} // Asegurar que no muestre logo
+        showLogo={false}
       />
       <View style={{
         flex: 1, 
@@ -228,9 +154,38 @@ const AjustesScreen = () => {
           fontFamily: 'Nunito',
           textAlign: 'center',
           lineHeight: 24,
+          marginBottom: 30,
         }}>
           Ajustes de perfil y{'\n'}configuración de la app
         </Text>
+       
+        {/* Botón de Logout */}
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{
+            backgroundColor: getColor.secondary[500],
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            borderRadius: 8,
+            alignItems: 'center',
+            width: '80%',
+            shadowColor: getColor.secondary[500],
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+          activeOpacity={0.8}
+        >
+          <Text style={{
+            color: getColor.background.primary, 
+            fontWeight: '600',
+            fontSize: responsive.fontSize.base,
+            fontFamily: 'Nunito',
+          }}>
+            CERRAR SESIÓN
+          </Text>
+        </TouchableOpacity>
       </View>
     </BaseLayout>
   );
@@ -242,54 +197,68 @@ export default function MainNavigator() {
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: getColor.background.lighter },
-        // 🚀 SIN TRANSICIONES - PERO SIN GLITCHES
         transitionSpec: {
           open: {
             animation: 'timing',
             config: {
-              duration: 0,
+              duration: 250,
             },
           },
           close: {
             animation: 'timing',
             config: {
-              duration: 0,
+              duration: 200,
             },
           },
         },
-        cardStyleInterpolator: () => ({
-          cardStyle: {
-            opacity: 1, // Siempre visible, sin animación
-          },
-        }),
+        cardStyleInterpolator: ({ current, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          };
+        },
       }}
       initialRouteName="Home"
     >
-      {/* Dashboard Principal - Nueva pantalla */}
+      {/* Dashboard Principal */}
       <Stack.Screen 
         name="Home" 
         component={HomeScreen}
       />
       
-      {/* Resultados en Vivo - Según imagen de referencia */}
+      {/* Resultados en Vivo - Temporal */}
       <Stack.Screen 
         name="Resultados" 
         component={ResultadosLiveScreen}
       />
       
-      {/* Campeonatos - Según imagen de referencia */}
+      {/* ✅ CAMPEONATOS - IMPLEMENTADA COMPLETAMENTE */}
       <Stack.Screen 
         name="Campeonatos" 
         component={CampeonatosScreen}
       />
       
-      {/* Gimnastas - Según imagen de referencia */}
+      {/* ✅ NUEVO: DETALLE DE CAMPEONATO */}
+      <Stack.Screen 
+        name="CampeonatoDetail" 
+        component={CampeonatoDetailScreen}
+      />
+      
+      {/* Gimnastas - Temporal */}
       <Stack.Screen 
         name="Gimnastas" 
         component={GimnastasScreen}
       />
       
-      {/* Ajustes - Según imagen de referencia */}
+      {/* Ajustes - Temporal */}
       <Stack.Screen 
         name="Ajustes" 
         component={AjustesScreen}
