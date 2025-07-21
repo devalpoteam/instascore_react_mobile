@@ -1,4 +1,4 @@
-// src/navigation/MainNavigator.tsx - ACTUALIZADO CON CAMPEONATO DETAIL
+// src/navigation/MainNavigator.tsx - ACTUALIZADO CON EN VIVO
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -14,55 +14,11 @@ import Header from '@/shared/components/layout/Header';
 import HomeScreen from '@/features/home/screens/HomeScreen';
 import CampeonatosScreen from '@/features/campeonatos/screens/CampeonatosScreen';
 import CampeonatoDetailScreen from '@/features/campeonatos/screens/CampeonatoDetailScreen';
+import ResultadosScreen from '@/features/resultados/screens/ResultadosScreen'; // ✅ MANTENER ESTA
+import CategorySelectorScreen from '@/features/resultados/screens/CategorySelectorScreen'; // ✅ NUEVA
+import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen'; // ✅ AGREGAR ESTA
 
 const Stack = createStackNavigator();
-
-// Pantalla temporal de Resultados en Vivo
-const ResultadosLiveScreen = () => {
-  const responsive = useResponsive();
-  
-  return (
-    <BaseLayout>
-      <Header 
-        title="Resultados en Vivo"
-        subtitle="Seguimiento en tiempo real"
-        showLogo={false}
-      />
-      <View style={{
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        padding: 20,
-      }}>
-        <Ionicons 
-          name="play-circle" 
-          size={64} 
-          color={getColor.secondary[500]} 
-          style={{ marginBottom: 20 }}
-        />
-        <Text style={{
-          fontSize: responsive.fontSize.xl,
-          fontWeight: '600',
-          color: getColor.primary[500],
-          fontFamily: 'Nunito',
-          textAlign: 'center',
-          marginBottom: 12,
-        }}>
-          Resultados en Vivo
-        </Text>
-        <Text style={{
-          fontSize: responsive.fontSize.base,
-          color: getColor.gray[600],
-          fontFamily: 'Nunito',
-          textAlign: 'center',
-          lineHeight: 24,
-        }}>
-          Aquí se mostrarán los resultados{'\n'}en tiempo real del campeonato
-        </Text>
-      </View>
-    </BaseLayout>
-  );
-};
 
 // Pantalla temporal de Gimnastas
 const GimnastasScreen = () => {
@@ -234,10 +190,10 @@ export default function MainNavigator() {
         component={HomeScreen}
       />
       
-      {/* Resultados en Vivo - Temporal */}
+      {/* ✅ EN VIVO - NUEVA IMPLEMENTACIÓN COMPLETA */}
       <Stack.Screen 
         name="Resultados" 
-        component={ResultadosLiveScreen}
+        component={ResultadosScreen}
       />
       
       {/* ✅ CAMPEONATOS - IMPLEMENTADA COMPLETAMENTE */}
@@ -246,10 +202,22 @@ export default function MainNavigator() {
         component={CampeonatosScreen}
       />
       
-      {/* ✅ NUEVO: DETALLE DE CAMPEONATO */}
+      {/* ✅ DETALLE DE CAMPEONATO */}
       <Stack.Screen 
         name="CampeonatoDetail" 
         component={CampeonatoDetailScreen}
+      />
+      
+      {/* ✅ NUEVA: SELECTOR DE CATEGORÍAS EN VIVO */}
+      <Stack.Screen 
+        name="CategorySelector" 
+        component={CategorySelectorScreen}
+      />
+      
+      {/* ✅ NUEVA: RESULTADOS EN VIVO ESPECÍFICOS */}
+      <Stack.Screen 
+        name="LiveResults" 
+        component={LiveResultsScreen}
       />
       
       {/* Gimnastas - Temporal */}
