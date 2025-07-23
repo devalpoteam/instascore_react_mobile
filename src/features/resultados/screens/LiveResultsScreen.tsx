@@ -191,9 +191,7 @@ export default function LiveResultsScreen() {
   const { resultados } = state;
   const gimnastasToShow = isPro ? resultados.gimnastas : resultados.gimnastas.slice(0, 3);
   
-  // Helper para obtener icono del aparato de forma segura
   const getAparatoIconSafe = (aparato: string) => {
-    // Lista de aparatos válidos según tu documentación
     const aparatosValidos = [
       'salto', 'asimetricas', 'viga', 'suelo', // GAF
       'arzones', 'anillas', 'paralelas', 'barra' // GAM  
