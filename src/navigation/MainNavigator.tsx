@@ -1,4 +1,4 @@
-// src/navigation/MainNavigator.tsx - ACTUALIZADO CON EN VIVO
+// src/navigation/MainNavigator.tsx - CON MÓDULO DE GIMNASTAS INTEGRADO
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -14,58 +14,33 @@ import Header from '@/shared/components/layout/Header';
 import HomeScreen from '@/features/home/screens/HomeScreen';
 import CampeonatosScreen from '@/features/campeonatos/screens/CampeonatosScreen';
 import CampeonatoDetailScreen from '@/features/campeonatos/screens/CampeonatoDetailScreen';
-import ResultadosScreen from '@/features/resultados/screens/ResultadosScreen'; // ✅ MANTENER ESTA
-import CategorySelectorScreen from '@/features/resultados/screens/CategorySelectorScreen'; // ✅ NUEVA
-import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen'; // ✅ AGREGAR ESTA
+import ResultadosScreen from '@/features/resultados/screens/ResultadosScreen';
+import CategorySelectorScreen from '@/features/resultados/screens/CategorySelectorScreen';
+import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen';
 
-const Stack = createStackNavigator();
+// ✅ NUEVAS IMPORTACIONES - Módulo de Gimnastas
+import GimnastasListScreen from '@/features/gimnastas/screens/GimnastasListScreen';
+import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileScreen';
 
-// Pantalla temporal de Gimnastas
-const GimnastasScreen = () => {
-  const responsive = useResponsive();
-  
-  return (
-    <BaseLayout>
-      <Header 
-        title="Gimnastas"
-        subtitle="Perfiles y búsqueda"
-        showLogo={false}
-      />
-      <View style={{
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        padding: 20,
-      }}>
-        <Ionicons 
-          name="people" 
-          size={64} 
-          color={getColor.primary[500]} 
-          style={{ marginBottom: 20 }}
-        />
-        <Text style={{
-          fontSize: responsive.fontSize.xl,
-          fontWeight: '600',
-          color: getColor.primary[500],
-          fontFamily: 'Nunito',
-          textAlign: 'center',
-          marginBottom: 12,
-        }}>
-          Gimnastas
-        </Text>
-        <Text style={{
-          fontSize: responsive.fontSize.base,
-          color: getColor.gray[600],
-          fontFamily: 'Nunito',
-          textAlign: 'center',
-          lineHeight: 24,
-        }}>
-          Búsqueda y perfiles de{'\n'}gimnastas participantes
-        </Text>
-      </View>
-    </BaseLayout>
-  );
+// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS
+export type MainStackParamList = {
+  Home: undefined;
+  Resultados: undefined;
+  Campeonatos: undefined;
+  CampeonatoDetail: { campeonatoId: string };
+  CategorySelector: { campeonatoId: string };
+  LiveResults: { 
+    campeonatoId: string; 
+    categoriaId: string; 
+    categoriaNombre: string;
+  };
+  // ✅ NUEVAS RUTAS DE GIMNASTAS
+  GimnastasList: undefined;
+  GimnastaProfile: { gimnastaId: string };
+  Ajustes: undefined;
 };
+
+const Stack = createStackNavigator<MainStackParamList>();
 
 // Pantalla temporal de Ajustes
 const AjustesScreen = () => {
@@ -115,7 +90,6 @@ const AjustesScreen = () => {
           Ajustes de perfil y{'\n'}configuración de la app
         </Text>
        
-        {/* Botón de Logout */}
         <TouchableOpacity
           onPress={handleLogout}
           style={{
@@ -184,49 +158,54 @@ export default function MainNavigator() {
       }}
       initialRouteName="Home"
     >
-      {/* Dashboard Principal */}
       <Stack.Screen 
         name="Home" 
         component={HomeScreen}
       />
       
-      {/* ✅ EN VIVO - NUEVA IMPLEMENTACIÓN COMPLETA */}
       <Stack.Screen 
         name="Resultados" 
         component={ResultadosScreen}
       />
       
-      {/* ✅ CAMPEONATOS - IMPLEMENTADA COMPLETAMENTE */}
       <Stack.Screen 
         name="Campeonatos" 
         component={CampeonatosScreen}
       />
       
-      {/* ✅ DETALLE DE CAMPEONATO */}
       <Stack.Screen 
         name="CampeonatoDetail" 
         component={CampeonatoDetailScreen}
       />
       
-      {/* ✅ NUEVA: SELECTOR DE CATEGORÍAS EN VIVO */}
       <Stack.Screen 
         name="CategorySelector" 
         component={CategorySelectorScreen}
       />
       
-      {/* ✅ NUEVA: RESULTADOS EN VIVO ESPECÍFICOS */}
       <Stack.Screen 
         name="LiveResults" 
         component={LiveResultsScreen}
       />
       
-      {/* Gimnastas - Temporal */}
+      {/* ✅ NUEVAS PANTALLAS DE GIMNASTAS */}
       <Stack.Screen 
-        name="Gimnastas" 
-        component={GimnastasScreen}
+        name="GimnastasList" 
+        component={GimnastasListScreen}
+        options={{
+          title: 'Lista de Gimnastas',
+        }}
       />
       
-      {/* Ajustes - Temporal */}
+      <Stack.Screen 
+        name="GimnastaProfile" 
+        component={GimnastaProfileScreen}
+        options={{
+          title: 'Perfil del Gimnasta',
+        }}
+      />
+      
+      {/* ✅ RUTA CORREGIDA - Era "Gimnastas" antes, ahora apunta a la lista */}
       <Stack.Screen 
         name="Ajustes" 
         component={AjustesScreen}

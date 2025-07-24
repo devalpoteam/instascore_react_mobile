@@ -1,4 +1,4 @@
-// src/shared/components/layout/BottomNavigation.tsx
+// src/shared/components/layout/BottomNavigation.tsx - CORREGIDO
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ interface TabItem {
   iconInactive: string;
 }
 
+// ✅ CORREGIDO - Cambiar "Gimnastas" por "GimnastasList"
 const tabItems: TabItem[] = [
   {
     name: 'Home',
@@ -33,7 +34,7 @@ const tabItems: TabItem[] = [
     iconInactive: 'trophy-outline'
   },
   {
-    name: 'Gimnastas',
+    name: 'GimnastasList', // ✅ CAMBIADO: Era "Gimnastas", ahora "GimnastasList"
     label: 'Gimnastas',
     iconActive: 'people',
     iconInactive: 'people-outline'
@@ -58,6 +59,15 @@ export default function BottomNavigation() {
 
   const handleTabPress = (tabName: string) => {
     navigation.navigate(tabName as never);
+  };
+
+  // ✅ MEJORAR DETECCIÓN DE RUTA ACTIVA para gimnastas
+  const isTabActive = (tabName: string) => {
+    if (tabName === 'GimnastasList') {
+      // Considerar activo si estamos en GimnastasList o GimnastaProfile
+      return currentRoute === 'GimnastasList' || currentRoute === 'GimnastaProfile';
+    }
+    return currentRoute === tabName;
   };
 
   // Calcular altura dinámica según dispositivo - ANDROID AUMENTADO
@@ -107,7 +117,7 @@ export default function BottomNavigation() {
       alignItems: 'flex-start', // Cambiar a flex-start para mejor control
     }}>
       {tabItems.map((tab) => {
-        const isActive = currentRoute === tab.name;
+        const isActive = isTabActive(tab.name); // ✅ USAR FUNCIÓN MEJORADA
         
         return (
           <TouchableOpacity
