@@ -1,4 +1,4 @@
-// src/shared/components/layout/BottomNavigation.tsx - CORREGIDO
+// src/shared/components/layout/BottomNavigation.tsx
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,8 +12,6 @@ interface TabItem {
   iconActive: string;
   iconInactive: string;
 }
-
-// ✅ CORREGIDO - Cambiar "Gimnastas" por "GimnastasList"
 const tabItems: TabItem[] = [
   {
     name: 'Home',
@@ -34,24 +32,22 @@ const tabItems: TabItem[] = [
     iconInactive: 'trophy-outline'
   },
   {
-    name: 'GimnastasList', // ✅ CAMBIADO: Era "Gimnastas", ahora "GimnastasList"
+    name: 'GimnastasList',
     label: 'Gimnastas',
     iconActive: 'people',
     iconInactive: 'people-outline'
   },
   {
-    name: 'Ajustes',
-    label: 'Ajustes',
-    iconActive: 'settings',
-    iconInactive: 'settings-outline'
+    name: 'Perfil',
+    label: 'Perfil',
+    iconActive: 'person-circle',
+    iconInactive: 'person-circle-outline'
   }
 ];
 
 export default function BottomNavigation() {
   const navigation = useNavigation();
   const responsive = useResponsive();
-  
-  // Obtener la ruta activa
   const currentRoute = useNavigationState(state => {
     if (!state || !state.routes || state.index === undefined) return null;
     return state.routes[state.index]?.name;
@@ -61,37 +57,34 @@ export default function BottomNavigation() {
     navigation.navigate(tabName as never);
   };
 
-  // ✅ MEJORAR DETECCIÓN DE RUTA ACTIVA para gimnastas
   const isTabActive = (tabName: string) => {
     if (tabName === 'GimnastasList') {
-      // Considerar activo si estamos en GimnastasList o GimnastaProfile
       return currentRoute === 'GimnastasList' || currentRoute === 'GimnastaProfile';
+    }
+    if (tabName === 'Perfil') {
+      return currentRoute === 'Perfil' || currentRoute === 'ProfileSettings' || currentRoute === 'ProfileFavorites';
     }
     return currentRoute === tabName;
   };
 
-  // Calcular altura dinámica según dispositivo - ANDROID AUMENTADO
   const getTabBarHeight = () => {
     if (responsive.isTablet) return 90;
-    if (responsive.isIOS) return responsive.insets.bottom > 0 ? 85 : 75; // iPhone con/sin notch
-    return 70; // Android - AUMENTADO de 65 a 70
+    if (responsive.isIOS) return responsive.insets.bottom > 0 ? 85 : 75;
+    return 70;
   };
 
-  // Calcular padding bottom dinámico - ANDROID AUMENTADO
   const getBottomPadding = () => {
     if (responsive.isTablet) return 12;
     if (responsive.isIOS) return responsive.insets.bottom > 0 ? responsive.insets.bottom : 8;
-    return 12; // Android - AUMENTADO de 8 a 12
+    return 12;
   };
 
-  // Calcular tamaño de fuente dinámico
   const getFontSize = () => {
     if (responsive.isTablet) return responsive.fontSize.sm;
-    if (responsive.isSmall) return 10; // Pantallas muy pequeñas
+    if (responsive.isSmall) return 10;
     return responsive.fontSize.xs;
   };
 
-  // Calcular tamaño de ícono dinámico
   const getIconSize = (isActive: boolean) => {
     if (responsive.isTablet) return isActive ? 28 : 26;
     if (responsive.isSmall) return isActive ? 22 : 20;
@@ -114,10 +107,10 @@ export default function BottomNavigation() {
       elevation: 8,
       flexDirection: 'row',
       justifyContent: 'space-around',
-      alignItems: 'flex-start', // Cambiar a flex-start para mejor control
+      alignItems: 'flex-start',
     }}>
       {tabItems.map((tab) => {
-        const isActive = isTabActive(tab.name); // ✅ USAR FUNCIÓN MEJORADA
+        const isActive = isTabActive(tab.name);
         
         return (
           <TouchableOpacity
@@ -125,7 +118,7 @@ export default function BottomNavigation() {
             style={{
               flex: 1,
               alignItems: 'center',
-              justifyContent: 'flex-start', // Alinear desde arriba
+              justifyContent: 'flex-start',
               paddingVertical: responsive.isTablet ? 8 : 4,
               paddingHorizontal: responsive.isSmall ? 2 : 4,
               minHeight: responsive.isTablet ? 60 : 45,
@@ -159,10 +152,10 @@ export default function BottomNavigation() {
                 color: isActive ? getColor.primary[500] : getColor.gray[400],
                 textAlign: 'center',
                 lineHeight: getFontSize() * 1.2,
-                maxWidth: responsive.isSmall ? 50 : 65, // Limitar ancho para evitar solapamiento
+                maxWidth: responsive.isSmall ? 50 : 65,
               }}
               numberOfLines={1}
-              adjustsFontSizeToFit={responsive.isSmall} // Auto-ajustar en pantallas pequeñas
+              adjustsFontSizeToFit={responsive.isSmall}
               minimumFontScale={0.8}
             >
               {tab.label}

@@ -1,14 +1,7 @@
-// src/navigation/MainNavigator.tsx - CON MÓDULO DE GIMNASTAS INTEGRADO
+// src/navigation/MainNavigator.tsx
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppDispatch } from '@/store/hooks';
-import { logout } from '@/features/auth/store/authSlice';
 import { getColor } from '@/design/colorHelper';
-import { useResponsive } from '@/shared/hooks/useResponsive';
-import BaseLayout from '@/shared/components/layout/BaseLayout';
-import Header from '@/shared/components/layout/Header';
 
 // Screens importadas
 import HomeScreen from '@/features/home/screens/HomeScreen';
@@ -17,10 +10,9 @@ import CampeonatoDetailScreen from '@/features/campeonatos/screens/CampeonatoDet
 import ResultadosScreen from '@/features/resultados/screens/ResultadosScreen';
 import CategorySelectorScreen from '@/features/resultados/screens/CategorySelectorScreen';
 import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen';
-
-// ✅ NUEVAS IMPORTACIONES - Módulo de Gimnastas
 import GimnastasListScreen from '@/features/gimnastas/screens/GimnastasListScreen';
 import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileScreen';
+import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 
 // ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS
 export type MainStackParamList = {
@@ -34,92 +26,15 @@ export type MainStackParamList = {
     categoriaId: string; 
     categoriaNombre: string;
   };
-  // ✅ NUEVAS RUTAS DE GIMNASTAS
+  // Rutas de gimnastas
   GimnastasList: undefined;
   GimnastaProfile: { gimnastaId: string };
-  Ajustes: undefined;
+  Perfil: undefined;
+  ProfileSettings: undefined;
+  ProfileFavorites: undefined;
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
-
-// Pantalla temporal de Ajustes
-const AjustesScreen = () => {
-  const dispatch = useAppDispatch();
-  const responsive = useResponsive();
-  
-  const handleLogout = () => {
-    dispatch(logout());
-  };
-  
-  return (
-    <BaseLayout>
-      <Header 
-        title="Configuración"
-        subtitle="Ajustes y perfil"
-        showLogo={false}
-      />
-      <View style={{
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        padding: 20,
-      }}>
-        <Ionicons 
-          name="settings" 
-          size={64} 
-          color={getColor.primary[500]} 
-          style={{ marginBottom: 20 }}
-        />
-        <Text style={{
-          fontSize: responsive.fontSize.xl,
-          fontWeight: '600',
-          color: getColor.primary[500],
-          fontFamily: 'Nunito',
-          marginBottom: 12,
-        }}>
-          Configuración
-        </Text>
-        <Text style={{
-          fontSize: responsive.fontSize.base,
-          color: getColor.gray[600],
-          fontFamily: 'Nunito',
-          textAlign: 'center',
-          lineHeight: 24,
-          marginBottom: 30,
-        }}>
-          Ajustes de perfil y{'\n'}configuración de la app
-        </Text>
-       
-        <TouchableOpacity
-          onPress={handleLogout}
-          style={{
-            backgroundColor: getColor.secondary[500],
-            paddingVertical: 12,
-            paddingHorizontal: 24,
-            borderRadius: 8,
-            alignItems: 'center',
-            width: '80%',
-            shadowColor: getColor.secondary[500],
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 4,
-          }}
-          activeOpacity={0.8}
-        >
-          <Text style={{
-            color: getColor.background.primary, 
-            fontWeight: '600',
-            fontSize: responsive.fontSize.base,
-            fontFamily: 'Nunito',
-          }}>
-            CERRAR SESIÓN
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </BaseLayout>
-  );
-};
 
 export default function MainNavigator() {
   return (
@@ -188,7 +103,7 @@ export default function MainNavigator() {
         component={LiveResultsScreen}
       />
       
-      {/* ✅ NUEVAS PANTALLAS DE GIMNASTAS */}
+      {/* Pantallas de gimnastas */}
       <Stack.Screen 
         name="GimnastasList" 
         component={GimnastasListScreen}
@@ -205,11 +120,32 @@ export default function MainNavigator() {
         }}
       />
       
-      {/* ✅ RUTA CORREGIDA - Era "Gimnastas" antes, ahora apunta a la lista */}
       <Stack.Screen 
-        name="Ajustes" 
-        component={AjustesScreen}
+        name="Perfil" 
+        component={ProfileScreen}
+        options={{
+          title: 'Mi Perfil',
+        }}
       />
+      
+      {/* TODO: Implementar estas pantallas cuando sean necesarias */}
+      {/* 
+      <Stack.Screen 
+        name="ProfileSettings" 
+        component={ProfileSettingsScreen}
+        options={{
+          title: 'Configuración de Perfil',
+        }}
+      />
+      
+      <Stack.Screen 
+        name="ProfileFavorites" 
+        component={ProfileFavoritesScreen}
+        options={{
+          title: 'Mis Favoritos',
+        }}
+      />
+      */}
     </Stack.Navigator>
   );
 }
