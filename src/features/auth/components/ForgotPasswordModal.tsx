@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
+import { useNavigation } from '@react-navigation/native'; // ✅ IMPORTAR NAVEGACIÓN
 
 interface ForgotPasswordModalProps {
   visible: boolean;
@@ -29,6 +30,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   
   const responsive = useResponsive();
+  const navigation = useNavigation(); // ✅ HOOK DE NAVEGACIÓN
   const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -58,9 +60,12 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
           friction: 6,
         }),
       ]).start(() => {
-        if (Platform.OS === 'android') {
-          setShouldAutoFocus(true);
-        }
+        // ✅ ARREGLO: Focus automático después de animaciones
+        setTimeout(() => {
+          if (inputRef.current && step === 'input') {
+            inputRef.current.focus();
+          }
+        }, 200);
       });
     } else {
       setEmail('');
@@ -89,7 +94,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
     return true;
   };
 
-  // 📧 HANDLE ENVIAR EMAIL
+  // 📧 HANDLE ENVIAR EMAIL - ✅ MODIFICADO PARA NAVEGAR
   const handleSendEmail = async () => {
     console.log('📧 Sending forgot password email for:', email);
     
@@ -107,9 +112,11 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
       console.log('✅ Email sent successfully');
       setStep('success');
       
+      // ✅ MODIFICACIÓN: Navegar después del éxito
       setTimeout(() => {
-        onClose();
-      }, 3000);
+        onClose(); // Cerrar modal primero
+        navigation.navigate('ResetPassword' as never); // Navegar a reset screen
+      }, 2000); // ✅ Reducido a 2 segundos para mejor UX
       
     } catch (err: any) {
       console.error('❌ Send email error:', err);
@@ -424,10 +431,11 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                             keyboardType="email-address"
                             autoCapitalize="none"
                             autoCorrect={false}
-                            autoFocus={Platform.OS === 'android' ? shouldAutoFocus : false}
                             editable={!isLoading}
                             returnKeyType="send"
                             onSubmitEditing={handleSendEmail}
+                            // ✅ ARREGLO: Sin autoFocus problemático
+                            autoFocus={false}
                           />
                         </View>
                       </View>
@@ -533,7 +541,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                       </View>
                     </>
                   ) : (
-                    // ✅ SUCCESS CONTENT
+                    // ✅ SUCCESS CONTENT - MODIFICADO EL MENSAJE
                     <View style={{ alignItems: 'center', paddingVertical: 12 }}>
                       <Text
                         style={{
@@ -579,7 +587,8 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                           fontFamily: 'Nunito',
                         }}
                       >
-                        Esta ventana se cerrará automáticamente en unos segundos...
+                        {/* ✅ MENSAJE ACTUALIZADO */}
+                        Redirigiendo a la pantalla de cambio de contraseña...
                       </Text>
                     </View>
                   )}
