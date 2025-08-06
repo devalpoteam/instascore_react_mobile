@@ -14,7 +14,11 @@ import GimnastasListScreen from '@/features/gimnastas/screens/GimnastasListScree
 import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileScreen';
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 
-// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS
+// ✅ IMPORTAR PANTALLAS DE NOTIFICACIONES
+import NotificationSettingsScreen from '@/features/settings/screens/NotificationSettingsScreen';
+import NotificationHistoryScreen from '@/features/settings/screens/NotificationHistoryScreen';
+
+// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS CON NOTIFICACIONES
 export type MainStackParamList = {
   Home: undefined;
   Resultados: undefined;
@@ -29,9 +33,13 @@ export type MainStackParamList = {
   // Rutas de gimnastas
   GimnastasList: undefined;
   GimnastaProfile: { gimnastaId: string };
+  // Rutas de perfil
   Perfil: undefined;
   ProfileSettings: undefined;
   ProfileFavorites: undefined;
+  // ✅ RUTAS DE NOTIFICACIONES
+  NotificationSettings: undefined;
+  NotificationHistory: undefined;
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -120,11 +128,29 @@ export default function MainNavigator() {
         }}
       />
       
+      {/* Pantallas de perfil */}
       <Stack.Screen 
         name="Perfil" 
         component={ProfileScreen}
         options={{
           title: 'Mi Perfil',
+        }}
+      />
+      
+      {/* ✅ PANTALLAS DE NOTIFICACIONES */}
+      <Stack.Screen 
+        name="NotificationSettings" 
+        component={NotificationSettingsScreen}
+        options={{
+          title: 'Configuración de Notificaciones',
+        }}
+      />
+      
+      <Stack.Screen 
+        name="NotificationHistory" 
+        component={NotificationHistoryScreen}
+        options={{
+          title: 'Historial de Notificaciones',
         }}
       />
       

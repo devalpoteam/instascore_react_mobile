@@ -12,6 +12,8 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { logout } from '@/features/auth/store/authSlice';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
+import { useNotifications } from '@/shared/hooks/useNotifications';
+import { MainStackParamList } from '@/navigation/MainNavigator';
 
 // Layout components
 import BaseLayout from '@/shared/components/layout/BaseLayout';
@@ -33,12 +35,15 @@ import {
   generateVariedFavorites
 } from '../data/mockProfileData';
 
-type ProfileNavigationProp = NavigationProp<any>;
+type ProfileNavigationProp = NavigationProp<MainStackParamList>;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<ProfileNavigationProp>();
   const dispatch = useAppDispatch();
   const responsive = useResponsive();
+  
+  // ✅ USAR HOOK DE NOTIFICACIONES
+  const { unreadCount, handleNotificationPress } = useNotifications();
   
   // Redux state
   const { user: authUser, isPro } = useAppSelector(state => state.auth);
@@ -137,11 +142,8 @@ export default function ProfileScreen() {
 
   // Settings actions
   const handleNotificationSettings = () => {
-    Alert.alert(
-      'Configuración de Notificaciones',
-      'Configurar qué notificaciones recibir:\n\n• Resultados de categorías\n• Inicio de campeonatos\n• Actualizaciones de favoritos',
-      [{ text: 'OK' }]
-    );
+    // ✅ NAVEGACIÓN REAL A CONFIGURACIÓN DE NOTIFICACIONES
+    navigation.navigate('NotificationSettings');
   };
 
   const handleSubscriptionManage = () => {
@@ -190,6 +192,8 @@ export default function ProfileScreen() {
           title="Perfil"
           subtitle="Tu información personal"
           showLogo={false}
+          onNotificationPress={handleNotificationPress}
+          notificationCount={unreadCount}
         />
         <View style={{
           flex: 1,
@@ -210,6 +214,8 @@ export default function ProfileScreen() {
           title="Perfil"
           subtitle="Error al cargar"
           showLogo={false}
+          onNotificationPress={handleNotificationPress}
+          notificationCount={unreadCount}
         />
       </BaseLayout>
     );
@@ -221,6 +227,8 @@ export default function ProfileScreen() {
         title="Perfil"
         subtitle={state.user.name}
         showLogo={false}
+        onNotificationPress={handleNotificationPress}
+        notificationCount={unreadCount}
       />
 
       <ScrollView

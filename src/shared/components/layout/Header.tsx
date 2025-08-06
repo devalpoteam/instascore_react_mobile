@@ -17,6 +17,8 @@ interface HeaderProps {
   onBackPress?: () => void;
   rightComponent?: React.ReactNode;
   backgroundColor?: string;
+  // ✅ NUEVAS PROPS PARA NOTIFICACIONES
+  notificationCount?: number; // Número de notificaciones no leídas
 }
 
 export default function Header({
@@ -30,7 +32,9 @@ export default function Header({
   onNotificationPress,
   onBackPress,
   rightComponent,
-  backgroundColor = getColor.background.primary
+  backgroundColor = getColor.background.primary,
+  // ✅ NUEVA PROP CON VALOR POR DEFECTO
+  notificationCount = 0,
 }: HeaderProps) {
   const responsive = useResponsive();
 
@@ -175,6 +179,7 @@ export default function Header({
                   backgroundColor: getColor.background.brand,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  position: 'relative', // ✅ Para posicionar el badge
                 }}
                 onPress={onNotificationPress}
                 activeOpacity={0.7}
@@ -184,6 +189,33 @@ export default function Header({
                   size={22} 
                   color={getColor.primary[500]} 
                 />
+                
+                {/* ✅ BADGE DE NOTIFICACIONES NO LEÍDAS */}
+                {notificationCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    backgroundColor: getColor.secondary[500],
+                    borderRadius: 10,
+                    minWidth: 20,
+                    height: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 2,
+                    borderColor: getColor.background.primary,
+                  }}>
+                    <Text style={{
+                      fontSize: responsive.fontSize.xs,
+                      fontWeight: '700',
+                      color: getColor.background.primary,
+                      fontFamily: 'Nunito',
+                      lineHeight: responsive.fontSize.xs,
+                    }}>
+                      {notificationCount > 99 ? '99+' : notificationCount}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             )
           )}

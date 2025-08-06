@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '@/features/auth/screens/LoginScreen';
 import RegisterScreen from '@/features/auth/screens/RegisterScreen';
 
-// Definir tipos para las rutas de autenticación
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -17,9 +16,9 @@ export default function AuthNavigator() {
     <Stack.Navigator
       initialRouteName="Login"
       screenOptions={{
-        headerShown: false, // Sin header para pantallas de auth
-        animation: 'slide_from_right', // Animación suave
-        gestureEnabled: true, // Permitir gestos de navegación
+        headerShown: false,
+        animation: 'slide_from_right',
+        gestureEnabled: true, 
       }}
     >
       <Stack.Screen 
@@ -34,7 +33,7 @@ export default function AuthNavigator() {
         component={RegisterScreen}
         options={{
           title: 'Crear Cuenta',
-          animation: 'slide_from_bottom' // Animación diferente para registro
+          animation: 'slide_from_bottom'
         }}
       />
     </Stack.Navigator>
