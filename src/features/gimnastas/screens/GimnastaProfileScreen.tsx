@@ -375,7 +375,7 @@ export default function GimnastaProfileScreen() {
                 color: getColor.background.primary,
                 fontFamily: 'Nunito',
               }}>
-                {campeonatoActual.posicion}° Lugar General
+                {campeonatoActual.posicion}° Lugar
               </Text>
             </View>
 

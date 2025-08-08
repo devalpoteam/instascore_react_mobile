@@ -1,4 +1,5 @@
 // src/features/resultados/data/mockLiveResultsData.ts
+// VERSIÓN CORREGIDA - Compatible con tipos existentes
 
 import { TipoGimnasia, AparatoGAF, AparatoGAM } from "./mockLiveData";
 
@@ -16,6 +17,7 @@ export interface GimnastaResultado {
     [aparato: string]: number | null; // null = no ha competido aún
   };
   allAround: number;
+  competenciaDisplay?: string;
   posicion: number;
   posicionAparatos: {
     [aparato: string]: number;
@@ -26,7 +28,7 @@ export interface ResultadosCategoria {
   campeonatoId: string;
   campeonatoNombre: string;
   categoriaId: string;
-  categoriaNombre: string;
+  categoriaNombreCorto: string;
   tipo: TipoGimnasia;
   nivel: string;
   franja: string;
@@ -36,6 +38,17 @@ export interface ResultadosCategoria {
   totalAparatos: number;
   gimnastas: GimnastaResultado[];
   ultimaActualizacion: string;
+}
+
+// Nueva interfaz para equipos
+export interface EquipoResultado {
+  id: string;
+  nombre: string; // Nombre del club/delegación
+  club: string;
+  totalGimnastas: number;
+  gimnastasQueCuentan: number; // Mejores N
+  puntajeEquipo: number; // Suma de los mejores puntajes
+  posicion: number;
 }
 
 // Mock de clubes/delegaciones
@@ -87,12 +100,30 @@ const generarPuntaje = (aparato: string, nivel: string): number => {
   return Math.round((Math.random() * (max - min) + min) * 100) / 100;
 };
 
+// Función para generar RUT chileno válido
+function generarRUT(): string {
+  const numero = Math.floor(Math.random() * 99999999) + 1000000;
+  const rutSinDV = numero.toString();
+  let suma = 0;
+  let multiplicador = 2;
+  
+  for (let i = rutSinDV.length - 1; i >= 0; i--) {
+    suma += parseInt(rutSinDV[i]) * multiplicador;
+    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+  }
+  
+  const dv = 11 - (suma % 11);
+  const digitoVerificador = dv === 11 ? '0' : dv === 10 ? 'K' : dv.toString();
+  
+  return `${numero}-${digitoVerificador}`;
+}
+
 // ✅ DATOS MOCK REALISTAS - KINDER F1 GAF (4 aparatos)
 export const mockResultadosKinderF1: ResultadosCategoria = {
   campeonatoId: "1",
   campeonatoNombre: "Copa Valparaíso 2024",
   categoriaId: "cat1",
-  categoriaNombre: "Kinder F1",
+  categoriaNombreCorto: "Kinder F1",
   tipo: "GAF",
   nivel: "Kinder",
   franja: "F1",
@@ -106,7 +137,7 @@ export const mockResultadosKinderF1: ResultadosCategoria = {
       id: "1",
       nombre: "Rosalía Agustín Franch",
       club: "Delegación de Matías",
-      rut: "64785821-3",
+      rut: generarRUT(),
       año: 2016,
       categoria: "Kinder",
       nivel: "F1",
@@ -131,7 +162,7 @@ export const mockResultadosKinderF1: ResultadosCategoria = {
       id: "2",
       nombre: "Aurelia Benavente Estrada",
       club: "Club Gimnástico Valparaíso",
-      rut: "39414500-9",
+      rut: generarRUT(),
       año: 2015,
       categoria: "Kinder",
       nivel: "F1",
@@ -156,7 +187,7 @@ export const mockResultadosKinderF1: ResultadosCategoria = {
       id: "3",
       nombre: "Amanda Desiderio Izquierdo",
       club: "Academia Deportiva Santiago",
-      rut: "71519924-9",
+      rut: generarRUT(),
       año: 2016,
       categoria: "Kinder",
       nivel: "F1",
@@ -176,134 +207,40 @@ export const mockResultadosKinderF1: ResultadosCategoria = {
         viga: 2,
         suelo: 4,
       },
-    },
-    // Más gimnastas para usuarios Pro
-    {
-      id: "4",
-      nombre: "Leonor Segovia Garay",
-      club: "Escuela de Gimnasia Elite",
-      rut: "10880249-9",
-      año: 2015,
+    }
+  ].concat(
+    // Generar más gimnastas para usuarios Pro
+    Array.from({ length: 13 }, (_, index) => ({
+      id: (index + 4).toString(),
+      nombre: nombres[index + 3] || `Gimnasta ${index + 4}`,
+      club: clubes[index % clubes.length],
+      rut: generarRUT(),
+      año: 2015 + Math.floor(Math.random() * 3),
       categoria: "Kinder",
       nivel: "F1",
       franja: "F1",
-      subdivision: "A",
+      subdivision: index % 2 === 0 ? "A" : "B",
       puntajes: {
-        salto: 7.9,
-        asimetricas: 7.7,
-        viga: 7.9,
-        suelo: 8.4,
+        salto: generarPuntaje("salto", "Kinder"),
+        asimetricas: generarPuntaje("asimetricas", "Kinder"),
+        viga: generarPuntaje("viga", "Kinder"),
+        suelo: generarPuntaje("suelo", "Kinder"),
       },
-      allAround: 31.9, // Suma de todos los aparatos
-      posicion: 4,
+      allAround: Math.round((
+        generarPuntaje("salto", "Kinder") + 
+        generarPuntaje("asimetricas", "Kinder") + 
+        generarPuntaje("viga", "Kinder") + 
+        generarPuntaje("suelo", "Kinder")
+      ) * 10) / 10,
+      posicion: index + 4,
       posicionAparatos: {
-        salto: 4,
-        asimetricas: 5,
-        viga: 5,
-        suelo: 2,
+        salto: Math.floor(Math.random() * 16) + 1,
+        asimetricas: Math.floor(Math.random() * 16) + 1,
+        viga: Math.floor(Math.random() * 16) + 1,
+        suelo: Math.floor(Math.random() * 16) + 1,
       },
-    },
-    {
-      id: "5",
-      nombre: "Paula Alegre Cepeda",
-      club: "Club Artístico Las Condes",
-      rut: "75246028-9",
-      año: 2016,
-      categoria: "Kinder",
-      nivel: "F1",
-      franja: "F1",
-      subdivision: "B",
-      puntajes: {
-        salto: 7.8,
-        asimetricas: 8.0,
-        viga: 7.5,
-        suelo: 7.9,
-      },
-      allAround: 31.2, // Suma de todos los aparatos
-      posicion: 5,
-      posicionAparatos: {
-        salto: 5,
-        asimetricas: 4,
-        viga: 7,
-        suelo: 6,
-      },
-    },
-    {
-      id: "6",
-      nombre: "Sonia Crespo Cornejo",
-      club: "Gimnasia Integral Viña",
-      rut: "48611181-2",
-      año: 2015,
-      categoria: "Kinder",
-      nivel: "F1",
-      franja: "F1",
-      subdivision: "A",
-      puntajes: {
-        salto: 7.7,
-        asimetricas: 7.8,
-        viga: 7.7,
-        suelo: 8.0,
-      },
-      allAround: 31.2, // Suma de todos los aparatos
-      posicion: 6,
-      posicionAparatos: {
-        salto: 6,
-        asimetricas: 6,
-        viga: 6,
-        suelo: 5,
-      },
-    },
-    {
-      id: "7",
-      nombre: "Aurora González Carreras",
-      club: "Centro Deportivo Maipú",
-      rut: "81674278-5",
-      año: 2016,
-      categoria: "Kinder",
-      nivel: "F1",
-      franja: "F1",
-      subdivision: "B",
-      puntajes: {
-        salto: 7.5,
-        asimetricas: 7.6,
-        viga: 8.1,
-        suelo: 7.6,
-      },
-      allAround: 30.8, // Suma de todos los aparatos
-      posicion: 7,
-      posicionAparatos: {
-        salto: 7,
-        asimetricas: 7,
-        viga: 1,
-        suelo: 7,
-      },
-    },
-    {
-      id: "8",
-      nombre: "Catalina Moreno Silva",
-      club: "Delegación de Matías",
-      rut: "92594607-3",
-      año: 2015,
-      categoria: "Kinder",
-      nivel: "F1",
-      franja: "F1",
-      subdivision: "A",
-      puntajes: {
-        salto: 7.4,
-        asimetricas: 7.4,
-        viga: 7.6,
-        suelo: 7.7,
-      },
-      allAround: 30.1, // Suma de todos los aparatos
-      posicion: 8,
-      posicionAparatos: {
-        salto: 8,
-        asimetricas: 8,
-        viga: 8,
-        suelo: 8,
-      },
-    },
-  ],
+    }))
+  )
 };
 
 // ✅ DATOS MOCK - JUVENIL MASCULINO GAM (6 aparatos)
@@ -311,7 +248,7 @@ export const mockResultadosJuvenilGAM: ResultadosCategoria = {
   campeonatoId: "2",
   campeonatoNombre: "Campeonato Nacional Juvenil",
   categoriaId: "cat3",
-  categoriaNombre: "Juvenil Masculino",
+  categoriaNombreCorto: "Juvenil Masculino",
   tipo: "GAM",
   nivel: "Juvenil",
   franja: "M1",
@@ -325,7 +262,7 @@ export const mockResultadosJuvenilGAM: ResultadosCategoria = {
       id: "9",
       nombre: "Benigno Arnau Carlos",
       club: "Club Gimnástico Valparaíso",
-      rut: "10880249-9",
+      rut: generarRUT(),
       año: 2010,
       categoria: "Juvenil",
       nivel: "M1",
@@ -354,7 +291,7 @@ export const mockResultadosJuvenilGAM: ResultadosCategoria = {
       id: "10",
       nombre: "Mariano del Ramírez",
       club: "Academia Deportiva Santiago",
-      rut: "79771262-4",
+      rut: generarRUT(),
       año: 2009,
       categoria: "Juvenil",
       nivel: "M1",
@@ -383,7 +320,7 @@ export const mockResultadosJuvenilGAM: ResultadosCategoria = {
       id: "11",
       nombre: "Diego Fernández López",
       club: "Escuela de Gimnasia Elite",
-      rut: "65432198-7",
+      rut: generarRUT(),
       año: 2010,
       categoria: "Juvenil",
       nivel: "M1",
@@ -410,6 +347,64 @@ export const mockResultadosJuvenilGAM: ResultadosCategoria = {
     },
   ],
 };
+
+// ✅ DATOS MOCK PARA EQUIPOS
+export const mockEquiposResultados: EquipoResultado[] = [
+  {
+    id: 'eq1',
+    nombre: 'Delegación de Matías',
+    club: 'Delegación de Matías',
+    totalGimnastas: 4,
+    gimnastasQueCuentan: 3,
+    puntajeEquipo: 98.5,
+    posicion: 1
+  },
+  {
+    id: 'eq2',
+    nombre: 'Club Gimnástico Valparaíso',
+    club: 'Club Gimnástico Valparaíso', 
+    totalGimnastas: 3,
+    gimnastasQueCuentan: 3,
+    puntajeEquipo: 96.8,
+    posicion: 2
+  },
+  {
+    id: 'eq3',
+    nombre: 'Academia Deportiva Santiago',
+    club: 'Academia Deportiva Santiago',
+    totalGimnastas: 4,
+    gimnastasQueCuentan: 3,
+    puntajeEquipo: 94.2,
+    posicion: 3
+  },
+  {
+    id: 'eq4',
+    nombre: 'Escuela de Gimnasia Elite',
+    club: 'Escuela de Gimnasia Elite',
+    totalGimnastas: 3,
+    gimnastasQueCuentan: 3,
+    puntajeEquipo: 92.1,
+    posicion: 4
+  },
+  {
+    id: 'eq5',
+    nombre: 'Club Artístico Las Condes',
+    club: 'Club Artístico Las Condes',
+    totalGimnastas: 2,
+    gimnastasQueCuentan: 2,
+    puntajeEquipo: 89.7,
+    posicion: 5
+  },
+  {
+    id: 'eq6',
+    nombre: 'Gimnasia Integral Viña',
+    club: 'Gimnasia Integral Viña',
+    totalGimnastas: 3,
+    gimnastasQueCuentan: 3,
+    puntajeEquipo: 87.3,
+    posicion: 6
+  }
+];
 
 // Helper function para aparatos display
 export const getAparatoDisplayNameResults = (aparato: string): string => {

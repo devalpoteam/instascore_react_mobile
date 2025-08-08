@@ -14,11 +14,13 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
-// Data
+// Data actualizada
 import { 
   CampeonatoEnVivo,
   mockCampeonatosEnVivo,
-  getAparatoDisplayName
+  getAparatoDisplayName,
+  getGeneroSimple,
+  construirNombreCategoria
 } from '../data/mockLiveData';
 
 // Navigation types
@@ -304,7 +306,7 @@ export default function CategorySelectorScreen() {
           </View>
         </View>
 
-        {/* Section title más moderno */}
+        {/* Section title */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingTop: responsive.spacing.xl,
@@ -330,7 +332,7 @@ export default function CategorySelectorScreen() {
           </Text>
         </View>
 
-        {/* Lista de categorías rediseñada - MEZCLA DE AMBOS DISEÑOS */}
+        {/* Lista de categorías con estructura jerárquica */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingBottom: responsive.spacing.xl,
@@ -358,13 +360,8 @@ export default function CategorySelectorScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}>
-                  {/* Info principal */}
-                  <View style={{ flex: 1 }}>
-                  {/* Header con título y EN VIVO */}
+                <View style={{ flex: 1 }}>
+                  {/* Header con nombre completo de categoría */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -377,10 +374,10 @@ export default function CategorySelectorScreen() {
                       fontFamily: 'Nunito',
                       marginRight: responsive.spacing.sm,
                     }}>
-                      {categoria.nombre}
+                      {construirNombreCategoria(categoria, 'completo')}
                     </Text>
                     
-                    {/* EN VIVO badge al lado del título */}
+                    {/* EN VIVO badge */}
                     <View style={{
                       backgroundColor: getColor.secondary[500],
                       borderRadius: 4,
@@ -398,13 +395,14 @@ export default function CategorySelectorScreen() {
                     </View>
                   </View>
                   
+                  {/* Género */}
                   <Text style={{
                     fontSize: responsive.fontSize.sm,
                     color: getColor.gray[500],
                     fontFamily: 'Nunito',
                     marginBottom: responsive.spacing.xs,
                   }}>
-                    {categoria.tipo === 'GAF' ? 'Femenino' : 'Masculino'}
+                    {getGeneroSimple(categoria.tipo)}
                   </Text>
 
                   {/* Status row con aparato actual */}
@@ -430,15 +428,6 @@ export default function CategorySelectorScreen() {
                       </Text>
                     </View>
 
-                    {/* Progress indicator */}
-                    <Text style={{
-                      fontSize: responsive.fontSize.xs,
-                      color: getColor.gray[500],
-                      fontFamily: 'Nunito',
-                    }}>
-                      {categoria.aparatoNumero}/{categoria.totalAparatos}
-                    </Text>
-
                     {/* Participantes */}
                     <View style={{
                       flexDirection: 'row',
@@ -457,7 +446,7 @@ export default function CategorySelectorScreen() {
                   </View>
                 </View>
                 
-                {/* Arrow indicator circular del diseño anterior */}
+                {/* Arrow indicator */}
                 <View style={{
                   backgroundColor: getColor.primary[500],
                   borderRadius: 16,
@@ -469,7 +458,6 @@ export default function CategorySelectorScreen() {
                     color={getColor.background.primary} 
                   />
                 </View>
-              </View>
               </View>
             </TouchableOpacity>
           ))}

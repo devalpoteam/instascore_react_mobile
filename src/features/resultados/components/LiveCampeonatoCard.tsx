@@ -1,15 +1,22 @@
-// src/features/resultados/components/LiveCampeonatoCard.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { CampeonatoEnVivo } from '../data/mockLiveData';
 
 interface LiveCampeonatoCardProps {
-  campeonato: CampeonatoEnVivo;
-  onPress?: (campeonato: CampeonatoEnVivo) => void;
-  onViewLive?: (campeonato: CampeonatoEnVivo) => void;
+  campeonato: {
+    id: string;
+    nombre: string;
+    lugar: string;
+    horaInicio: string;
+    categoriasActivas?: any[];
+    totalCategorias?: number;
+    categoriasFinalizadas?: number;
+    participantesTotales?: number;
+  };
+  onPress?: (campeonato: any) => void;
+  onViewLive?: (campeonato: any) => void;
 }
 
 export default function LiveCampeonatoCard({
@@ -150,8 +157,6 @@ export default function LiveCampeonatoCard({
             Inicio: {campeonato.horaInicio}
           </Text>
         </View>
-
-
       </TouchableOpacity>
 
       {/* Botón de acción principal - Separado del área clickeable */}

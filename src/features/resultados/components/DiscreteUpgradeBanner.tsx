@@ -60,16 +60,6 @@ const PRO_FEATURES: ProFeature[] = [
     title: 'Historial de Gimnastas',
     description: 'Historial completo de competencias anteriores',
   },
-  {
-    icon: 'stats-chart',
-    title: 'Estadísticas por Aparato',
-    description: 'Estadísticas detalladas y evolución por aparato',
-  },
-  {
-    icon: 'download',
-    title: 'Exportar Resultados',
-    description: 'Exportar resultados completos en PDF/Excel',
-  },
 ];
 
 export default function DiscreteUpgradeBanner({ 
