@@ -1,45 +1,58 @@
-// src/features/home/screens/HomeScreen.tsx - OPCIÓN 1: MODAL
-import React, { useState } from 'react';
+// src/features/home/screens/HomeScreen.tsx - REDISEÑADO CON CARRUSEL E ICONOS
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
   ScrollView, 
-  TouchableOpacity, 
-  RefreshControl 
+  Image,
+  Dimensions,
+  RefreshControl,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
-import CampeonatoSelectorModal from '@/features/home/components/CampeonatoSelectorModal';
 
-// Mock data expandido - 10 campeonatos - CORREGIDO
+// Mock data para extraer campeonatos específicos
 const mockCampeonatos = [
-  { id: '1', nombre: 'Copa Valparaíso 2024', activo: true, fecha: '15-20 Nov' },
-  { id: '2', nombre: 'Gimnasia Artística Valparaíso', activo: false, fecha: '5-10 Oct' },
-  { id: '3', nombre: 'Campeonato Nacional Juvenil', activo: true, fecha: '25-30 Nov' },
-  { id: '4', nombre: 'Copa Regional Centro', activo: false, fecha: '1-5 Sep' },
-  { id: '5', nombre: 'Torneo Interclubes', activo: true, fecha: '10-15 Dic' },
-  { id: '6', nombre: 'Campeonato Escolar', activo: false, fecha: '20-25 Ago' },
-  { id: '7', nombre: 'Copa Internacional', activo: true, fecha: '5-10 Ene' },
-  { id: '8', nombre: 'Torneo de Verano', activo: false, fecha: '15-20 Jul' },
-  { id: '9', nombre: 'Campeonato Adulto Mayor', activo: true, fecha: '25-30 Dic' },
-  { id: '10', nombre: 'Copa Primavera', activo: false, fecha: '10-15 Sep' },
+  { id: '1', nombre: 'Copa Valparaíso 2025', estado: 'activo', participantes: 178, categorias: 12, lugar: 'Polideportivo de Viña del Mar' },
+  { id: '2', nombre: 'Torneo Nacional Juvenil 2025', estado: 'configuracion', participantes: 156, categorias: 8, lugar: 'Centro Deportivo Nacional Santiago' },
+  { id: '4', nombre: 'Copa Interclubes Santiago', estado: 'finalizado', participantes: 134, categorias: 10, lugar: 'Polideportivo Las Condes' },
 ];
 
-const mockStats = {
-  categorias: 7,
-  delegaciones: 6,
-  participantes: 161,
-};
+// Imágenes del carrusel
+const carouselImages = [
+  require('../../../../assets/images/carousel/gimnasta1.png'),
+  require('../../../../assets/images/carousel/gimnasta2.png'),
+  require('../../../../assets/images/carousel/gimnasta3.png'),
+  require('../../../../assets/images/carousel/gimnasta4.png'),
+];
 
 export default function HomeScreen() {
   const responsive = useResponsive();
-  const [selectedCampeonato, setSelectedCampeonato] = useState(mockCampeonatos[0]);
   const [refreshing, setRefreshing] = useState(false);
-  const [showStats, setShowStats] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const { width: screenWidth } = Dimensions.get('window');
+
+  // Auto-scroll del carrusel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % carouselImages.length;
+        flatListRef.current?.scrollToIndex({ 
+          index: nextIndex, 
+          animated: true 
+        });
+        return nextIndex;
+      });
+    }, 4000); // Cada 4 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -48,19 +61,274 @@ export default function HomeScreen() {
     }, 1000);
   };
 
-  const handleCampeonatoSelect = (campeonato: typeof mockCampeonatos[0]) => {
-    setSelectedCampeonato(campeonato);
-    setShowStats(true);
-  };
-
   const handleNotificationPress = () => {
     console.log('🔔 Notifications pressed');
   };
+
+  // Extraer campeonatos específicos
+  const campeonatoEnCurso = mockCampeonatos.find(c => c.estado === 'activo');
+  const campeonatoProximo = mockCampeonatos.find(c => c.estado === 'configuracion');
+  const campeonatoFinalizado = mockCampeonatos.find(c => c.estado === 'finalizado');
 
   const getScrollViewPaddingBottom = () => {
     if (responsive.isTablet) return 40;
     if (responsive.isIOS) return responsive.insets.bottom > 0 ? 25 : 20;
     return 20;
+  };
+
+  // Renderizar imagen del carrusel
+  const renderCarouselImage = ({ item, index }: { item: any; index: number }) => (
+    <View style={{ width: screenWidth }}>
+      <Image
+        source={item}
+        style={{
+          width: screenWidth,
+          height: responsive.isTablet ? 300 : 250,
+          resizeMode: 'cover',
+        }}
+      />
+    </View>
+  );
+
+  // Componente para información de campeonato - CON ETIQUETA DE ESTADO E ICONOS
+  const CampeonatoInfo = ({ 
+    campeonato, 
+    estado,
+    estadoColor,
+    isLive = false
+  }: { 
+    campeonato: any; 
+    estado: string;
+    estadoColor: string;
+    isLive?: boolean;
+  }) => {
+    if (!campeonato) {
+      return (
+        <View style={{
+          backgroundColor: getColor.gray[50],
+          borderRadius: 16,
+          padding: responsive.spacing.lg,
+          marginBottom: responsive.spacing.md,
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: getColor.gray[200],
+        }}>
+          <Ionicons name="information-circle-outline" size={48} color={getColor.gray[400]} />
+          <Text style={{
+            fontSize: responsive.fontSize.base,
+            color: getColor.gray[500],
+            fontFamily: 'Nunito',
+            marginTop: responsive.spacing.sm,
+            textAlign: 'center',
+          }}>
+            No hay campeonato disponible
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={{
+        backgroundColor: getColor.background.primary,
+        borderRadius: 20,
+        padding: responsive.spacing.lg,
+        marginBottom: responsive.spacing.md,
+        borderWidth: isLive ? 2 : 1,
+        borderColor: isLive ? getColor.secondary[200] : getColor.gray[200],
+        shadowColor: isLive ? getColor.secondary[400] : getColor.gray[400],
+        shadowOffset: { width: 0, height: isLive ? 6 : 3 },
+        shadowOpacity: isLive ? 0.15 : 0.08,
+        shadowRadius: isLive ? 12 : 6,
+        elevation: isLive ? 8 : 4,
+        ...(isLive && {
+          transform: [{ scale: 1.02 }],
+        }),
+      }}>
+        {/* Header con etiqueta de estado */}
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: responsive.spacing.sm,
+        }}>
+          {/* Nombre del campeonato */}
+          <Text style={{
+            fontSize: responsive.fontSize.xl,
+            fontWeight: '700',
+            color: getColor.primary[600],
+            fontFamily: 'Nunito',
+            lineHeight: responsive.fontSize.xl * 1.2,
+            flex: 1,
+            marginRight: responsive.spacing.sm,
+          }}>
+            {campeonato.nombre}
+          </Text>
+          
+          {/* Etiqueta de estado con iconos específicos */}
+          {estado === "EN VIVO" ? (
+            <View style={{
+              backgroundColor: `${estadoColor}15`,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderWidth: 1,
+              borderColor: `${estadoColor}30`,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <View style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: estadoColor,
+                marginRight: 6,
+              }} />
+              <Text style={{
+                fontSize: responsive.fontSize.xs,
+                fontWeight: '600',
+                color: estadoColor,
+                fontFamily: 'Nunito',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}>
+                {estado}
+              </Text>
+            </View>
+          ) : (
+            <View style={{
+              backgroundColor: `${estadoColor}15`,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderWidth: 1,
+              borderColor: `${estadoColor}30`,
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              {/* ✅ ICONOS AGREGADOS SEGÚN EL ESTADO */}
+              <Ionicons 
+                name={estado === "PRÓXIMO" ? "calendar-outline" : "checkmark-circle-outline"} 
+                size={14} 
+                color={estadoColor} 
+                style={{ marginRight: 6 }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.xs,
+                fontWeight: '600',
+                color: estadoColor,
+                fontFamily: 'Nunito',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}>
+                {estado}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Lugar con icono */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: responsive.spacing.md,
+        }}>
+          <Ionicons 
+            name="location" 
+            size={16} 
+            color={getColor.gray[500]} 
+            style={{ marginRight: 6 }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.base,
+            color: getColor.gray[600],
+            fontFamily: 'Nunito',
+            flex: 1,
+          }}>
+            {campeonato.lugar}
+          </Text>
+        </View>
+
+        {/* Chips de estadísticas */}
+        <View style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginBottom: responsive.spacing.sm,
+        }}>
+          <View style={{
+            backgroundColor: getColor.primary[50],
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+            <Ionicons 
+              name="people-outline" 
+              size={14} 
+              color={getColor.primary[500]} 
+              style={{ marginRight: 4 }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              fontWeight: '600',
+              color: getColor.primary[700],
+              fontFamily: 'Nunito',
+            }}>
+              {campeonato.participantes} gimnastas
+            </Text>
+          </View>
+
+          <View style={{
+            backgroundColor: getColor.secondary[50],
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+            <Ionicons 
+              name="trophy-outline" 
+              size={14} 
+              color={getColor.secondary[600]} 
+              style={{ marginRight: 4 }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              fontWeight: '600',
+              color: getColor.secondary[700],
+              fontFamily: 'Nunito',
+            }}>
+              {campeonato.categorias} categorías
+            </Text>
+          </View>
+
+          <View style={{
+            backgroundColor: getColor.gray[100],
+            borderRadius: 16,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+            <Ionicons 
+              name="flag-outline" 
+              size={14} 
+              color={getColor.gray[600]} 
+              style={{ marginRight: 4 }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              fontWeight: '600',
+              color: getColor.gray[700],
+              fontFamily: 'Nunito',
+            }}>
+              {campeonato.delegaciones} delegaciones
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -72,10 +340,6 @@ export default function HomeScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ 
-          padding: responsive.spacing.md,
-          paddingBottom: getScrollViewPaddingBottom(),
-        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -87,302 +351,206 @@ export default function HomeScreen() {
         }
       >
         
-        {/* SELECTOR DE CAMPEONATO CON MODAL */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: getColor.background.primary,
-            borderRadius: 12,
-            padding: responsive.spacing.lg,
-            marginBottom: responsive.spacing.lg,
-            borderWidth: 1,
-            borderColor: getColor.gray[200],
-            shadowColor: getColor.primary[500],
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-          }}
-          onPress={() => setShowModal(true)}
-          activeOpacity={0.7}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: responsive.fontSize.lg,
-                fontWeight: '600',
-                color: getColor.gray[800],
-                fontFamily: 'Nunito',
-                marginBottom: 4,
-              }}>
-                Campeonato Seleccionado
-              </Text>
-              
-              {selectedCampeonato && (
-                <>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                    <View style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: selectedCampeonato.activo ? getColor.success[500] : getColor.gray[400],
-                      marginRight: 8,
-                    }} />
-                    <Text style={{
-                      fontSize: responsive.fontSize.base,
-                      color: getColor.primary[600],
-                      fontFamily: 'Nunito',
-                      fontWeight: '500',
-                      flex: 1,
-                    }}>
-                      {selectedCampeonato.nombre}
-                    </Text>
-                  </View>
-                  <Text style={{
-                    fontSize: responsive.fontSize.sm,
-                    color: getColor.gray[500],
-                    fontFamily: 'Nunito',
-                  }}>
-                    {selectedCampeonato.activo ? 'En curso' : 'Finalizado'} • {selectedCampeonato.fecha}
-                  </Text>
-                </>
-              )}
-              
-              <Text style={{
-                fontSize: responsive.fontSize.sm,
-                color: getColor.gray[400],
-                fontFamily: 'Nunito',
-                marginTop: 8,
-              }}>
-                Toca aquí para ver otros campeonatos • {mockCampeonatos.length} disponibles
-              </Text>
-            </View>
-            
-            <View style={{
-              backgroundColor: getColor.primary[50],
-              borderRadius: 20,
-              padding: 8,
-            }}>
-              <Ionicons name="chevron-down" size={20} color={getColor.primary[500]} />
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* MODAL DE SELECCIÓN */}
-        <CampeonatoSelectorModal
-          visible={showModal}
-          campeonatos={mockCampeonatos}
-          selectedCampeonato={selectedCampeonato}
-          onSelect={handleCampeonatoSelect}
-          onClose={() => setShowModal(false)}
-        />
-
-        {/* ESTADÍSTICAS DEL CAMPEONATO */}
-        {showStats && selectedCampeonato && (
-          <View style={{ marginBottom: responsive.spacing.lg }}>
-            <Text style={{
-              fontSize: responsive.fontSize.xl,
-              fontWeight: '600',
-              color: getColor.gray[800],
-              fontFamily: 'Nunito',
-              marginBottom: responsive.spacing.md,
-              textAlign: 'center',
-            }}>
-              {selectedCampeonato.nombre}
-            </Text>
-            
-            <View style={{ gap: responsive.spacing.md }}>
-              {/* Card Categorías */}
-              <View style={{
-                backgroundColor: getColor.primary[500],
-                borderRadius: 16,
-                padding: responsive.spacing.xl,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: responsive.isTablet ? 140 : 120,
-                shadowColor: getColor.primary[500],
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 6,
-              }}>
-                <Text style={{
-                  fontSize: responsive.fontSize['4xl'],
-                  fontWeight: '700',
-                  color: getColor.background.primary,
-                  fontFamily: 'Montserrat',
-                  lineHeight: responsive.fontSize['4xl'] * 1.1,
-                }}>
-                  {mockStats.categorias}
-                </Text>
-                <Text style={{
-                  fontSize: responsive.fontSize.lg,
-                  fontWeight: '500',
-                  color: getColor.background.primary,
-                  fontFamily: 'Nunito',
-                  marginTop: 4,
-                  textAlign: 'center',
-                }}>
-                  Categorías
-                </Text>
-              </View>
-
-              {/* Card Delegaciones */}
-              <View style={{
-                backgroundColor: getColor.primary[500],
-                borderRadius: 16,
-                padding: responsive.spacing.xl,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: responsive.isTablet ? 140 : 120,
-                shadowColor: getColor.primary[500],
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 6,
-              }}>
-                <Text style={{
-                  fontSize: responsive.fontSize['4xl'],
-                  fontWeight: '700',
-                  color: getColor.background.primary,
-                  fontFamily: 'Montserrat',
-                  lineHeight: responsive.fontSize['4xl'] * 1.1,
-                }}>
-                  {mockStats.delegaciones}
-                </Text>
-                <Text style={{
-                  fontSize: responsive.fontSize.lg,
-                  fontWeight: '500',
-                  color: getColor.background.primary,
-                  fontFamily: 'Nunito',
-                  marginTop: 4,
-                  textAlign: 'center',
-                }}>
-                  Delegaciones
-                </Text>
-              </View>
-
-              {/* Card Participantes */}
-              <View style={{
-                backgroundColor: getColor.primary[500],
-                borderRadius: 16,
-                padding: responsive.spacing.xl,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: responsive.isTablet ? 140 : 120,
-                shadowColor: getColor.primary[500],
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 6,
-              }}>
-                <Text style={{
-                  fontSize: responsive.fontSize['4xl'],
-                  fontWeight: '700',
-                  color: getColor.background.primary,
-                  fontFamily: 'Montserrat',
-                  lineHeight: responsive.fontSize['4xl'] * 1.1,
-                }}>
-                  {mockStats.participantes}
-                </Text>
-                <Text style={{
-                  fontSize: responsive.fontSize.lg,
-                  fontWeight: '500',
-                  color: getColor.background.primary,
-                  fontFamily: 'Nunito',
-                  marginTop: 4,
-                  textAlign: 'center',
-                }}>
-                  Participantes
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* ACCIONES RÁPIDAS */}
-        <View style={{
-          backgroundColor: getColor.background.primary,
-          borderRadius: 12,
-          padding: responsive.spacing.lg,
-          borderWidth: 1,
-          borderColor: getColor.gray[200],
-          shadowColor: getColor.primary[500],
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}>
-          <Text style={{
-            fontSize: responsive.fontSize.lg,
-            fontWeight: '600',
-            color: getColor.gray[800],
-            fontFamily: 'Nunito',
-            marginBottom: responsive.spacing.md,
-          }}>
-            Acciones Rápidas
-          </Text>
+        {/* CARRUSEL DE IMÁGENES */}
+        <View style={{ position: 'relative' }}>
+          <FlatList
+            ref={flatListRef}
+            data={carouselImages}
+            renderItem={renderCarouselImage}
+            keyExtractor={(_, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(event) => {
+              const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+              setCurrentImageIndex(newIndex);
+            }}
+          />
           
+          {/* Indicadores de página */}
+          <View style={{
+            position: 'absolute',
+            bottom: 20,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            {carouselImages.map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: currentImageIndex === index 
+                    ? getColor.background.primary 
+                    : `${getColor.background.primary}60`,
+                  marginHorizontal: 4,
+                  shadowColor: getColor.gray[900],
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 2,
+                  elevation: 2,
+                }}
+                onPress={() => {
+                  setCurrentImageIndex(index);
+                  flatListRef.current?.scrollToIndex({ index, animated: true });
+                }}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* INFORMACIÓN DE CAMPEONATOS */}
+        <View style={{
+          padding: responsive.spacing.md,
+          paddingBottom: getScrollViewPaddingBottom(),
+        }}>
+          
+          {/* Sección EN VIVO - CON PUNTO LIVE */}
           <View style={{
             flexDirection: 'row',
-            justifyContent: 'space-between',
-            gap: responsive.spacing.sm,
+            alignItems: 'center',
+            marginBottom: responsive.spacing.lg,
+            marginTop: responsive.spacing.sm,
           }}>
-            
-            <TouchableOpacity style={{
+            <View style={{
               flex: 1,
-              backgroundColor: getColor.secondary[500],
-              borderRadius: 12,
-              padding: responsive.spacing.md,
+              height: 1,
+              backgroundColor: getColor.secondary[300],
+            }} />
+            <View style={{
+              flexDirection: 'row',
               alignItems: 'center',
-              shadowColor: getColor.secondary[500],
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 4,
+              marginHorizontal: responsive.spacing.md,
             }}>
-              <Ionicons 
-                name="play-circle" 
-                size={28} 
-                color={getColor.background.primary} 
-              />
+              <View style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: getColor.secondary[500],
+                marginRight: 6,
+              }} />
               <Text style={{
                 fontSize: responsive.fontSize.sm,
-                fontWeight: '600',
-                color: getColor.background.primary,
+                fontWeight: '500',
+                color: getColor.secondary[600],
                 fontFamily: 'Nunito',
-                marginTop: 8,
-                textAlign: 'center',
+                letterSpacing: 1,
               }}>
-                Resultados{'\n'}en Vivo
+                EN VIVO
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={{
+            </View>
+            <View style={{
               flex: 1,
-              backgroundColor: getColor.background.primary,
-              borderRadius: 12,
-              padding: responsive.spacing.md,
-              alignItems: 'center',
-              borderWidth: 2,
-              borderColor: getColor.primary[500],
-            }}>
-              <Ionicons 
-                name="people" 
-                size={28} 
-                color={getColor.primary[500]} 
-              />
-              <Text style={{
-                fontSize: responsive.fontSize.sm,
-                fontWeight: '600',
-                color: getColor.primary[500],
-                fontFamily: 'Nunito',
-                marginTop: 8,
-                textAlign: 'center',
-              }}>
-                Ver{'\n'}Gimnastas
-              </Text>
-            </TouchableOpacity>
+              height: 1,
+              backgroundColor: getColor.secondary[300],
+            }} />
           </View>
+
+          {/* Campeonato en curso - DESTACADO CON ESTILO LIVE */}
+          <CampeonatoInfo
+            campeonato={campeonatoEnCurso}
+            estado="EN VIVO"
+            estadoColor={getColor.secondary[500]}
+            isLive={true}
+          />
+
+          {/* Sección PRÓXIMOS - CON ICONO DE CALENDARIO */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: responsive.spacing.lg,
+            marginTop: responsive.spacing.xl,
+          }}>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: getColor.success[300],
+            }} />
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginHorizontal: responsive.spacing.md,
+            }}>
+              <Ionicons 
+                name="calendar-outline" 
+                size={16} 
+                color={getColor.success[600]} 
+                style={{ marginRight: 6 }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                fontWeight: '500',
+                color: getColor.success[600],
+                fontFamily: 'Nunito',
+                letterSpacing: 1,
+              }}>
+                PRÓXIMOS
+              </Text>
+            </View>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: getColor.success[300],
+            }} />
+          </View>
+
+          {/* Campeonato próximo */}
+          <CampeonatoInfo
+            campeonato={campeonatoProximo}
+            estado="PRÓXIMO"
+            estadoColor={getColor.success[500]}
+          />
+
+          {/* Sección FINALIZADOS - CON ICONO DE TICKET/CHECK */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: responsive.spacing.lg,
+            marginTop: responsive.spacing.xl,
+          }}>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: getColor.gray[300],
+            }} />
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginHorizontal: responsive.spacing.md,
+            }}>
+              <Ionicons 
+                name="checkmark-circle-outline" 
+                size={16} 
+                color={getColor.gray[600]} 
+                style={{ marginRight: 6 }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                fontWeight: '500',
+                color: getColor.gray[600],
+                fontFamily: 'Nunito',
+                letterSpacing: 1,
+              }}>
+                FINALIZADOS
+              </Text>
+            </View>
+            <View style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: getColor.gray[300],
+            }} />
+          </View>
+
+          {/* Último finalizado */}
+          <CampeonatoInfo
+            campeonato={campeonatoFinalizado}
+            estado="FINALIZADO"
+            estadoColor={getColor.gray[500]}
+          />
         </View>
       </ScrollView>
     </BaseLayout>
