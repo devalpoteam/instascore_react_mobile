@@ -1,4 +1,6 @@
 // src/features/resultados/screens/CategorySelectorScreen.tsx
+// ✅ ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS Y EN VIVO
+
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -29,8 +31,8 @@ type MainNavigatorParamList = {
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
   Resultados: { campeonatoId?: string };
-  CategorySelector: { campeonatoId: string };
-  LiveResults: { campeonatoId: string; categoriaId: string };
+  CategorySelector: { campeonatoId: string; isFinished?: boolean }; // ✅ ACTUALIZADO
+  LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean }; // ✅ ACTUALIZADO
   Gimnastas: undefined;
   Ajustes: undefined;
 };
@@ -43,7 +45,8 @@ export default function CategorySelectorScreen() {
   const navigation = useNavigation<CategorySelectorNavigationProp>();
   const responsive = useResponsive();
 
-  const { campeonatoId } = route.params;
+  // ✅ EXTRAER PARÁMETROS ACTUALIZADOS
+  const { campeonatoId, isFinished = false } = route.params;
   
   const [campeonato, setCampeonato] = useState<CampeonatoEnVivo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,18 +81,48 @@ export default function CategorySelectorScreen() {
   };
 
   const handleCategoriaPress = (categoriaId: string) => {
-    console.log('🎯 Navegar a resultados de categoría:', categoriaId);
+    console.log(`🎯 Navegar a resultados de categoría (${isFinished ? 'finalizado' : 'en vivo'}):`, categoriaId);
     navigation.navigate('LiveResults', { 
       campeonatoId, 
-      categoriaId 
+      categoriaId,
+      isFinished // ✅ PASAR EL ESTADO
     });
   };
+
+  // ✅ FUNCIÓN HELPER PARA OBTENER TEXTOS DINÁMICOS
+  const getDisplayTexts = () => {
+    if (isFinished) {
+      return {
+        headerTitle: "Resultados Finales",
+        statusLabel: "FINALIZADO",
+        statusColor: getColor.gray[600],
+        statusBgColor: getColor.gray[200],
+        sectionTitle: "🏆 Resultados por Categoría",
+        sectionSubtitle: "Toca una categoría para ver los resultados finales",
+        categoryBadge: "FINALIZADO",
+        categoryBadgeColor: getColor.gray[500]
+      };
+    } else {
+      return {
+        headerTitle: "Categorías En Vivo",
+        statusLabel: "RESULTADOS EN VIVO",
+        statusColor: getColor.background.primary,
+        statusBgColor: getColor.secondary[500],
+        sectionTitle: "🏆 Categorías Compitiendo",
+        sectionSubtitle: "Toca una categoría para ver resultados en tiempo real",
+        categoryBadge: "EN VIVO",
+        categoryBadgeColor: getColor.secondary[500]
+      };
+    }
+  };
+
+  const displayTexts = getDisplayTexts();
 
   if (isLoading) {
     return (
       <BaseLayout>
         <Header 
-          title="Categorías En Vivo"
+          title={displayTexts.headerTitle}
           showLogo={false}
           showBack={true}
           onBackPress={() => navigation.goBack()}
@@ -101,19 +134,19 @@ export default function CategorySelectorScreen() {
           padding: responsive.spacing.xl,
         }}>
           <Ionicons 
-            name="radio" 
+            name={isFinished ? "trophy" : "radio"} 
             size={48} 
-            color={getColor.secondary[500]} 
+            color={isFinished ? getColor.gray[600] : getColor.secondary[500]} // ✅ CAMBIADO: de gray[500] a gray[600] (más oscuro)
             style={{ marginBottom: responsive.spacing.md }}
           />
           <Text style={{
             fontSize: responsive.fontSize.lg,
             fontWeight: '600',
-            color: getColor.secondary[500],
+            color: isFinished ? getColor.gray[700] : getColor.secondary[500], // ✅ CAMBIADO: de gray[600] a gray[700] (más oscuro)
             fontFamily: 'Nunito',
             textAlign: 'center',
           }}>
-            Cargando categorías...
+            {isFinished ? 'Cargando resultados...' : 'Cargando categorías...'}
           </Text>
         </View>
       </BaseLayout>
@@ -144,7 +177,7 @@ export default function CategorySelectorScreen() {
   return (
     <BaseLayout>
       <Header 
-        title="Categorías En Vivo"
+        title={displayTexts.headerTitle}
         subtitle={campeonato.nombre}
         showLogo={false}
         showBack={true}
@@ -158,18 +191,18 @@ export default function CategorySelectorScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={getColor.secondary[500]}
-            colors={[getColor.secondary[500]]}
+            tintColor={isFinished ? getColor.gray[500] : getColor.secondary[500]}
+            colors={[isFinished ? getColor.gray[500] : getColor.secondary[500]]}
           />
         }
       >
-        {/* Hero section con estadísticas del campeonato */}
+        {/* ✅ HERO SECTION ADAPTADO AL ESTADO */}
         <View style={{
-          backgroundColor: getColor.secondary[50],
+          backgroundColor: isFinished ? getColor.gray[100] : getColor.secondary[50], // ✅ CAMBIADO: de gray[50] a gray[100] (más oscuro)
           paddingHorizontal: responsive.spacing.md,
           paddingVertical: responsive.spacing.xl,
         }}>
-          {/* Status indicator */}
+          {/* Status indicator dinámico */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -179,7 +212,7 @@ export default function CategorySelectorScreen() {
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: getColor.secondary[500],
+              backgroundColor: displayTexts.statusBgColor,
               borderRadius: 20,
               paddingHorizontal: responsive.spacing.md,
               paddingVertical: responsive.spacing.sm,
@@ -188,16 +221,16 @@ export default function CategorySelectorScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: getColor.background.primary,
+                backgroundColor: displayTexts.statusColor,
                 marginRight: 6,
               }} />
               <Text style={{
                 fontSize: responsive.fontSize.sm,
                 fontWeight: '700',
-                color: getColor.background.primary,
+                color: displayTexts.statusColor,
                 fontFamily: 'Nunito',
               }}>
-                RESULTADOS EN VIVO
+                {displayTexts.statusLabel}
               </Text>
             </View>
           </View>
@@ -219,7 +252,7 @@ export default function CategorySelectorScreen() {
               <Text style={{
                 fontSize: responsive.fontSize['2xl'],
                 fontWeight: '700',
-                color: getColor.secondary[600],
+                color: isFinished ? getColor.gray[700] : getColor.secondary[600], // ✅ CAMBIADO: de gray[600] a gray[700] (más oscuro)
                 fontFamily: 'Nunito',
               }}>
                 {campeonato.categoriasActivas.length}
@@ -230,7 +263,7 @@ export default function CategorySelectorScreen() {
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                Categorías Activas
+                {isFinished ? 'Categorías Finalizadas' : 'Categorías Activas'}
               </Text>
             </View>
 
@@ -255,7 +288,7 @@ export default function CategorySelectorScreen() {
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                Atletas Total
+                {isFinished ? 'Atletas Participantes' : 'Atletas Total'}
               </Text>
             </View>
 
@@ -280,7 +313,7 @@ export default function CategorySelectorScreen() {
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                Hora Inicio
+                {isFinished ? 'Hora de Inicio' : 'Hora Inicio'}
               </Text>
             </View>
           </View>
@@ -306,7 +339,7 @@ export default function CategorySelectorScreen() {
           </View>
         </View>
 
-        {/* Section title */}
+        {/* Section title adaptado */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingTop: responsive.spacing.xl,
@@ -320,7 +353,7 @@ export default function CategorySelectorScreen() {
             textAlign: 'center',
             marginBottom: responsive.spacing.xs,
           }}>
-            🏆 Categorías Compitiendo
+            {displayTexts.sectionTitle}
           </Text>
           <Text style={{
             fontSize: responsive.fontSize.base,
@@ -328,11 +361,11 @@ export default function CategorySelectorScreen() {
             fontFamily: 'Nunito',
             textAlign: 'center',
           }}>
-            Toca una categoría para ver resultados en tiempo real
+            {displayTexts.sectionSubtitle}
           </Text>
         </View>
 
-        {/* Lista de categorías con estructura jerárquica */}
+        {/* Lista de categorías */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingBottom: responsive.spacing.xl,
@@ -347,7 +380,7 @@ export default function CategorySelectorScreen() {
                 marginBottom: responsive.spacing.md,
                 borderWidth: 1,
                 borderColor: getColor.gray[200],
-                shadowColor: getColor.primary[500],
+                shadowColor: isFinished ? getColor.gray[500] : getColor.primary[500], // ✅ CAMBIADO: de gray[400] a gray[500] (más oscuro)
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.1,
                 shadowRadius: 8,
@@ -377,9 +410,9 @@ export default function CategorySelectorScreen() {
                       {construirNombreCategoria(categoria, 'completo')}
                     </Text>
                     
-                    {/* EN VIVO badge */}
+                    {/* ✅ BADGE ADAPTADO AL ESTADO */}
                     <View style={{
-                      backgroundColor: getColor.secondary[500],
+                      backgroundColor: displayTexts.categoryBadgeColor,
                       borderRadius: 4,
                       paddingHorizontal: 6,
                       paddingVertical: 2,
@@ -390,7 +423,7 @@ export default function CategorySelectorScreen() {
                         color: getColor.background.primary,
                         fontFamily: 'Nunito',
                       }}>
-                        EN VIVO
+                        {displayTexts.categoryBadge}
                       </Text>
                     </View>
                   </View>
@@ -405,28 +438,30 @@ export default function CategorySelectorScreen() {
                     {getGeneroSimple(categoria.tipo)}
                   </Text>
 
-                  {/* Status row con aparato actual */}
+                  {/* ✅ STATUS ROW ADAPTADO */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: responsive.spacing.sm,
                   }}>
-                    {/* Aparato actual */}
-                    <View style={{
-                      backgroundColor: getColor.secondary[500],
-                      borderRadius: 6,
-                      paddingHorizontal: 8,
-                      paddingVertical: 2,
-                    }}>
-                      <Text style={{
-                        fontSize: responsive.fontSize.xs,
-                        fontWeight: '600',
-                        color: getColor.background.primary,
-                        fontFamily: 'Nunito',
+                    {/* Aparato actual (si no está finalizado) */}
+                    {!isFinished && (
+                      <View style={{
+                        backgroundColor: getColor.secondary[500],
+                        borderRadius: 6,
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
                       }}>
-                        {getAparatoDisplayName(categoria.aparatoActual, categoria.tipo)}
-                      </Text>
-                    </View>
+                        <Text style={{
+                          fontSize: responsive.fontSize.xs,
+                          fontWeight: '600',
+                          color: getColor.background.primary,
+                          fontFamily: 'Nunito',
+                        }}>
+                          {getAparatoDisplayName(categoria.aparatoActual, categoria.tipo)}
+                        </Text>
+                      </View>
+                    )}
 
                     {/* Participantes */}
                     <View style={{
@@ -440,7 +475,7 @@ export default function CategorySelectorScreen() {
                         fontFamily: 'Nunito',
                         marginLeft: 2,
                       }}>
-                        {categoria.participantesActivos}
+                        {categoria.participantesActivos} {isFinished ? 'participaron' : 'activos'}
                       </Text>
                     </View>
                   </View>

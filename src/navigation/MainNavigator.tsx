@@ -18,28 +18,60 @@ import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 import NotificationSettingsScreen from '@/features/settings/screens/NotificationSettingsScreen';
 import NotificationHistoryScreen from '@/features/settings/screens/NotificationHistoryScreen';
 
-// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS CON NOTIFICACIONES
+// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS PARA SOPORTAR CAMPEONATOS FINALIZADOS
 export type MainStackParamList = {
   Home: undefined;
   Resultados: undefined;
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
-  CategorySelector: { campeonatoId: string };
+  
+  // ✅ RUTAS ACTUALIZADAS PARA SOPORTAR CAMPEONATOS FINALIZADOS
+  CategorySelector: { 
+    campeonatoId: string;
+    isFinished?: boolean; // ✅ NUEVO: indica si es campeonato finalizado
+  };
   LiveResults: { 
     campeonatoId: string; 
     categoriaId: string; 
     categoriaNombre: string;
+    isFinished?: boolean; // ✅ NUEVO: indica si es campeonato finalizado
   };
+  
   // Rutas de gimnastas
   GimnastasList: undefined;
   GimnastaProfile: { gimnastaId: string };
+  
   // Rutas de perfil
   Perfil: undefined;
   ProfileSettings: undefined;
   ProfileFavorites: undefined;
+  
   // ✅ RUTAS DE NOTIFICACIONES
   NotificationSettings: undefined;
   NotificationHistory: undefined;
+};
+
+// ✅ TIPOS AUXILIARES PARA MEJORAR LA NAVEGACIÓN
+export type CampeonatoResultsMode = 'live' | 'finished';
+
+// ✅ HELPER FUNCTIONS PARA NAVEGACIÓN TIPADA
+export const NavigationHelpers = {
+  // Para navegar a selector de categorías
+  toCategorySelector: (campeonatoId: string, isFinished: boolean = false) => ({
+    screen: 'CategorySelector' as const,
+    params: { campeonatoId, isFinished }
+  }),
+  
+  // Para navegar a resultados
+  toLiveResults: (
+    campeonatoId: string, 
+    categoriaId: string, 
+    categoriaNombre: string,
+    isFinished: boolean = false
+  ) => ({
+    screen: 'LiveResults' as const,
+    params: { campeonatoId, categoriaId, categoriaNombre, isFinished }
+  })
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -101,6 +133,7 @@ export default function MainNavigator() {
         component={CampeonatoDetailScreen}
       />
       
+      {/* ✅ PANTALLAS ACTUALIZADAS - AHORA SOPORTAN CAMPEONATOS FINALIZADOS */}
       <Stack.Screen 
         name="CategorySelector" 
         component={CategorySelectorScreen}

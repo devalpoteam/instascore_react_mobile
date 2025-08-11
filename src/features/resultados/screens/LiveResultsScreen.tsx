@@ -1,4 +1,6 @@
 // src/features/resultados/screens/LiveResultsScreen.tsx
+// ✅ ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS Y CORREGIR VISTA "POR EQUIPOS"
+
 import React, { useState, useEffect } from "react";
 import {
  View,
@@ -29,12 +31,11 @@ import {
  getAparatoDisplayNameResults,
 } from "../data/mockLiveResultsData";
 import { getAparatoIcon, AparatoGeneral } from "../data/mockLiveData";
-// ✅ IMPORTAR LOS DATOS CORRECTOS DE EQUIPOS
 import { mockEquiposKinderF1 } from "../data/mockTeamResultsData";
 
 // Navigation types
 type LiveResultsRouteProp = RouteProp<
-  { LiveResults: { campeonatoId: string; categoriaId: string } },
+  { LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean } },
   "LiveResults"
 >;
 
@@ -53,18 +54,20 @@ export default function LiveResultsScreen() {
  const responsive = useResponsive();
  const { isPro } = useAppSelector((state) => state.auth);
 
- const { campeonatoId, categoriaId } = route.params || {
+ // ✅ EXTRAER PARÁMETROS ACTUALIZADOS
+ const { campeonatoId, categoriaId, isFinished = false } = route.params || {
    campeonatoId: "1",
    categoriaId: "cat1",
+   isFinished: false
  };
 
  const [state, setState] = useState<LiveResultsState>({
    resultados: null,
-   vistaSeleccionada: "aparatos", // Foco en el aparato actual
+   vistaSeleccionada: "aparatos",
    isLoading: true,
    isRefreshing: false,
    error: null,
-   showUpgradeBanner: !isPro, // Solo mostrar si no es Pro
+   showUpgradeBanner: !isPro,
  });
 
  // Cargar datos iniciales
@@ -72,16 +75,18 @@ export default function LiveResultsScreen() {
    loadResultados();
  }, [campeonatoId, categoriaId]);
 
- // Simular WebSocket updates
+ // ✅ SIMULAR WEBSOCKET UPDATES SOLO SI NO ESTÁ FINALIZADO
  useEffect(() => {
+   if (isFinished) return; // No hacer updates automáticos en campeonatos finalizados
+
    const interval = setInterval(() => {
      if (state.resultados && !state.isLoading) {
        simulateWebSocketUpdate();
      }
-   }, 15000); // Cada 15 segundos
+   }, 15000);
 
    return () => clearInterval(interval);
- }, [state.resultados, state.isLoading]);
+ }, [state.resultados, state.isLoading, isFinished]);
 
  const loadResultados = async () => {
    try {
@@ -143,40 +148,62 @@ export default function LiveResultsScreen() {
    setState((prev) => ({ ...prev, showUpgradeBanner: false }));
  };
 
- // ✅ FUNCIÓN HELPER PARA OBTENER DATOS DE EQUIPOS SEGÚN CATEGORÍA
+ // ✅ FUNCIÓN HELPER PARA OBTENER TEXTOS DINÁMICOS
+ const getDisplayTexts = () => {
+   if (isFinished) {
+     return {
+       headerTitle: "Resultados Finales",
+       loadingText: "Cargando resultados finales...",
+       statusBadge: "FINALIZADO",
+       statusColor: getColor.gray[500],
+       indicatorIcon: "trophy" as const,
+       lastUpdateText: "Resultados oficiales finales"
+     };
+   } else {
+     return {
+       headerTitle: "Resultados En Vivo",
+       loadingText: "Cargando resultados...",
+       statusBadge: "EN VIVO",
+       statusColor: getColor.secondary[500],
+       indicatorIcon: "radio" as const,
+       lastUpdateText: "Última actualización"
+     };
+   }
+ };
+
+ const displayTexts = getDisplayTexts();
+
+ // Función para obtener datos de equipos
  const getEquiposData = () => {
-   // Por ahora solo tenemos datos para Kinder F1
    if (categoriaId === "cat1") {
      return mockEquiposKinderF1;
    }
-   // Para otras categorías, retornar array vacío o datos mock generales
    return [];
  };
 
- // Extraer resultados al inicio para evitar errores de scope
  const resultados = state.resultados;
  const equiposData = getEquiposData();
 
  if (state.isLoading && !state.isRefreshing) {
    return (
      <BaseLayout>
-       <Header title="Resultados En Vivo" showBack={true} onBackPress={() => navigation.goBack()} />
+       <Header title={displayTexts.headerTitle} showBack={true} onBackPress={() => navigation.goBack()} />
        <View style={{
          flex: 1,
          justifyContent: "center",
          alignItems: "center",
          padding: responsive.spacing.xl,
        }}>
-         <Ionicons name="radio" size={48} color={getColor.secondary[500]} />
+         <Ionicons name={displayTexts.indicatorIcon} size={48} color={displayTexts.statusColor} />
          <Text style={{
            fontSize: responsive.fontSize.lg,
            fontWeight: "600",
-           color: getColor.secondary[500],
+           color: displayTexts.statusColor,
            fontFamily: "Nunito",
            textAlign: "center",
            marginTop: responsive.spacing.md,
          }}>
-           Cargando resultados...
+           {displayTexts.loadingText}
          </Text>
        </View>
      </BaseLayout>
@@ -203,72 +230,70 @@ export default function LiveResultsScreen() {
      <Header 
        title={resultados.categoriaNombreCorto || "Categoría"}
        subtitle={resultados.campeonatoNombre || "Campeonato"}
-       showBack={true} 
+       showBack={true}
        onBackPress={() => navigation.goBack()}
      />
 
-     {/* Header de aparato actual compacto - Solo mostrar si no es vista de equipos */}
-     {state.vistaSeleccionada !== 'equipos' && (
+     {/* ✅ HEADER DE APARATO ACTUAL CORREGIDO - MOSTRAR TAMBIÉN EN VISTA EQUIPOS */}
+     <View style={{
+       backgroundColor: isFinished ? getColor.gray[50] : getColor.secondary[50],
+       paddingHorizontal: responsive.spacing.md,
+       paddingVertical: responsive.spacing.md,
+       borderBottomWidth: 1,
+       borderBottomColor: isFinished ? getColor.gray[200] : getColor.secondary[200],
+     }}>
        <View style={{
-         backgroundColor: getColor.secondary[50],
-         paddingHorizontal: responsive.spacing.md,
-         paddingVertical: responsive.spacing.md,
-         borderBottomWidth: 1,
-         borderBottomColor: getColor.secondary[200],
+         flexDirection: "row",
+         justifyContent: "space-between",
+         alignItems: "center",
        }}>
-         <View style={{
-           flexDirection: "row",
-           justifyContent: "space-between",
-           alignItems: "center",
-         }}>
-           {/* Info del aparato */}
-           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-             <Ionicons
-               name={getAparatoIcon(resultados.aparatoActual as AparatoGeneral) as any}
-               size={30}
-               color={getColor.secondary[700]}
-               style={{ marginRight: responsive.spacing.sm }}
-             />
-             <View>
-               <Text style={{
-                 fontSize: responsive.fontSize.lg,
-                 fontWeight: "800",
-                 color: getColor.secondary[700],
-                 fontFamily: "Nunito",
-               }}>
-                 {getAparatoDisplayNameResults(resultados.aparatoActual)}
-               </Text>
-             </View>
-           </View>
-
-           {/* Indicador EN VIVO compacto */}
-           <View style={{
-             flexDirection: "row",
-             alignItems: "center",
-             backgroundColor: getColor.secondary[500],
-             borderRadius: 12,
-             paddingHorizontal: responsive.spacing.sm,
-             paddingVertical: 4,
-           }}>
-             <View style={{
-               width: 6,
-               height: 6,
-               borderRadius: 3,
-               backgroundColor: getColor.background.primary,
-               marginRight: 4,
-             }} />
+         {/* Info del aparato */}
+         <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+           <Ionicons
+             name={getAparatoIcon(resultados.aparatoActual as AparatoGeneral) as any}
+             size={30}
+             color={isFinished ? getColor.gray[600] : getColor.secondary[700]}
+             style={{ marginRight: responsive.spacing.sm }}
+           />
+           <View>
              <Text style={{
-               fontSize: responsive.fontSize.xs,
-               fontWeight: "600",
-               color: getColor.background.primary,
+               fontSize: responsive.fontSize.lg,
+               fontWeight: "800",
+               color: isFinished ? getColor.gray[700] : getColor.secondary[700],
                fontFamily: "Nunito",
              }}>
-               EN VIVO
+               {getAparatoDisplayNameResults(resultados.aparatoActual)}
              </Text>
            </View>
          </View>
+
+         {/* ✅ INDICADOR DINÁMICO SEGÚN ESTADO */}
+         <View style={{
+           flexDirection: "row",
+           alignItems: "center",
+           backgroundColor: displayTexts.statusColor,
+           borderRadius: 12,
+           paddingHorizontal: responsive.spacing.sm,
+           paddingVertical: 4,
+         }}>
+           <View style={{
+             width: 6,
+             height: 6,
+             borderRadius: 3,
+             backgroundColor: getColor.background.primary,
+             marginRight: 4,
+           }} />
+           <Text style={{
+             fontSize: responsive.fontSize.xs,
+             fontWeight: "600",
+             color: getColor.background.primary,
+             fontFamily: "Nunito",
+           }}>
+             {displayTexts.statusBadge}
+           </Text>
+         </View>
        </View>
-     )}
+     </View>
 
      {/* Selector de vista minimalista */}
      <View style={{
@@ -291,7 +316,7 @@ export default function LiveResultsScreen() {
              alignItems: "center",
              justifyContent: "center",
              backgroundColor: state.vistaSeleccionada === option.key 
-               ? getColor.secondary[500] 
+               ? (isFinished ? getColor.gray[500] : getColor.secondary[500])
                : getColor.gray[100],
              borderRadius: 8,
              paddingVertical: responsive.spacing.sm,
@@ -328,8 +353,8 @@ export default function LiveResultsScreen() {
          <RefreshControl
            refreshing={state.isRefreshing}
            onRefresh={handleRefresh}
-           tintColor={getColor.secondary[500]}
-           colors={[getColor.secondary[500]]}
+           tintColor={displayTexts.statusColor}
+           colors={[displayTexts.statusColor]}
          />
        }
      >
@@ -382,7 +407,6 @@ export default function LiveResultsScreen() {
                )}
              </>
            ) : (
-             // ✅ MENSAJE CUANDO NO HAY EQUIPOS
              <View style={{
                backgroundColor: getColor.gray[50],
                borderRadius: 12,
@@ -413,7 +437,6 @@ export default function LiveResultsScreen() {
              </View>
            )
          ) : (
-           // Vista normal (gimnastas individuales) - SIN CAMBIOS
            <>
              {gimnastasToShow.map((gimnasta, index) => (
                <CompactResultCard
@@ -457,7 +480,7 @@ export default function LiveResultsScreen() {
          )}
        </View>
 
-       {/* Footer con timestamp */}
+       {/* ✅ FOOTER CON TIMESTAMP ADAPTADO */}
        <View style={{
          padding: responsive.spacing.md,
          alignItems: "center",
@@ -469,7 +492,10 @@ export default function LiveResultsScreen() {
            color: getColor.gray[400],
            fontFamily: "Nunito",
          }}>
-           Última actualización: {new Date(resultados.ultimaActualizacion).toLocaleTimeString()}
+           {isFinished 
+             ? displayTexts.lastUpdateText
+             : `${displayTexts.lastUpdateText}: ${new Date(resultados.ultimaActualizacion).toLocaleTimeString()}`
+           }
          </Text>
        </View>
      </ScrollView>

@@ -1,4 +1,4 @@
-// src/features/campeonatos/screens/CampeonatosScreen.tsx - ACTUALIZADO CON NAVEGACIÓN
+// src/features/campeonatos/screens/CampeonatosScreen.tsx 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   View, 
@@ -26,17 +26,10 @@ import {
 } from '../types/campeonatos.types';
 import { mockCampeonatos } from '../data/mockCampeonatos';
 
-// Navigation types
-type MainNavigatorParamList = {
-  Home: undefined;
-  Campeonatos: undefined;
-  CampeonatoDetail: { campeonatoId: string };
-  Resultados: { campeonatoId?: string };
-  Gimnastas: undefined;
-  Ajustes: undefined;
-};
+// ✅ IMPORTAR TIPOS DE NAVEGACIÓN ACTUALIZADOS
+import { MainStackParamList } from '@/navigation/MainNavigator';
 
-type CampeonatosScreenNavigationProp = NavigationProp<MainNavigatorParamList>;
+type CampeonatosScreenNavigationProp = NavigationProp<MainStackParamList>;
 
 export default function CampeonatosScreen() {
   const navigation = useNavigation<CampeonatosScreenNavigationProp>();
@@ -51,10 +44,16 @@ export default function CampeonatosScreen() {
       estado: 'todos',
       sortBy: 'fecha',
       sortOrder: 'desc',
+      soloActivos: false,
+      conTransmision: false,
+      soloProximos: false
     },
     isLoading: true,
     isRefreshing: false,
     error: null,
+    availableRegions: [],
+    availableCities: [],
+    availableTypes: [],
   });
 
   // Simular carga inicial de datos
@@ -149,30 +148,22 @@ export default function CampeonatosScreen() {
     navigation.navigate('CampeonatoDetail', { campeonatoId: campeonato.id });
   };
 
-  // ✅ NAVEGACIÓN REAL A RESULTADOS  
+  // ✅ NAVEGACIÓN ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS
   const handleViewResults = (campeonato: Campeonato) => {
-    console.log('📊 Ver resultados de campeonato:', campeonato.nombre);
-    // navigation.navigate('Resultados', { campeonatoId: campeonato.id });
+    console.log('📊 Ver resultados de campeonato:', campeonato.nombre, 'Estado:', campeonato.estado);
     
-    // Por ahora mostramos alert hasta que se implemente ResultadosScreen
-    const mensaje = campeonato.estado === 'activo' 
-      ? `Ver resultados en vivo de: ${campeonato.nombre}`
-      : `Ver resultados finales de: ${campeonato.nombre}`;
-      
-    Alert.alert(
-      'Resultados',
-      mensaje,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Ir a Resultados', 
-          onPress: () => {
-            // TODO: Implementar cuando esté ResultadosScreen
-            console.log('Navegar a Resultados con ID:', campeonato.id);
-          }
-        }
-      ]
-    );
+    // Determinar si el campeonato está finalizado
+    const isFinished = campeonato.estado === 'finalizado';
+    
+    // Determinar el texto de log según el estado
+    const accionTexto = isFinished ? 'resultados finales' : 'resultados en vivo';
+    console.log(`🎯 Navegar a ${accionTexto} del campeonato:`, campeonato.nombre);
+    
+    // ✅ NAVEGACIÓN DIRECTA A CATEGORY SELECTOR CON EL PARÁMETRO CORRECTO
+    navigation.navigate('CategorySelector', { 
+      campeonatoId: campeonato.id,
+      isFinished: isFinished // ✅ PASAR EL ESTADO DEL CAMPEONATO
+    });
   };
 
   const renderCampeonatoCard = ({ item }: { item: Campeonato }) => (
