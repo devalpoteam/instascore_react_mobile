@@ -1,6 +1,5 @@
 {
   "cli": {
-    "version": ">= 16.17.4",
     "appVersionSource": "remote"
   },
   "build": {
@@ -9,9 +8,10 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
+      "credentialsSource": "local",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       }
     },
     "production": {
