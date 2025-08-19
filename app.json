@@ -27,6 +27,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.egav.instascore"
     },
+    "scheme": "instascore",
     "web": {
       "favicon": "./assets/favicon.png"
     },

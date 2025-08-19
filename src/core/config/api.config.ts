@@ -1,8 +1,10 @@
 // src/core/config/api.config.ts
+
 const API_CONFIG = {
-  BASE_URL: 'https://api-login-uat.up.railway.app',
+  SERVICES: {
+    AUTH: 'https://api-login-dev.up.railway.app',
+  },
   
-  // Endpoints específicos
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/Auth/login',           // POST - Login normal
@@ -10,7 +12,7 @@ const API_CONFIG = {
       GOOGLE_CALLBACK: '/api/Auth/callback' // GET - Callback Google
     }
   },
-  
+
   TIMEOUT: 10000,
   
   DEFAULT_HEADERS: {

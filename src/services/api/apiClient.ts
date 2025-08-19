@@ -1,12 +1,12 @@
 // src/services/api/apiClient.ts
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import API_CONFIG from '../../core/config/api.config';
 
 const apiClient = axios.create({
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_CONFIG.SERVICES.AUTH,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
 });
 
 apiClient.interceptors.request.use(async (config) => {

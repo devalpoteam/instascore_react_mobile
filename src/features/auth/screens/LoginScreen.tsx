@@ -75,7 +75,6 @@ export default function LoginScreen() {
     try {
       await dispatch(loginAsync({ email, password })).unwrap();
     } catch (error) {
-      // Error se maneja automáticamente en Redux
     }
   };
 
