@@ -1,18 +1,17 @@
 // src/core/config/api.config.ts
-
 const API_CONFIG = {
   SERVICES: {
-    AUTH: 'https://api-login-dev.up.railway.app',
+    AUTH: 'https://agymobileinstascore-develop.up.railway.app',
   },
   
   ENDPOINTS: {
     AUTH: {
       LOGIN: '/api/Auth/login',           // POST - Login normal
-      GOOGLE_SIGNIN: '/api/Auth/signin',  // GET - Inicia flujo Google
+      GOOGLE_SIGNIN: '/api/Auth/signin',  // GET - Inicia flujo Google  
       GOOGLE_CALLBACK: '/api/Auth/callback' // GET - Callback Google
     }
   },
-
+  
   TIMEOUT: 10000,
   
   DEFAULT_HEADERS: {

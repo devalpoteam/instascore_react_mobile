@@ -1,6 +1,7 @@
 // src/services/api/login/googleLoginService.ts
 import { Linking } from 'react-native';
 import apiClient from '../apiClient';
+import API_CONFIG from '../../../core/config/api.config';
 
 interface LoginResponse {
   message: string;
@@ -12,12 +13,12 @@ class GoogleLoginService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.API_BASE_URL || 'https://api.instascore.com';
+    this.baseUrl = API_CONFIG.SERVICES.AUTH;
   }
 
   async startGoogleLogin(): Promise<void> {
     try {
-      const googleAuthUrl = `${this.baseUrl}/api/Auth/signin`;
+      const googleAuthUrl = `${this.baseUrl}${API_CONFIG.ENDPOINTS.AUTH.GOOGLE_SIGNIN}`;
 
       const canOpen = await Linking.canOpenURL(googleAuthUrl);
       if (canOpen) {
@@ -33,7 +34,7 @@ class GoogleLoginService {
 
   async getGoogleCallback(): Promise<LoginResponse> {
     try {
-      const response = await apiClient.get<LoginResponse>('/api/Auth/callback');
+      const response = await apiClient.get<LoginResponse>(API_CONFIG.ENDPOINTS.AUTH.GOOGLE_CALLBACK);
       return response.data;
     } catch (error: any) {
       console.error('❌ Error en Google callback:', error);
