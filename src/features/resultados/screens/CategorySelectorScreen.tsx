@@ -1,6 +1,4 @@
 // src/features/resultados/screens/CategorySelectorScreen.tsx
-// ✅ ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS Y EN VIVO
-
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -16,14 +14,30 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
-// Data actualizada
-import { 
-  CampeonatoEnVivo,
-  mockCampeonatosEnVivo,
-  getAparatoDisplayName,
-  getGeneroSimple,
-  construirNombreCategoria
-} from '../data/mockLiveData';
+// Services
+import { liveService } from '@/services/api/live/liveServices';
+
+// Types
+interface CategoriaAgrupada {
+  grupo: string;
+  nivel: string;
+  franja: string;
+  disciplina: 'GAF' | 'GAM';
+  numeroParticipantes: number;
+  numeroCategoria: number;
+  id: string;
+}
+
+interface CampeonatoDetalle {
+  id: string;
+  nombre: string;
+  estado: string;
+  lugar: string;
+  fecha: string;
+  numeroDelegaciones: number;
+  numeroParticipantes: number;
+  numeroCategorias: number;
+}
 
 // Navigation types
 type MainNavigatorParamList = {
@@ -31,8 +45,8 @@ type MainNavigatorParamList = {
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
   Resultados: { campeonatoId?: string };
-  CategorySelector: { campeonatoId: string; isFinished?: boolean }; // ✅ ACTUALIZADO
-  LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean }; // ✅ ACTUALIZADO
+  CategorySelector: { campeonatoId: string; isFinished?: boolean };
+  LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean };
   Gimnastas: undefined;
   Ajustes: undefined;
 };
@@ -45,51 +59,56 @@ export default function CategorySelectorScreen() {
   const navigation = useNavigation<CategorySelectorNavigationProp>();
   const responsive = useResponsive();
 
-  // ✅ EXTRAER PARÁMETROS ACTUALIZADOS
   const { campeonatoId, isFinished = false } = route.params;
   
-  const [campeonato, setCampeonato] = useState<CampeonatoEnVivo | null>(null);
+  const [campeonato, setCampeonato] = useState<CampeonatoDetalle | null>(null);
+  const [categorias, setCategorias] = useState<CategoriaAgrupada[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCampeonato();
+    loadData();
   }, [campeonatoId]);
 
-  const loadCampeonato = async () => {
+  const loadData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Cargar datos en paralelo
+      const [campeonatoData, categoriasData] = await Promise.all([
+        liveService.getCampeonatoDetalle(campeonatoId),
+        liveService.getCategoriasAgrupadas(campeonatoId)
+      ]);
       
-      // Buscar campeonato por ID
-      const foundCampeonato = mockCampeonatosEnVivo.find(c => c.id === campeonatoId);
-      setCampeonato(foundCampeonato || null);
+      setCampeonato(campeonatoData);
+      setCategorias(categoriasData);
       
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading campeonato:', error);
+    } catch (error: any) {
+      console.error('Error loading data:', error);
+      setError(error.message || 'Error al cargar datos del campeonato');
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadCampeonato();
+    await loadData();
     setIsRefreshing(false);
   };
 
-  const handleCategoriaPress = (categoriaId: string) => {
-    console.log(`🎯 Navegar a resultados de categoría (${isFinished ? 'finalizado' : 'en vivo'}):`, categoriaId);
+  const handleCategoriaPress = (categoria: CategoriaAgrupada) => {
+    console.log(`Navegar a resultados de categoría (${isFinished ? 'finalizado' : 'en vivo'}):`, categoria.id);
     navigation.navigate('LiveResults', { 
       campeonatoId, 
-      categoriaId,
-      isFinished // ✅ PASAR EL ESTADO
+      categoriaId: categoria.id,
+      isFinished
     });
   };
 
-  // ✅ FUNCIÓN HELPER PARA OBTENER TEXTOS DINÁMICOS
+  // Función helper para obtener textos dinámicos
   const getDisplayTexts = () => {
     if (isFinished) {
       return {
@@ -97,7 +116,7 @@ export default function CategorySelectorScreen() {
         statusLabel: "FINALIZADO",
         statusColor: getColor.gray[600],
         statusBgColor: getColor.gray[200],
-        sectionTitle: "🏆 Resultados por Categoría",
+        sectionTitle: "Resultados por Categoría",
         sectionSubtitle: "Toca una categoría para ver los resultados finales",
         categoryBadge: "FINALIZADO",
         categoryBadgeColor: getColor.gray[500]
@@ -108,7 +127,7 @@ export default function CategorySelectorScreen() {
         statusLabel: "RESULTADOS EN VIVO",
         statusColor: getColor.background.primary,
         statusBgColor: getColor.secondary[500],
-        sectionTitle: "🏆 Categorías Compitiendo",
+        sectionTitle: "Categorías Compitiendo",
         sectionSubtitle: "Toca una categoría para ver resultados en tiempo real",
         categoryBadge: "EN VIVO",
         categoryBadgeColor: getColor.secondary[500]
@@ -116,9 +135,17 @@ export default function CategorySelectorScreen() {
     }
   };
 
+  const getGeneroSimple = (disciplina: 'GAF' | 'GAM'): string => {
+    return disciplina === 'GAF' ? 'Femenino' : 'Masculino';
+  };
+
+  const construirNombreCategoria = (categoria: CategoriaAgrupada): string => {
+    return `${categoria.grupo} ${categoria.nivel} ${categoria.franja}`;
+  };
+
   const displayTexts = getDisplayTexts();
 
-  if (isLoading) {
+  if (isLoading && !isRefreshing) {
     return (
       <BaseLayout>
         <Header 
@@ -136,18 +163,73 @@ export default function CategorySelectorScreen() {
           <Ionicons 
             name={isFinished ? "trophy" : "radio"} 
             size={48} 
-            color={isFinished ? getColor.gray[600] : getColor.secondary[500]} // ✅ CAMBIADO: de gray[500] a gray[600] (más oscuro)
+            color={isFinished ? getColor.gray[600] : getColor.secondary[500]}
             style={{ marginBottom: responsive.spacing.md }}
           />
           <Text style={{
             fontSize: responsive.fontSize.lg,
             fontWeight: '600',
-            color: isFinished ? getColor.gray[700] : getColor.secondary[500], // ✅ CAMBIADO: de gray[600] a gray[700] (más oscuro)
+            color: isFinished ? getColor.gray[700] : getColor.secondary[500],
             fontFamily: 'Nunito',
             textAlign: 'center',
           }}>
             {isFinished ? 'Cargando resultados...' : 'Cargando categorías...'}
           </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
+  if (error && !isRefreshing) {
+    return (
+      <BaseLayout>
+        <Header 
+          title="Error"
+          showLogo={false}
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: responsive.spacing.xl,
+        }}>
+          <Ionicons 
+            name="alert-circle-outline" 
+            size={64} 
+            color={getColor.error[500]} 
+            style={{ marginBottom: responsive.spacing.md }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: '600',
+            color: getColor.error[500],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+            marginBottom: responsive.spacing.sm,
+          }}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            onPress={loadData}
+            style={{
+              backgroundColor: getColor.primary[500],
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 8,
+              marginTop: responsive.spacing.md,
+            }}
+          >
+            <Text style={{
+              color: getColor.background.primary,
+              fontSize: responsive.fontSize.base,
+              fontWeight: '600',
+              fontFamily: 'Nunito',
+            }}>
+              Reintentar
+            </Text>
+          </TouchableOpacity>
         </View>
       </BaseLayout>
     );
@@ -196,13 +278,13 @@ export default function CategorySelectorScreen() {
           />
         }
       >
-        {/* ✅ HERO SECTION ADAPTADO AL ESTADO */}
+        {/* Hero Section */}
         <View style={{
-          backgroundColor: isFinished ? getColor.gray[100] : getColor.secondary[50], // ✅ CAMBIADO: de gray[50] a gray[100] (más oscuro)
+          backgroundColor: isFinished ? getColor.gray[100] : getColor.secondary[50],
           paddingHorizontal: responsive.spacing.md,
           paddingVertical: responsive.spacing.xl,
         }}>
-          {/* Status indicator dinámico */}
+          {/* Status indicator */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -252,10 +334,10 @@ export default function CategorySelectorScreen() {
               <Text style={{
                 fontSize: responsive.fontSize['2xl'],
                 fontWeight: '700',
-                color: isFinished ? getColor.gray[700] : getColor.secondary[600], // ✅ CAMBIADO: de gray[600] a gray[700] (más oscuro)
+                color: isFinished ? getColor.gray[700] : getColor.secondary[600],
                 fontFamily: 'Nunito',
               }}>
-                {campeonato.categoriasActivas.length}
+                {categorias.length}
               </Text>
               <Text style={{
                 fontSize: responsive.fontSize.xs,
@@ -280,7 +362,7 @@ export default function CategorySelectorScreen() {
                 color: getColor.primary[600],
                 fontFamily: 'Nunito',
               }}>
-                {campeonato.participantesTotales}
+                {campeonato.numeroParticipantes}
               </Text>
               <Text style={{
                 fontSize: responsive.fontSize.xs,
@@ -288,7 +370,7 @@ export default function CategorySelectorScreen() {
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                {isFinished ? 'Atletas Participantes' : 'Atletas Total'}
+                Participantes
               </Text>
             </View>
 
@@ -305,7 +387,7 @@ export default function CategorySelectorScreen() {
                 color: getColor.success[500],
                 fontFamily: 'Nunito',
               }}>
-                {campeonato.horaInicio}
+                {campeonato.numeroDelegaciones}
               </Text>
               <Text style={{
                 fontSize: responsive.fontSize.xs,
@@ -313,7 +395,7 @@ export default function CategorySelectorScreen() {
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                {isFinished ? 'Hora de Inicio' : 'Hora Inicio'}
+                Delegaciones
               </Text>
             </View>
           </View>
@@ -339,7 +421,7 @@ export default function CategorySelectorScreen() {
           </View>
         </View>
 
-        {/* Section title adaptado */}
+        {/* Section title */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingTop: responsive.spacing.xl,
@@ -370,7 +452,7 @@ export default function CategorySelectorScreen() {
           paddingHorizontal: responsive.spacing.md,
           paddingBottom: responsive.spacing.xl,
         }}>
-          {campeonato.categoriasActivas.map((categoria) => (
+          {categorias.map((categoria) => (
             <TouchableOpacity
               key={categoria.id}
               style={{
@@ -380,13 +462,13 @@ export default function CategorySelectorScreen() {
                 marginBottom: responsive.spacing.md,
                 borderWidth: 1,
                 borderColor: getColor.gray[200],
-                shadowColor: isFinished ? getColor.gray[500] : getColor.primary[500], // ✅ CAMBIADO: de gray[400] a gray[500] (más oscuro)
+                shadowColor: isFinished ? getColor.gray[500] : getColor.primary[500],
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.1,
                 shadowRadius: 8,
                 elevation: 4,
               }}
-              onPress={() => handleCategoriaPress(categoria.id)}
+              onPress={() => handleCategoriaPress(categoria)}
               activeOpacity={0.95}
             >
               <View style={{
@@ -407,10 +489,10 @@ export default function CategorySelectorScreen() {
                       fontFamily: 'Nunito',
                       marginRight: responsive.spacing.sm,
                     }}>
-                      {construirNombreCategoria(categoria, 'completo')}
+                      {construirNombreCategoria(categoria)}
                     </Text>
                     
-                    {/* ✅ BADGE ADAPTADO AL ESTADO */}
+                    {/* Badge adaptado al estado */}
                     <View style={{
                       backgroundColor: displayTexts.categoryBadgeColor,
                       borderRadius: 4,
@@ -435,49 +517,23 @@ export default function CategorySelectorScreen() {
                     fontFamily: 'Nunito',
                     marginBottom: responsive.spacing.xs,
                   }}>
-                    {getGeneroSimple(categoria.tipo)}
+                    {getGeneroSimple(categoria.disciplina)}
                   </Text>
 
-                  {/* ✅ STATUS ROW ADAPTADO */}
+                  {/* Participantes */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: responsive.spacing.sm,
                   }}>
-                    {/* Aparato actual (si no está finalizado) */}
-                    {!isFinished && (
-                      <View style={{
-                        backgroundColor: getColor.secondary[500],
-                        borderRadius: 6,
-                        paddingHorizontal: 8,
-                        paddingVertical: 2,
-                      }}>
-                        <Text style={{
-                          fontSize: responsive.fontSize.xs,
-                          fontWeight: '600',
-                          color: getColor.background.primary,
-                          fontFamily: 'Nunito',
-                        }}>
-                          {getAparatoDisplayName(categoria.aparatoActual, categoria.tipo)}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* Participantes */}
-                    <View style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
+                    <Ionicons name="people" size={12} color={getColor.gray[400]} />
+                    <Text style={{
+                      fontSize: responsive.fontSize.xs,
+                      color: getColor.gray[500],
+                      fontFamily: 'Nunito',
+                      marginLeft: 2,
                     }}>
-                      <Ionicons name="people" size={12} color={getColor.gray[400]} />
-                      <Text style={{
-                        fontSize: responsive.fontSize.xs,
-                        color: getColor.gray[500],
-                        fontFamily: 'Nunito',
-                        marginLeft: 2,
-                      }}>
-                        {categoria.participantesActivos} {isFinished ? 'participaron' : 'activos'}
-                      </Text>
-                    </View>
+                      {categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
+                    </Text>
                   </View>
                 </View>
                 

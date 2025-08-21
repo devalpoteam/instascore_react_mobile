@@ -6,9 +6,18 @@ const API_CONFIG = {
   
   ENDPOINTS: {
     AUTH: {
-      LOGIN: '/api/Auth/login',           // POST - Login normal
-      GOOGLE_SIGNIN: '/api/Auth/signin',  // GET - Inicia flujo Google  
-      GOOGLE_CALLBACK: '/api/Auth/callback' // GET - Callback Google
+      LOGIN: '/api/Auth/login',
+      REGISTER: '/api/Auth/register',
+      GOOGLE_SIGNIN: '/api/Auth/signin',
+      GOOGLE_CALLBACK: '/api/Auth/callback'
+    },
+    HOME: {
+      CAMPEONATOS: '/api/campeonatos'
+    },
+    LIVE: {
+      CAMPEONATOS_ACTIVOS: '/api/campeonatos/activos',
+      CAMPEONATO_BY_ID: '/api/campeonatos',
+      CATEGORIAS_AGRUPADAS: '/api/campeonatos/categorias-agrupadas'
     }
   },
   

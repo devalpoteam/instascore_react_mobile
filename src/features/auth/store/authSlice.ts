@@ -2,13 +2,13 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginService } from '../../../services/api/login/loginServices';
+import { registerService } from '../../../services/api/login/registerServices';
 
 interface User {
   id: string
   email: string
   name: string
   isPro: boolean
-  role?: string
 }
 
 interface AuthState {
@@ -50,8 +50,7 @@ export const loginAsync = createAsyncThunk(
             id: 'dev-user-id',
             email: 'dev@test.com',
             name: 'Usuario Dev',
-            isPro: false,
-            role: 'user'
+            isPro: false
           }
         };
       }
@@ -64,8 +63,37 @@ export const loginAsync = createAsyncThunk(
           id: '',
           email: credentials.email,
           name: credentials.email,
-          isPro: false,
-          role: 'user'
+          isPro: false
+        }
+      };
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const registerAsync = createAsyncThunk(
+  'auth/registerAsync',
+  async (userData: { email: string; password: string; fullName: string; Sexo: string; Edad: string }, { rejectWithValue, dispatch }) => {
+    try {
+      // 1. Registrar usuario
+      const registerResponse = await registerService.register(userData);
+      
+      // 2. Auto-login después del registro exitoso
+      const loginResponse = await loginService.login({
+        email: userData.email,
+        password: userData.password
+      });
+      
+      await saveToken(loginResponse.token);
+      
+      return {
+        token: loginResponse.token,
+        user: {
+          id: '',
+          email: userData.email,
+          name: userData.fullName,
+          isPro: false
         }
       };
     } catch (error: any) {
@@ -100,6 +128,28 @@ export const authSlice = createSlice({
       saveToken(action.payload.token);
     },
     loginFailure: (state, action: PayloadAction<string>) => {
+      state.isAuthenticated = false;
+      state.token = null;
+      state.user = null;
+      state.isPro = false;
+      state.isLoading = false;
+      state.error = action.payload;
+    },
+    registerStart: (state) => {
+      state.isLoading = true;
+      state.error = null;
+    },
+    registerSuccess: (state, action: PayloadAction<{token: string, user: User}>) => {
+      state.isAuthenticated = true;
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isPro = action.payload.user.isPro;
+      state.isLoading = false;
+      state.error = null;
+      
+      saveToken(action.payload.token);
+    },
+    registerFailure: (state, action: PayloadAction<string>) => {
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
@@ -142,6 +192,26 @@ export const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      .addCase(registerAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerAsync.fulfilled, (state, action) => {
+        state.isAuthenticated = true;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+        state.isPro = action.payload.user.isPro;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(registerAsync.rejected, (state, action) => {
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+        state.isPro = false;
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(logoutAsync.fulfilled, (state) => {
         state.isAuthenticated = false;
         state.token = null;
@@ -155,6 +225,9 @@ export const {
   loginStart, 
   loginSuccess, 
   loginFailure, 
+  registerStart,
+  registerSuccess,
+  registerFailure,
   logout, 
   clearError 
 } = authSlice.actions

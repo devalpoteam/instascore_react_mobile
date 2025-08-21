@@ -1,38 +1,36 @@
 // src/features/resultados/screens/ResultadosScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  FlatList, 
-  RefreshControl, 
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity
-} from 'react-native';
+import { View, FlatList, RefreshControl, Alert, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
-
-// Components
 import LiveCampeonatoCard from '../components/LiveCampeonatoCard';
 
-// Types y data
-import { 
-  CampeonatoEnVivo,
-  mockCampeonatosEnVivo 
-} from '../data/mockLiveData';
+import { liveService } from '@/services/api/live/liveServices';
 
-// Navigation types (ajusta según tu navegación)
+// Types
+interface CampeonatoEnVivo {
+  id: string;
+  nombre: string;
+  lugar: string;
+  horaInicio: string;
+  categoriasActivas: any[];
+  totalCategorias: number;
+  categoriasFinalizadas: number;
+  participantesTotales: number;
+}
+
+// Navigation types
 type MainNavigatorParamList = {
   Home: undefined;
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
   Resultados: { campeonatoId?: string };
-  CategorySelector: { campeonatoId: string }; // ✅ NUEVA RUTA
-  LiveResults: { campeonatoId: string; categoriaId: string }; // ✅ NUEVA RUTA
+  CategorySelector: { campeonatoId: string };
+  LiveResults: { campeonatoId: string; categoriaId: string };
   Gimnastas: undefined;
   Ajustes: undefined;
 };
@@ -52,7 +50,6 @@ export default function ResultadosScreen() {
   const navigation = useNavigation<ResultadosScreenNavigationProp>();
   const responsive = useResponsive();
 
-  // Estado local
   const [state, setState] = useState<ResultadosScreenState>({
     campeonatosEnVivo: [],
     filteredCampeonatos: [],
@@ -62,12 +59,10 @@ export default function ResultadosScreen() {
     error: null,
   });
 
-  // Simular carga inicial de datos
   useEffect(() => {
     loadCampeonatosEnVivo();
   }, []);
 
-  // Filtrar campeonatos cuando cambie el término de búsqueda
   useEffect(() => {
     filterCampeonatos();
   }, [state.searchTerm, state.campeonatosEnVivo]);
@@ -76,27 +71,20 @@ export default function ResultadosScreen() {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const campeonatos = await liveService.getCampeonatosActivos();
       
       setState(prev => ({
         ...prev,
-        campeonatosEnVivo: mockCampeonatosEnVivo,
+        campeonatosEnVivo: campeonatos,
         isLoading: false,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading campeonatos en vivo:', error);
       setState(prev => ({
         ...prev,
-        error: 'Error al cargar los campeonatos en vivo',
+        error: error.message || 'Error al cargar los campeonatos en vivo',
         isLoading: false,
       }));
-      
-      Alert.alert(
-        'Error',
-        'No se pudieron cargar los campeonatos en vivo. Intenta nuevamente.',
-        [{ text: 'OK' }]
-      );
     }
   };
 
@@ -111,18 +99,10 @@ export default function ResultadosScreen() {
     const filtered = campeonatosEnVivo.filter(campeonato => {
       const searchLower = searchTerm.toLowerCase();
       
-      // Buscar en nombre del campeonato
       const matchesCampeonato = campeonato.nombre.toLowerCase().includes(searchLower);
-      
-      // Buscar en nombres de categorías
-      const matchesCategoria = campeonato.categoriasActivas.some(categoria =>
-        `${categoria.tipo} ${categoria.nombre}`.toLowerCase().includes(searchLower)
-      );
-      
-      // Buscar en lugar
       const matchesLugar = campeonato.lugar.toLowerCase().includes(searchLower);
       
-      return matchesCampeonato || matchesCategoria || matchesLugar;
+      return matchesCampeonato || matchesLugar;
     });
 
     setState(prev => ({ ...prev, filteredCampeonatos: filtered }));
@@ -143,14 +123,12 @@ export default function ResultadosScreen() {
   };
 
   const handleCampeonatoPress = (campeonato: CampeonatoEnVivo) => {
-    console.log('🏆 Navegar a detalle de campeonato desde En Vivo:', campeonato.nombre);
+    console.log('Navegar a detalle de campeonato desde En Vivo:', campeonato.nombre);
     navigation.navigate('CampeonatoDetail', { campeonatoId: campeonato.id });
   };
 
   const handleViewLive = (campeonato: CampeonatoEnVivo) => {
-    console.log('🔴 Ver resultados EN VIVO de:', campeonato.nombre);
-    
-    // Navegar a la nueva vista de selector de categorías
+    console.log('Ver resultados EN VIVO de:', campeonato.nombre);
     navigation.navigate('CategorySelector', { 
       campeonatoId: campeonato.id 
     });
@@ -198,7 +176,7 @@ export default function ResultadosScreen() {
           lineHeight: responsive.fontSize.base * 1.4,
         }}>
           {hasSearchTerm 
-            ? `No encontramos campeonatos o categorías que coincidan con "${state.searchTerm}"`
+            ? `No encontramos campeonatos que coincidan con "${state.searchTerm}"`
             : 'Los campeonatos activos aparecerán aquí para seguimiento en tiempo real'
           }
         </Text>
@@ -231,7 +209,51 @@ export default function ResultadosScreen() {
     </View>
   );
 
-  // Renderizar buscador
+  const renderErrorState = () => (
+    <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: responsive.spacing.xl,
+    }}>
+      <Ionicons 
+        name="alert-circle-outline" 
+        size={64} 
+        color={getColor.error[500]} 
+        style={{ marginBottom: responsive.spacing.md }}
+      />
+      <Text style={{
+        fontSize: responsive.fontSize.lg,
+        fontWeight: '600',
+        color: getColor.error[500],
+        fontFamily: 'Nunito',
+        textAlign: 'center',
+        marginBottom: responsive.spacing.sm,
+      }}>
+        {state.error}
+      </Text>
+      <TouchableOpacity
+        onPress={loadCampeonatosEnVivo}
+        style={{
+          backgroundColor: getColor.primary[500],
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          borderRadius: 8,
+          marginTop: responsive.spacing.md,
+        }}
+      >
+        <Text style={{
+          color: getColor.background.primary,
+          fontSize: responsive.fontSize.base,
+          fontWeight: '600',
+          fontFamily: 'Nunito',
+        }}>
+          Reintentar
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderSearchBar = () => (
     <View
       style={{
@@ -271,7 +293,7 @@ export default function ResultadosScreen() {
             fontFamily: "Nunito",
             color: getColor.gray[800],
           }}
-          placeholder="Buscar campeonatos o categorías..."
+          placeholder="Buscar campeonatos..."
           placeholderTextColor={getColor.gray[400]}
           value={state.searchTerm}
           onChangeText={handleSearchChange}
@@ -308,6 +330,19 @@ export default function ResultadosScreen() {
     );
   }
 
+  if (state.error && !state.isRefreshing) {
+    return (
+      <BaseLayout>
+        <Header 
+          title="En Vivo"
+          subtitle="Error al cargar"
+          showLogo={false}
+        />
+        {renderErrorState()}
+      </BaseLayout>
+    );
+  }
+
   return (
     <BaseLayout>
       <Header 
@@ -316,10 +351,8 @@ export default function ResultadosScreen() {
         showLogo={false}
       />
       
-      {/* Barra de búsqueda */}
       {renderSearchBar()}
 
-      {/* Lista de campeonatos en vivo */}
       <FlatList
         data={state.filteredCampeonatos}
         renderItem={renderLiveCampeonatoCard}
@@ -341,11 +374,6 @@ export default function ResultadosScreen() {
         }
         ListEmptyComponent={renderEmptyState}
         ItemSeparatorComponent={() => <View style={{ height: 4 }} />}
-        getItemLayout={(data, index) => ({
-          length: 280, // Altura aproximada de cada LiveCampeonatoCard
-          offset: 280 * index,
-          index,
-        })}
         removeClippedSubviews={true}
         maxToRenderPerBatch={3}
         windowSize={8}

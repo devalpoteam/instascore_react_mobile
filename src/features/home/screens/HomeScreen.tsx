@@ -1,29 +1,24 @@
-// src/features/home/screens/HomeScreen.tsx - REDISEÑADO CON CARRUSEL E ICONOS
+// src/features/home/screens/HomeScreen.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Image,
-  Dimensions,
-  RefreshControl,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions, RefreshControl, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
+import { homeService } from '@/services/api/home/homeServices';
 
-// Mock data para extraer campeonatos específicos
-const mockCampeonatos = [
-  { id: '1', nombre: 'Copa Valparaíso 2025', estado: 'activo', participantes: 178, categorias: 12, lugar: 'Polideportivo de Viña del Mar' },
-  { id: '2', nombre: 'Torneo Nacional Juvenil 2025', estado: 'configuracion', participantes: 156, categorias: 8, lugar: 'Centro Deportivo Nacional Santiago' },
-  { id: '4', nombre: 'Copa Interclubes Santiago', estado: 'finalizado', participantes: 134, categorias: 10, lugar: 'Polideportivo Las Condes' },
-];
+interface CampeonatoHome {
+  id: string;
+  nombre: string;
+  estado: 'activo' | 'configuracion' | 'finalizado';
+  lugar: string;
+  fecha: string;
+  delegaciones: number;
+  participantes: number;
+  categorias: number;
+}
 
-// Imágenes del carrusel
 const carouselImages = [
   require('../../../../assets/images/carousel/gimnasta1.png'),
   require('../../../../assets/images/carousel/gimnasta2.png'),
@@ -34,11 +29,16 @@ const carouselImages = [
 export default function HomeScreen() {
   const responsive = useResponsive();
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const { width: screenWidth } = Dimensions.get('window');
 
-  // Auto-scroll del carrusel
+  const [campeonatoEnVivo, setCampeonatoEnVivo] = useState<CampeonatoHome | null>(null);
+  const [campeonatoProximo, setCampeonatoProximo] = useState<CampeonatoHome | null>(null);
+  const [campeonatoFinalizado, setCampeonatoFinalizado] = useState<CampeonatoHome | null>(null);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => {
@@ -49,26 +49,39 @@ export default function HomeScreen() {
         });
         return nextIndex;
       });
-    }, 4000); // Cada 4 segundos
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const onRefresh = () => {
+  useEffect(() => {
+    loadCampeonatos();
+  }, []);
+
+  const loadCampeonatos = async () => {
+    try {
+      setError(null);
+      const data = await homeService.getCampeonatosHome();
+      setCampeonatoEnVivo(data.enVivo);
+      setCampeonatoProximo(data.proximo);
+      setCampeonatoFinalizado(data.finalizado);
+    } catch (err: any) {
+      console.error('Error loading campeonatos:', err);
+      setError(err.message || 'Error al cargar campeonatos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    await loadCampeonatos();
+    setRefreshing(false);
   };
 
   const handleNotificationPress = () => {
-    console.log('🔔 Notifications pressed');
+    console.log('Notifications pressed');
   };
-
-  // Extraer campeonatos específicos
-  const campeonatoEnCurso = mockCampeonatos.find(c => c.estado === 'activo');
-  const campeonatoProximo = mockCampeonatos.find(c => c.estado === 'configuracion');
-  const campeonatoFinalizado = mockCampeonatos.find(c => c.estado === 'finalizado');
 
   const getScrollViewPaddingBottom = () => {
     if (responsive.isTablet) return 40;
@@ -76,7 +89,6 @@ export default function HomeScreen() {
     return 20;
   };
 
-  // Renderizar imagen del carrusel
   const renderCarouselImage = ({ item, index }: { item: any; index: number }) => (
     <View style={{ width: screenWidth }}>
       <Image
@@ -90,14 +102,13 @@ export default function HomeScreen() {
     </View>
   );
 
-  // Componente para información de campeonato - CON ETIQUETA DE ESTADO E ICONOS
   const CampeonatoInfo = ({ 
     campeonato, 
     estado,
     estadoColor,
     isLive = false
   }: { 
-    campeonato: any; 
+    campeonato: CampeonatoHome | null; 
     estado: string;
     estadoColor: string;
     isLive?: boolean;
@@ -144,14 +155,12 @@ export default function HomeScreen() {
           transform: [{ scale: 1.02 }],
         }),
       }}>
-        {/* Header con etiqueta de estado */}
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
           marginBottom: responsive.spacing.sm,
         }}>
-          {/* Nombre del campeonato */}
           <Text style={{
             fontSize: responsive.fontSize.xl,
             fontWeight: '700',
@@ -164,7 +173,6 @@ export default function HomeScreen() {
             {campeonato.nombre}
           </Text>
           
-          {/* Etiqueta de estado con iconos específicos */}
           {estado === "EN VIVO" ? (
             <View style={{
               backgroundColor: `${estadoColor}15`,
@@ -205,7 +213,6 @@ export default function HomeScreen() {
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-              {/* ✅ ICONOS AGREGADOS SEGÚN EL ESTADO */}
               <Ionicons 
                 name={estado === "PRÓXIMO" ? "calendar-outline" : "checkmark-circle-outline"} 
                 size={14} 
@@ -226,7 +233,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Lugar con icono */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -248,7 +254,6 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Chips de estadísticas */}
         <View style={{
           flexDirection: 'row',
           flexWrap: 'wrap',
@@ -331,6 +336,62 @@ export default function HomeScreen() {
     );
   };
 
+  if (loading && !refreshing) {
+    return (
+      <BaseLayout>
+        <Header showLogo={true} onNotificationPress={handleNotificationPress} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            color: getColor.gray[600],
+            fontFamily: 'Nunito',
+          }}>
+            Cargando campeonatos...
+          </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
+  if (error && !refreshing) {
+    return (
+      <BaseLayout>
+        <Header showLogo={true} onNotificationPress={handleNotificationPress} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="alert-circle-outline" size={64} color={getColor.error[500]} />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            color: getColor.error[500],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+            marginTop: 16,
+            marginBottom: 16,
+          }}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            onPress={loadCampeonatos}
+            style={{
+              backgroundColor: getColor.primary[500],
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{
+              color: getColor.background.primary,
+              fontSize: responsive.fontSize.base,
+              fontWeight: '600',
+              fontFamily: 'Nunito',
+            }}>
+              Reintentar
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </BaseLayout>
+    );
+  }
+
   return (
     <BaseLayout>
       <Header 
@@ -351,7 +412,6 @@ export default function HomeScreen() {
         }
       >
         
-        {/* CARRUSEL DE IMÁGENES */}
         <View style={{ position: 'relative' }}>
           <FlatList
             ref={flatListRef}
@@ -367,7 +427,6 @@ export default function HomeScreen() {
             }}
           />
           
-          {/* Indicadores de página */}
           <View style={{
             position: 'absolute',
             bottom: 20,
@@ -403,13 +462,11 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* INFORMACIÓN DE CAMPEONATOS */}
         <View style={{
           padding: responsive.spacing.md,
           paddingBottom: getScrollViewPaddingBottom(),
         }}>
           
-          {/* Sección EN VIVO - CON PUNTO LIVE */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -450,15 +507,13 @@ export default function HomeScreen() {
             }} />
           </View>
 
-          {/* Campeonato en curso - DESTACADO CON ESTILO LIVE */}
           <CampeonatoInfo
-            campeonato={campeonatoEnCurso}
+            campeonato={campeonatoEnVivo}
             estado="EN VIVO"
             estadoColor={getColor.secondary[500]}
             isLive={true}
           />
 
-          {/* Sección PRÓXIMOS - CON ICONO DE CALENDARIO */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -498,14 +553,12 @@ export default function HomeScreen() {
             }} />
           </View>
 
-          {/* Campeonato próximo */}
           <CampeonatoInfo
             campeonato={campeonatoProximo}
             estado="PRÓXIMO"
             estadoColor={getColor.success[500]}
           />
 
-          {/* Sección FINALIZADOS - CON ICONO DE TICKET/CHECK */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -545,7 +598,6 @@ export default function HomeScreen() {
             }} />
           </View>
 
-          {/* Último finalizado */}
           <CampeonatoInfo
             campeonato={campeonatoFinalizado}
             estado="FINALIZADO"

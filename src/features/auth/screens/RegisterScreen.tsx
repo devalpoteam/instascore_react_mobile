@@ -1,14 +1,13 @@
 // src/features/auth/screens/RegisterScreen.tsx
 import React, { useState } from "react";
-import {View, Text, TextInput, KeyboardAvoidingView, Platform, Alert, Image, TouchableOpacity, ScrollView, StatusBar } from "react-native";
+import {View, Text, TextInput, KeyboardAvoidingView, Platform, Image, TouchableOpacity, ScrollView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getColor } from "@/design/colorHelper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {  registerStart, registerSuccess, registerFailure } from "@/features/auth/store/authSlice";
+import { registerAsync } from "@/features/auth/store/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { useResponsive } from "@/shared/hooks/useResponsive";
 
-// Opciones para el selector de sexo
 const genderOptions = [
   { value: "M", label: "Masculino", icon: "man-outline" },
   { value: "F", label: "Femenino", icon: "woman-outline" },
@@ -19,7 +18,6 @@ export default function RegisterScreen() {
   const dispatch = useAppDispatch();
   const { isLoading, error: authError } = useAppSelector((state) => state.auth);
 
-  // ✅ ESTADO LOCAL PARA VALIDACIONES + REDUX PARA AUTH
   const [name, setName] = useState("");
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
@@ -27,7 +25,6 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Estados de errores individuales para validaciones
   const [nameError, setNameError] = useState("");
   const [genderError, setGenderError] = useState("");
   const [ageError, setAgeError] = useState("");
@@ -36,7 +33,6 @@ export default function RegisterScreen() {
 
   const responsive = useResponsive();
 
-  // 🔧 VALIDACIONES LOCALES
   const validateName = (name: string): boolean => {
     if (!name.trim()) {
       setNameError("El nombre es requerido");
@@ -101,66 +97,29 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    console.log("📝 Register attempt with Redux");
-
-    // Limpiar errores previos
     setNameError("");
     setGenderError("");
     setAgeError("");
     setEmailError("");
     setPasswordError("");
 
-    // Validar todos los campos
     const isNameValid = validateName(name);
     const isGenderValid = validateGender(gender);
     const isAgeValid = validateAge(age);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
 
-    if (
-      !isNameValid ||
-      !isGenderValid ||
-      !isAgeValid ||
-      !isEmailValid ||
-      !isPasswordValid
-    ) {
+    if (!isNameValid || !isGenderValid || !isAgeValid || !isEmailValid || !isPasswordValid) {
       return;
     }
 
-    dispatch(registerStart());
-
-    try {
-      // Simular registro exitoso
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const mockUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        email: email,
-        name: name,
-        gender: gender,
-        age: parseInt(age, 10),
-        isPro: false,
-        role: "user",
-      };
-
-      dispatch(
-        registerSuccess({
-          token: "mock-jwt-token-new-user",
-          user: mockUser,
-        })
-      );
-
-      console.log("✅ Register successful");
-      Alert.alert("Éxito", "Cuenta creada exitosamente!", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("Login" as never),
-        },
-      ]);
-    } catch (err: any) {
-      console.error("❌ Register error:", err);
-      dispatch(registerFailure(err.message || "Error al crear la cuenta"));
-    }
+    dispatch(registerAsync({
+      email,
+      password,
+      fullName: name,
+      Sexo: gender,
+      Edad: age
+    }));
   };
 
   const navigateToLogin = () => {
@@ -168,7 +127,6 @@ export default function RegisterScreen() {
   };
 
   const showDevCredentials = () => {
-    console.log("🛠️ Dev credentials for register");
     setName("Usuario Test");
     setGender("M");
     setAge("25");
@@ -176,7 +134,6 @@ export default function RegisterScreen() {
     setPassword("123456");
   };
 
-  // 🎯 HANDLERS PARA INPUTS
   const handleNameChange = (text: string) => {
     setName(text);
     if (nameError) setNameError("");
@@ -220,7 +177,6 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* BOTÓN DEV */}
           <TouchableOpacity
             onPress={showDevCredentials}
             style={{
@@ -246,7 +202,6 @@ export default function RegisterScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* LOGO Y ENCABEZADO */}
           <View
             style={{
               alignItems: "center",
@@ -284,7 +239,6 @@ export default function RegisterScreen() {
             </Text>
           </View>
 
-          {/* ✅ CONTENEDOR PRINCIPAL CON SOMBRA OFICIAL */}
           <View
             style={{
               width: "100%",
@@ -300,7 +254,6 @@ export default function RegisterScreen() {
               elevation: 3,
             }}
           >
-            {/* ERROR GLOBAL */}
             {authError && (
               <View
                 style={{
@@ -324,7 +277,6 @@ export default function RegisterScreen() {
               </View>
             )}
 
-            {/* NOMBRE COMPLETO */}
             <Text
               style={{
                 fontSize: 16,
@@ -382,7 +334,6 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            {/* SEXO */}
             <Text
               style={{
                 fontSize: 16,
@@ -467,7 +418,6 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            {/* EDAD */}
             <Text
               style={{
                 fontSize: 16,
@@ -526,7 +476,6 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            {/* EMAIL */}
             <Text
               style={{
                 fontSize: 16,
@@ -586,7 +535,6 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            {/* CONTRASEÑA */}
             <Text
               style={{
                 fontSize: 16,
@@ -658,7 +606,6 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            {/* HINT DE CONTRASEÑA */}
             <Text
               style={{
                 fontSize: 12,
@@ -670,12 +617,11 @@ export default function RegisterScreen() {
               Debe contener al menos 6 caracteres
             </Text>
 
-            {/* ✅ BOTÓN REGISTRO CON COLORES OFICIALES */}
             <TouchableOpacity
               style={{
                 backgroundColor: isLoading
                   ? getColor.gray[300]
-                  : getColor.secondary[500], // ✅ NARANJA OFICIAL
+                  : getColor.secondary[500],
                 borderRadius: 8,
                 padding: 15,
                 alignItems: "center",
@@ -703,7 +649,6 @@ export default function RegisterScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* ✅ ENLACE A LOGIN CON COLORES OFICIALES */}
             <TouchableOpacity onPress={navigateToLogin}>
               <Text
                 style={{
@@ -717,7 +662,7 @@ export default function RegisterScreen() {
                 <Text
                   style={{
                     fontSize: 16,
-                    color: getColor.primary[500], // ✅ AZUL OFICIAL INSTASCORE
+                    color: getColor.primary[500],
                     fontWeight: "600",
                     fontFamily: "Nunito",
                   }}
