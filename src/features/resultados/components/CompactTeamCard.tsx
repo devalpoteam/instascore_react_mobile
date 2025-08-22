@@ -3,11 +3,10 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-// ✅ IMPORTAR LA INTERFAZ CORRECTA
-import { ResultadoEquipo as EquipoResultado } from '../data/mockTeamResultsData'; // Asegúrate de que la ruta sea correcta
+import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
 
 interface CompactTeamCardProps {
-  equipo: EquipoResultado; // ✅ Usar la interfaz correcta
+  equipo: ResultadoEquipo;
   position: number;
   isHighlighted?: boolean;
 }
@@ -19,7 +18,6 @@ export default function CompactTeamCard({
 }: CompactTeamCardProps) {
   const responsive = useResponsive();
 
-  // Colores de posición
   const getPositionColor = () => {
     if (position === 1) return getColor.secondary[500];
     if (position === 2) return getColor.gray[400];
@@ -55,7 +53,6 @@ export default function CompactTeamCard({
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        {/* Posición */}
         <View style={{
           alignItems: 'center',
           marginRight: responsive.spacing.md,
@@ -88,7 +85,6 @@ export default function CompactTeamCard({
           )}
         </View>
 
-        {/* Info equipo */}
         <View style={{ flex: 1, marginRight: responsive.spacing.md }}>
           <Text
             style={{
@@ -109,7 +105,7 @@ export default function CompactTeamCard({
               marginBottom: 2,
             }}
           >
-            {equipo.club}
+            {equipo.categoria} {equipo.nivel}
           </Text>
           <Text
             style={{
@@ -118,13 +114,11 @@ export default function CompactTeamCard({
               fontFamily: 'Nunito',
             }}
           >
-            {equipo.totalGimnastas} gimnastas • Mejores {equipo.gimnastasQueCuentan}
+            {equipo.cantidadGimnastas} gimnastas • Mejores {equipo.cantidadMejores}
           </Text>
         </View>
 
-        {/* Puntaje */}
         <View style={{ alignItems: 'flex-end' }}>
-          {/* Puntaje principal */}
           <View
             style={{
               backgroundColor: 'transparent',
@@ -146,7 +140,6 @@ export default function CompactTeamCard({
             </Text>
           </View>
 
-          {/* Label */}
           <Text
             style={{
               fontSize: responsive.fontSize.xs,

@@ -1,14 +1,12 @@
 // src/features/resultados/screens/LiveResultsScreen.tsx
-// ✅ ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS Y CORREGIR VISTA "POR EQUIPOS"
-
 import React, { useState, useEffect } from "react";
 import {
- View,
- Text,
- ScrollView,
- TouchableOpacity,
- RefreshControl,
- Alert,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,18 +18,11 @@ import Header from "@/shared/components/layout/Header";
 
 // Componentes optimizados
 import CompactResultCard from "../components/CompactResultCard";
-import DiscreteUpgradeBanner from "../components/DiscreteUpgradeBanner";
+import UpgradeBanner from "../components/UpgradeBanner";
 import CompactTeamCard from "../components/CompactTeamCard";
 
-// Data - IMPORTACIONES CORREGIDAS
-import {
- ResultadosCategoria,
- mockResultadosKinderF1,
- mockResultadosJuvenilGAM,
- getAparatoDisplayNameResults,
-} from "../data/mockLiveResultsData";
-import { getAparatoIcon, AparatoGeneral } from "../data/mockLiveData";
-import { mockEquiposKinderF1 } from "../data/mockTeamResultsData";
+// Servicios reales
+import { resultadosService, ResultadoIndividual, ResultadoEquipo } from "@/services/api/resultados/resultadosService";
 
 // Navigation types
 type LiveResultsRouteProp = RouteProp<
@@ -40,465 +31,528 @@ type LiveResultsRouteProp = RouteProp<
 >;
 
 interface LiveResultsState {
- resultados: ResultadosCategoria | null;
- vistaSeleccionada: "aparatos" | "allaround" | "equipos";
- isLoading: boolean;
- isRefreshing: boolean;
- error: string | null;
- showUpgradeBanner: boolean;
+  resultadosCompletos: ResultadoIndividual[];
+  equipos: ResultadoEquipo[];
+  aparatos: string[];
+  aparatoSeleccionado: string;
+  vistaSeleccionada: "aparatos" | "allaround" | "equipos";
+  isLoading: boolean;
+  isRefreshing: boolean;
+  error: string | null;
+  showUpgradeBanner: boolean;
+  showAparatoDropdown: boolean;
 }
 
 export default function LiveResultsScreen() {
- const route = useRoute<LiveResultsRouteProp>();
- const navigation = useNavigation();
- const responsive = useResponsive();
- const { isPro } = useAppSelector((state) => state.auth);
+  const route = useRoute<LiveResultsRouteProp>();
+  const navigation = useNavigation();
+  const responsive = useResponsive();
+  const { isPro } = useAppSelector((state) => state.auth);
 
- // ✅ EXTRAER PARÁMETROS ACTUALIZADOS
- const { campeonatoId, categoriaId, isFinished = false } = route.params || {
-   campeonatoId: "1",
-   categoriaId: "cat1",
-   isFinished: false
- };
+  const { campeonatoId, categoriaId, isFinished = false } = route.params || {
+    campeonatoId: "1",
+    categoriaId: "cat1",
+    isFinished: false
+  };
 
- const [state, setState] = useState<LiveResultsState>({
-   resultados: null,
-   vistaSeleccionada: "aparatos",
-   isLoading: true,
-   isRefreshing: false,
-   error: null,
-   showUpgradeBanner: !isPro,
- });
+  const [state, setState] = useState<LiveResultsState>({
+    resultadosCompletos: [],
+    equipos: [],
+    aparatos: [],
+    aparatoSeleccionado: "",
+    vistaSeleccionada: "aparatos",
+    isLoading: true,
+    isRefreshing: false,
+    error: null,
+    showUpgradeBanner: !isPro,
+    showAparatoDropdown: false,
+  });
 
- // Cargar datos iniciales
- useEffect(() => {
-   loadResultados();
- }, [campeonatoId, categoriaId]);
+  useEffect(() => {
+    loadResultados();
+  }, [campeonatoId]);
 
- // ✅ SIMULAR WEBSOCKET UPDATES SOLO SI NO ESTÁ FINALIZADO
- useEffect(() => {
-   if (isFinished) return; // No hacer updates automáticos en campeonatos finalizados
+  const loadResultados = async () => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-   const interval = setInterval(() => {
-     if (state.resultados && !state.isLoading) {
-       simulateWebSocketUpdate();
-     }
-   }, 15000);
+      const [individuales, equipos] = await Promise.all([
+        resultadosService.getResultadosIndividuales(campeonatoId),
+        resultadosService.getResultadosEquipos(campeonatoId)
+      ]);
 
-   return () => clearInterval(interval);
- }, [state.resultados, state.isLoading, isFinished]);
+      // Extraer aparatos únicos
+      const aparatosUnicos = [...new Set(individuales.map(r => r.aparato))].sort();
 
- const loadResultados = async () => {
-   try {
-     setState((prev) => ({ ...prev, isLoading: true, error: null }));
-     await new Promise((resolve) => setTimeout(resolve, 800));
+      setState((prev) => ({
+        ...prev,
+        resultadosCompletos: individuales,
+        equipos,
+        aparatos: aparatosUnicos,
+        aparatoSeleccionado: aparatosUnicos[0] || "",
+        isLoading: false,
+      }));
+    } catch (error: any) {
+      setState((prev) => ({
+        ...prev,
+        error: error.message || "Error al cargar los resultados",
+        isLoading: false,
+      }));
+    }
+  };
 
-     const resultados = categoriaId === "cat1" 
-       ? mockResultadosKinderF1 
-       : mockResultadosJuvenilGAM;
+  const handleRefresh = async () => {
+    setState((prev) => ({ ...prev, isRefreshing: true }));
+    await loadResultados();
+    setState((prev) => ({ ...prev, isRefreshing: false }));
+  };
 
-     setState((prev) => ({
-       ...prev,
-       resultados,
-       isLoading: false,
-     }));
-   } catch (error) {
-     setState((prev) => ({
-       ...prev,
-       error: "Error al cargar los resultados",
-       isLoading: false,
-     }));
-   }
- };
+  const handleVistaChange = (vista: "aparatos" | "allaround" | "equipos") => {
+    setState((prev) => ({ ...prev, vistaSeleccionada: vista }));
+  };
 
- const simulateWebSocketUpdate = () => {
-   setState((prev) => {
-     if (!prev.resultados) return prev;
+  const handleDismissBanner = () => {
+    setState((prev) => ({ ...prev, showUpgradeBanner: false }));
+  };
 
-     const updatedResultados = { ...prev.resultados };
-     const randomIndex = Math.floor(Math.random() * updatedResultados.gimnastas.length);
-     const randomGimnasta = { ...updatedResultados.gimnastas[randomIndex] };
+  const handleAparatoSelect = (aparato: string) => {
+    setState((prev) => ({ 
+      ...prev, 
+      aparatoSeleccionado: aparato,
+      showAparatoDropdown: false 
+    }));
+  };
 
-     if (randomGimnasta.puntajes[updatedResultados.aparatoActual] === null) {
-       const nuevoPuntaje = Math.round((Math.random() * 2 + 7) * 10) / 10;
-       randomGimnasta.puntajes[updatedResultados.aparatoActual] = nuevoPuntaje;
-       randomGimnasta.allAround += nuevoPuntaje;
-       updatedResultados.gimnastas[randomIndex] = randomGimnasta;
-       updatedResultados.ultimaActualizacion = new Date().toISOString();
-     }
+  // Filtrar gimnastas por aparato seleccionado
+  const gimnastasDelAparato = state.resultadosCompletos.filter(
+    r => r.aparato === state.aparatoSeleccionado
+  );
 
-     return {
-       ...prev,
-       resultados: updatedResultados,
-     };
-   });
- };
+  // Aplicar lógica Pro/Free
+  const gimnastasToShow = isPro ? gimnastasDelAparato : gimnastasDelAparato.slice(0, 3);
+  const equiposToShow = isPro ? state.equipos : state.equipos.slice(0, 3);
 
- const handleRefresh = async () => {
-   setState((prev) => ({ ...prev, isRefreshing: true }));
-   await loadResultados();
-   setState((prev) => ({ ...prev, isRefreshing: false }));
- };
+  const getDisplayTexts = () => {
+    if (isFinished) {
+      return {
+        headerTitle: "Resultados Finales",
+        loadingText: "Cargando resultados finales...",
+        statusBadge: "FINALIZADO",
+        statusColor: getColor.gray[500],
+        indicatorIcon: "trophy" as const,
+        lastUpdateText: "Resultados oficiales finales"
+      };
+    } else {
+      return {
+        headerTitle: "Resultados En Vivo",
+        loadingText: "Cargando resultados...",
+        statusBadge: "EN VIVO",
+        statusColor: getColor.secondary[500],
+        indicatorIcon: "radio" as const,
+        lastUpdateText: "Última actualización"
+      };
+    }
+  };
 
- const handleVistaChange = (vista: "aparatos" | "allaround" | "equipos") => {
-   setState((prev) => ({ ...prev, vistaSeleccionada: vista }));
- };
+  const displayTexts = getDisplayTexts();
 
- const handleDismissBanner = () => {
-   setState((prev) => ({ ...prev, showUpgradeBanner: false }));
- };
+  if (state.isLoading && !state.isRefreshing) {
+    return (
+      <BaseLayout>
+        <Header title={displayTexts.headerTitle} showBack={true} onBackPress={() => navigation.goBack()} />
+        <View style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: responsive.spacing.xl,
+        }}>
+          <Ionicons name={displayTexts.indicatorIcon} size={48} color={displayTexts.statusColor} />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: "600",
+            color: displayTexts.statusColor,
+            fontFamily: "Nunito",
+            textAlign: "center",
+            marginTop: responsive.spacing.md,
+          }}>
+            {displayTexts.loadingText}
+          </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
 
- // ✅ FUNCIÓN HELPER PARA OBTENER TEXTOS DINÁMICOS
- const getDisplayTexts = () => {
-   if (isFinished) {
-     return {
-       headerTitle: "Resultados Finales",
-       loadingText: "Cargando resultados finales...",
-       statusBadge: "FINALIZADO",
-       statusColor: getColor.gray[500],
-       indicatorIcon: "trophy" as const,
-       lastUpdateText: "Resultados oficiales finales"
-     };
-   } else {
-     return {
-       headerTitle: "Resultados En Vivo",
-       loadingText: "Cargando resultados...",
-       statusBadge: "EN VIVO",
-       statusColor: getColor.secondary[500],
-       indicatorIcon: "radio" as const,
-       lastUpdateText: "Última actualización"
-     };
-   }
- };
+  if (state.error) {
+    return (
+      <BaseLayout>
+        <Header title="Error" showBack={true} onBackPress={() => navigation.goBack()} />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text>Error: {state.error}</Text>
+          <TouchableOpacity onPress={loadResultados} style={{ marginTop: 16, padding: 12, backgroundColor: getColor.primary[500], borderRadius: 8 }}>
+            <Text style={{ color: "white" }}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </BaseLayout>
+    );
+  }
 
- const displayTexts = getDisplayTexts();
+  return (
+    <BaseLayout>
+      <Header 
+        title="Resultados"
+        subtitle="Campeonato"
+        showBack={true}
+        onBackPress={() => navigation.goBack()}
+      />
 
- // Función para obtener datos de equipos
- const getEquiposData = () => {
-   if (categoriaId === "cat1") {
-     return mockEquiposKinderF1;
-   }
-   return [];
- };
+      {/* Header con dropdown de aparatos */}
+      <View style={{
+        backgroundColor: isFinished ? getColor.gray[50] : getColor.secondary[50],
+        paddingHorizontal: responsive.spacing.md,
+        paddingVertical: responsive.spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: isFinished ? getColor.gray[200] : getColor.secondary[200],
+      }}>
+        <View style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          {/* Dropdown de aparatos o vista de equipos */}
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            {state.vistaSeleccionada === 'equipos' ? (
+              <>
+                <Ionicons
+                  name="people"
+                  size={30}
+                  color={isFinished ? getColor.gray[600] : getColor.secondary[700]}
+                  style={{ marginRight: responsive.spacing.sm }}
+                />
+                <View>
+                  <Text style={{
+                    fontSize: responsive.fontSize.lg,
+                    fontWeight: "800",
+                    color: isFinished ? getColor.gray[700] : getColor.secondary[700],
+                    fontFamily: "Nunito",
+                  }}>
+                    Por Equipos
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Ionicons
+                  name="trophy"
+                  size={30}
+                  color={isFinished ? getColor.gray[600] : getColor.secondary[700]}
+                  style={{ marginRight: responsive.spacing.sm }}
+                />
+                <View style={{ position: 'relative' }}>
+                  <TouchableOpacity
+                    onPress={() => setState(prev => ({ ...prev, showAparatoDropdown: !prev.showAparatoDropdown }))}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: getColor.background.primary,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: getColor.gray[200],
+                    }}
+                  >
+                    <Text style={{
+                      fontSize: responsive.fontSize.lg,
+                      fontWeight: "800",
+                      color: isFinished ? getColor.gray[700] : getColor.secondary[700],
+                      fontFamily: "Nunito",
+                      marginRight: 8,
+                    }}>
+                      {state.aparatoSeleccionado || 'Seleccionar aparato'}
+                    </Text>
+                    <Ionicons
+                      name={state.showAparatoDropdown ? "chevron-up" : "chevron-down"}
+                      size={16}
+                      color={getColor.gray[500]}
+                    />
+                  </TouchableOpacity>
 
- const resultados = state.resultados;
- const equiposData = getEquiposData();
+                  {/* Dropdown menu */}
+                  {state.showAparatoDropdown && (
+                    <View style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      backgroundColor: getColor.background.primary,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: getColor.gray[200],
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 3,
+                      zIndex: 1000,
+                      marginTop: 4,
+                    }}>
+                      {state.aparatos.map((aparato) => (
+                        <TouchableOpacity
+                          key={aparato}
+                          onPress={() => handleAparatoSelect(aparato)}
+                          style={{
+                            paddingHorizontal: 12,
+                            paddingVertical: 12,
+                            borderBottomWidth: aparato === state.aparatos[state.aparatos.length - 1] ? 0 : 1,
+                            borderBottomColor: getColor.gray[100],
+                          }}
+                        >
+                          <Text style={{
+                            fontSize: responsive.fontSize.base,
+                            color: aparato === state.aparatoSeleccionado ? getColor.secondary[600] : getColor.gray[700],
+                            fontWeight: aparato === state.aparatoSeleccionado ? '600' : '400',
+                            fontFamily: "Nunito",
+                          }}>
+                            {aparato}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
 
- if (state.isLoading && !state.isRefreshing) {
-   return (
-     <BaseLayout>
-       <Header title={displayTexts.headerTitle} showBack={true} onBackPress={() => navigation.goBack()} />
-       <View style={{
-         flex: 1,
-         justifyContent: "center",
-         alignItems: "center",
-         padding: responsive.spacing.xl,
-       }}>
-         <Ionicons name={displayTexts.indicatorIcon} size={48} color={displayTexts.statusColor} />
-         <Text style={{
-           fontSize: responsive.fontSize.lg,
-           fontWeight: "600",
-           color: displayTexts.statusColor,
-           fontFamily: "Nunito",
-           textAlign: "center",
-           marginTop: responsive.spacing.md,
-         }}>
-           {displayTexts.loadingText}
-         </Text>
-       </View>
-     </BaseLayout>
-   );
- }
+          {/* Indicador de estado */}
+          <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: displayTexts.statusColor,
+            borderRadius: 12,
+            paddingHorizontal: responsive.spacing.sm,
+            paddingVertical: 4,
+          }}>
+            <View style={{
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: getColor.background.primary,
+              marginRight: 4,
+            }} />
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              fontWeight: "600",
+              color: getColor.background.primary,
+              fontFamily: "Nunito",
+            }}>
+              {displayTexts.statusBadge}
+            </Text>
+          </View>
+        </View>
+      </View>
 
- if (!resultados) {
-   return (
-     <BaseLayout>
-       <Header title="Error" showBack={true} onBackPress={() => navigation.goBack()} />
-       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-         <Text>Error al cargar resultados</Text>
-       </View>
-     </BaseLayout>
-   );
- }
+      {/* Selector de vista */}
+      <View style={{
+        flexDirection: "row",
+        paddingHorizontal: responsive.spacing.md,
+        paddingVertical: responsive.spacing.sm,
+        backgroundColor: getColor.background.primary,
+        gap: responsive.spacing.xs,
+      }}>
+        {[
+          { key: "aparatos" as const, label: "Por Aparatos", icon: "radio" as const },
+          { key: "allaround" as const, label: "All Around", icon: "trophy" as const },
+          { key: "equipos" as const, label: "Por Equipos", icon: "people" as const },
+        ].map((option) => (
+          <TouchableOpacity
+            key={option.key}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: state.vistaSeleccionada === option.key 
+                ? (isFinished ? getColor.gray[500] : getColor.secondary[500])
+                : getColor.gray[100],
+              borderRadius: 8,
+              paddingVertical: responsive.spacing.sm,
+            }}
+            onPress={() => handleVistaChange(option.key)}
+          >
+            <Ionicons
+              name={option.icon as any}
+              size={14}
+              color={state.vistaSeleccionada === option.key 
+                ? getColor.background.primary 
+                : getColor.gray[600]
+              }
+              style={{ marginRight: 4 }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              fontWeight: "600",
+              color: state.vistaSeleccionada === option.key 
+                ? getColor.background.primary 
+                : getColor.gray[600],
+              fontFamily: "Nunito",
+            }}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
- const gimnastasToShow = isPro ? resultados.gimnastas : resultados.gimnastas.slice(0, 3);
- const equiposToShow = isPro ? equiposData : equiposData.slice(0, 3);
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={state.isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={displayTexts.statusColor}
+            colors={[displayTexts.statusColor]}
+          />
+        }
+      >
+        {!isPro && state.showUpgradeBanner && (
+          <UpgradeBanner
+            onUpgrade={() => console.log("Navigate to upgrade")}
+            onDismiss={handleDismissBanner}
+          />
+        )}
 
- return (
-   <BaseLayout>
-     {/* Header con categoría prominente */}
-     <Header 
-       title={resultados.categoriaNombreCorto || "Categoría"}
-       subtitle={resultados.campeonatoNombre || "Campeonato"}
-       showBack={true}
-       onBackPress={() => navigation.goBack()}
-     />
+        <View style={{ padding: responsive.spacing.md }}>
+          {state.vistaSeleccionada === 'equipos' ? (
+            equiposToShow.length > 0 ? (
+              <>
+                {equiposToShow.map((equipo, index) => (
+                  <CompactTeamCard
+                    key={equipo.id}
+                    equipo={equipo}
+                    position={index + 1}
+                  />
+                ))}
+                {!isPro && state.equipos.length > 3 && (
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: getColor.gray[50],
+                      borderRadius: 12,
+                      padding: responsive.spacing.lg,
+                      alignItems: "center",
+                      borderWidth: 2,
+                      borderColor: getColor.gray[200],
+                      borderStyle: "dashed",
+                      marginTop: responsive.spacing.sm,
+                    }}
+                    onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los equipos")}
+                  >
+                    <Ionicons name="people" size={24} color={getColor.gray[400]} />
+                    <Text style={{
+                      fontSize: responsive.fontSize.sm,
+                      color: getColor.gray[500],
+                      textAlign: "center",
+                      marginTop: responsive.spacing.xs,
+                      fontFamily: "Nunito",
+                    }}>
+                      +{state.equipos.length - 3} equipos más en Pro
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <View style={{
+                backgroundColor: getColor.gray[50],
+                borderRadius: 12,
+                padding: responsive.spacing.xl,
+                alignItems: "center",
+                marginTop: responsive.spacing.lg,
+              }}>
+                <Ionicons name="people-outline" size={48} color={getColor.gray[400]} />
+                <Text style={{
+                  fontSize: responsive.fontSize.base,
+                  fontWeight: "600",
+                  color: getColor.gray[600],
+                  textAlign: "center",
+                  marginTop: responsive.spacing.md,
+                  fontFamily: "Nunito",
+                }}>
+                  Sin datos de equipos
+                </Text>
+              </View>
+            )
+          ) : (
+            <>
+              {gimnastasToShow.map((resultado, index) => (
+                <CompactResultCard
+                  key={`${resultado.gimnasta}_${resultado.aparato}`}
+                  gimnasta={{
+                    id: `${resultado.gimnasta}_${resultado.aparato}`,
+                    nombre: resultado.gimnasta,
+                    club: resultado.delegacion,
+                    categoria: resultado.nivel,
+                    nivel: resultado.franja,
+                    subdivision: resultado.subdivision,
+                    puntajes: { [resultado.aparato]: resultado.puntaje },
+                    allAround: resultado.puntaje,
+                    posicion: resultado.puesto,
+                    posicionAparatos: { [resultado.aparato]: resultado.puesto },
+                  }}
+                  position={index + 1}
+                  aparatoActual={state.aparatoSeleccionado}
+                  vistaSeleccionada={state.vistaSeleccionada}
+                  isHighlighted={index === 0}
+                />
+              ))}
 
-     {/* ✅ HEADER DE APARATO ACTUAL CORREGIDO - MOSTRAR TAMBIÉN EN VISTA EQUIPOS */}
-     <View style={{
-       backgroundColor: isFinished ? getColor.gray[50] : getColor.secondary[50],
-       paddingHorizontal: responsive.spacing.md,
-       paddingVertical: responsive.spacing.md,
-       borderBottomWidth: 1,
-       borderBottomColor: isFinished ? getColor.gray[200] : getColor.secondary[200],
-     }}>
-       <View style={{
-         flexDirection: "row",
-         justifyContent: "space-between",
-         alignItems: "center",
-       }}>
-         {/* Info del aparato */}
-         <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-           <Ionicons
-             name={getAparatoIcon(resultados.aparatoActual as AparatoGeneral) as any}
-             size={30}
-             color={isFinished ? getColor.gray[600] : getColor.secondary[700]}
-             style={{ marginRight: responsive.spacing.sm }}
-           />
-           <View>
-             <Text style={{
-               fontSize: responsive.fontSize.lg,
-               fontWeight: "800",
-               color: isFinished ? getColor.gray[700] : getColor.secondary[700],
-               fontFamily: "Nunito",
-             }}>
-               {getAparatoDisplayNameResults(resultados.aparatoActual)}
-             </Text>
-           </View>
-         </View>
+              {!isPro && gimnastasDelAparato.length > 3 && (
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: getColor.gray[50],
+                    borderRadius: 12,
+                    padding: responsive.spacing.lg,
+                    alignItems: "center",
+                    borderWidth: 2,
+                    borderColor: getColor.gray[200],
+                    borderStyle: "dashed",
+                    marginTop: responsive.spacing.sm,
+                  }}
+                  onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los resultados")}
+                >
+                  <Ionicons name="lock-closed" size={24} color={getColor.gray[400]} />
+                  <Text style={{
+                    fontSize: responsive.fontSize.sm,
+                    color: getColor.gray[500],
+                    textAlign: "center",
+                    marginTop: responsive.spacing.xs,
+                    fontFamily: "Nunito",
+                  }}>
+                    +{gimnastasDelAparato.length - 3} resultados más en Pro
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
 
-         {/* ✅ INDICADOR DINÁMICO SEGÚN ESTADO */}
-         <View style={{
-           flexDirection: "row",
-           alignItems: "center",
-           backgroundColor: displayTexts.statusColor,
-           borderRadius: 12,
-           paddingHorizontal: responsive.spacing.sm,
-           paddingVertical: 4,
-         }}>
-           <View style={{
-             width: 6,
-             height: 6,
-             borderRadius: 3,
-             backgroundColor: getColor.background.primary,
-             marginRight: 4,
-           }} />
-           <Text style={{
-             fontSize: responsive.fontSize.xs,
-             fontWeight: "600",
-             color: getColor.background.primary,
-             fontFamily: "Nunito",
-           }}>
-             {displayTexts.statusBadge}
-           </Text>
-         </View>
-       </View>
-     </View>
-
-     {/* Selector de vista minimalista */}
-     <View style={{
-       flexDirection: "row",
-       paddingHorizontal: responsive.spacing.md,
-       paddingVertical: responsive.spacing.sm,
-       backgroundColor: getColor.background.primary,
-       gap: responsive.spacing.xs,
-     }}>
-       {[
-         { key: "aparatos" as const, label: "Por Aparatos", icon: "radio" as const },
-         { key: "allaround" as const, label: "All Around", icon: "trophy" as const },
-         { key: "equipos" as const, label: "Por Equipos", icon: "people" as const },
-       ].map((option) => (
-         <TouchableOpacity
-           key={option.key}
-           style={{
-             flex: 1,
-             flexDirection: "row",
-             alignItems: "center",
-             justifyContent: "center",
-             backgroundColor: state.vistaSeleccionada === option.key 
-               ? (isFinished ? getColor.gray[500] : getColor.secondary[500])
-               : getColor.gray[100],
-             borderRadius: 8,
-             paddingVertical: responsive.spacing.sm,
-           }}
-           onPress={() => handleVistaChange(option.key)}
-         >
-           <Ionicons
-             name={option.icon as any}
-             size={14}
-             color={state.vistaSeleccionada === option.key 
-               ? getColor.background.primary 
-               : getColor.gray[600]
-             }
-             style={{ marginRight: 4 }}
-           />
-           <Text style={{
-             fontSize: responsive.fontSize.xs,
-             fontWeight: "600",
-             color: state.vistaSeleccionada === option.key 
-               ? getColor.background.primary 
-               : getColor.gray[600],
-             fontFamily: "Nunito",
-           }}>
-             {option.label}
-           </Text>
-         </TouchableOpacity>
-       ))}
-     </View>
-
-     <ScrollView
-       style={{ flex: 1 }}
-       showsVerticalScrollIndicator={false}
-       refreshControl={
-         <RefreshControl
-           refreshing={state.isRefreshing}
-           onRefresh={handleRefresh}
-           tintColor={displayTexts.statusColor}
-           colors={[displayTexts.statusColor]}
-         />
-       }
-     >
-       {/* Banner upgrade colapsable discreto */}
-       {!isPro && state.showUpgradeBanner && (
-         <DiscreteUpgradeBanner
-           onUpgrade={() => console.log("Navigate to upgrade")}
-           onDismiss={handleDismissBanner}
-         />
-       )}
-
-       {/* Lista de resultados con cards compactas */}
-       <View style={{ padding: responsive.spacing.md }}>
-         {state.vistaSeleccionada === 'equipos' ? (
-           equiposData.length > 0 ? (
-             <>
-               {equiposToShow.map((equipo, index) => (
-                 <CompactTeamCard
-                   key={equipo.id}
-                   equipo={equipo}
-                   position={index + 1}
-                 />
-               ))}
-               {/* Prompt para upgrade equipos */}
-               {!isPro && equiposData.length > 3 && (
-                 <TouchableOpacity
-                   style={{
-                     backgroundColor: getColor.gray[50],
-                     borderRadius: 12,
-                     padding: responsive.spacing.lg,
-                     alignItems: "center",
-                     borderWidth: 2,
-                     borderColor: getColor.gray[200],
-                     borderStyle: "dashed",
-                     marginTop: responsive.spacing.sm,
-                   }}
-                   onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los equipos")}
-                 >
-                   <Ionicons name="people" size={24} color={getColor.gray[400]} />
-                   <Text style={{
-                     fontSize: responsive.fontSize.sm,
-                     color: getColor.gray[500],
-                     textAlign: "center",
-                     marginTop: responsive.spacing.xs,
-                     fontFamily: "Nunito",
-                   }}>
-                     +{equiposData.length - 3} equipos más en Pro
-                   </Text>
-                 </TouchableOpacity>
-               )}
-             </>
-           ) : (
-             <View style={{
-               backgroundColor: getColor.gray[50],
-               borderRadius: 12,
-               padding: responsive.spacing.xl,
-               alignItems: "center",
-               marginTop: responsive.spacing.lg,
-             }}>
-               <Ionicons name="people-outline" size={48} color={getColor.gray[400]} />
-               <Text style={{
-                 fontSize: responsive.fontSize.base,
-                 fontWeight: "600",
-                 color: getColor.gray[600],
-                 textAlign: "center",
-                 marginTop: responsive.spacing.md,
-                 fontFamily: "Nunito",
-               }}>
-                 Sin datos de equipos
-               </Text>
-               <Text style={{
-                 fontSize: responsive.fontSize.sm,
-                 color: getColor.gray[500],
-                 textAlign: "center",
-                 marginTop: responsive.spacing.xs,
-                 fontFamily: "Nunito",
-               }}>
-                 Los resultados por equipos no están disponibles para esta categoría
-               </Text>
-             </View>
-           )
-         ) : (
-           <>
-             {gimnastasToShow.map((gimnasta, index) => (
-               <CompactResultCard
-                 key={gimnasta.id}
-                 gimnasta={gimnasta}
-                 position={index + 1}
-                 aparatoActual={resultados.aparatoActual}
-                 vistaSeleccionada={state.vistaSeleccionada}
-                 isHighlighted={index === 0}
-               />
-             ))}
-
-             {/* Prompt para upgrade gimnastas */}
-             {!isPro && resultados.gimnastas.length > 3 && (
-               <TouchableOpacity
-                 style={{
-                   backgroundColor: getColor.gray[50],
-                   borderRadius: 12,
-                   padding: responsive.spacing.lg,
-                   alignItems: "center",
-                   borderWidth: 2,
-                   borderColor: getColor.gray[200],
-                   borderStyle: "dashed",
-                   marginTop: responsive.spacing.sm,
-                 }}
-                 onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los resultados")}
-               >
-                 <Ionicons name="lock-closed" size={24} color={getColor.gray[400]} />
-                 <Text style={{
-                   fontSize: responsive.fontSize.sm,
-                   color: getColor.gray[500],
-                   textAlign: "center",
-                   marginTop: responsive.spacing.xs,
-                   fontFamily: "Nunito",
-                 }}>
-                   +{resultados.gimnastas.length - 3} resultados más en Pro
-                 </Text>
-               </TouchableOpacity>
-             )}
-           </>
-         )}
-       </View>
-
-       {/* ✅ FOOTER CON TIMESTAMP ADAPTADO */}
-       <View style={{
-         padding: responsive.spacing.md,
-         alignItems: "center",
-         borderTopWidth: 1,
-         borderTopColor: getColor.gray[100],
-       }}>
-         <Text style={{
-           fontSize: responsive.fontSize.xs,
-           color: getColor.gray[400],
-           fontFamily: "Nunito",
-         }}>
-           {isFinished 
-             ? displayTexts.lastUpdateText
-             : `${displayTexts.lastUpdateText}: ${new Date(resultados.ultimaActualizacion).toLocaleTimeString()}`
-           }
-         </Text>
-       </View>
-     </ScrollView>
-   </BaseLayout>
- );
+        <View style={{
+          padding: responsive.spacing.md,
+          alignItems: "center",
+          borderTopWidth: 1,
+          borderTopColor: getColor.gray[100],
+        }}>
+          <Text style={{
+            fontSize: responsive.fontSize.xs,
+            color: getColor.gray[400],
+            fontFamily: "Nunito",
+          }}>
+            {isFinished 
+              ? displayTexts.lastUpdateText
+              : `${displayTexts.lastUpdateText}: ${new Date().toLocaleTimeString()}`
+            }
+          </Text>
+        </View>
+      </ScrollView>
+    </BaseLayout>
+  );
 }

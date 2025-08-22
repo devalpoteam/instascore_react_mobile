@@ -18,6 +18,10 @@ const API_CONFIG = {
       CAMPEONATOS_ACTIVOS: '/api/campeonatos/activos',
       CAMPEONATO_BY_ID: '/api/campeonatos',
       CATEGORIAS_AGRUPADAS: '/api/campeonatos/categorias-agrupadas'
+    },
+    RESULTADOS: {
+      INDIVIDUALES: '/api/PremiacionesResultados/individuales',
+      EQUIPOS: '/api/PremiacionesResultados/equipos'
     }
   },
   

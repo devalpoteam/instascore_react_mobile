@@ -1,4 +1,4 @@
-// src/features/resultados/components/DiscreteUpgradeBanner.tsx
+// src/features/resultados/components/UpgradeBanner.tsx
 import React, { useState } from 'react';
 import { 
   View, 
@@ -17,7 +17,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-interface DiscreteUpgradeBannerProps {
+interface UpgradeBannerProps {
   onUpgrade: () => void;
   onDismiss: () => void;
 }
@@ -62,10 +62,10 @@ const PRO_FEATURES: ProFeature[] = [
   },
 ];
 
-export default function DiscreteUpgradeBanner({ 
+export default function UpgradeBanner({ 
   onUpgrade, 
   onDismiss 
-}: DiscreteUpgradeBannerProps) {
+}: UpgradeBannerProps) {
   const responsive = useResponsive();
   const [isExpanded, setIsExpanded] = useState(false);
 

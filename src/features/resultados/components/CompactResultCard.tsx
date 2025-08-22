@@ -1,15 +1,25 @@
 // src/features/resultados/components/CompactResultCard.tsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { getColor } from '@/design/colorHelper';
-import { useResponsive } from '@/shared/hooks/useResponsive';
-import { GimnastaResultado, formatearPuntaje } from '../data/mockLiveResultsData';
+import React from "react";
+import { View, Text } from "react-native";
+import { getColor } from "@/design/colorHelper";
+import { useResponsive } from "@/shared/hooks/useResponsive";
 
 interface CompactResultCardProps {
-  gimnasta: GimnastaResultado;
+  gimnasta: {
+    id: string;
+    nombre: string;
+    club: string;
+    categoria: string;
+    nivel: string;
+    subdivision: string;
+    puntajes: { [aparato: string]: number };
+    allAround: number;
+    posicion: number;
+    posicionAparatos: { [aparato: string]: number };
+  };
   position: number;
   aparatoActual: string;
-  vistaSeleccionada: 'aparatos' | 'allaround' | 'equipos';
+  vistaSeleccionada: "aparatos" | "allaround" | "equipos";
   isHighlighted?: boolean;
 }
 
@@ -18,20 +28,28 @@ export default function CompactResultCard({
   position,
   aparatoActual,
   vistaSeleccionada,
-  isHighlighted = false
+  isHighlighted = false,
 }: CompactResultCardProps) {
   const responsive = useResponsive();
 
+  // Función para formatear puntaje
+  const formatearPuntaje = (puntaje: number | null): string => {
+    if (puntaje === null) return "--";
+    return puntaje.toFixed(1);
+  };
+
   // Determinar qué puntaje mostrar
   const getPuntajeToShow = () => {
-    if (vistaSeleccionada === 'aparatos') {
+    if (vistaSeleccionada === "aparatos") {
       return gimnasta.puntajes[aparatoActual];
     }
     return gimnasta.allAround;
   };
 
   const puntaje = getPuntajeToShow();
-  const isNewScore = gimnasta.puntajes[aparatoActual] !== null && vistaSeleccionada === 'aparatos';
+  const isNewScore =
+    gimnasta.puntajes[aparatoActual] !== null &&
+    vistaSeleccionada === "aparatos";
 
   // Colores de posición
   const getPositionColor = () => {
@@ -42,54 +60,62 @@ export default function CompactResultCard({
   };
 
   const getPositionEmoji = () => {
-    if (position === 1) return '🥇';
-    if (position === 2) return '🥈';
-    if (position === 3) return '🥉';
-    return '';
+    if (position === 1) return "🥇";
+    if (position === 2) return "🥈";
+    if (position === 3) return "🥉";
+    return "";
   };
 
   return (
     <View
       style={{
-        backgroundColor: isHighlighted ? getColor.secondary[50] : getColor.background.primary,
+        backgroundColor: isHighlighted
+          ? getColor.secondary[50]
+          : getColor.background.primary,
         borderRadius: 12,
         padding: responsive.spacing.md,
         marginBottom: responsive.spacing.sm,
         borderWidth: isHighlighted ? 2 : 1,
-        borderColor: isHighlighted ? getColor.secondary[300] : getColor.gray[200],
-        shadowColor: '#000',
+        borderColor: isHighlighted
+          ? getColor.secondary[300]
+          : getColor.gray[200],
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: isHighlighted ? 0.15 : 0.05,
         shadowRadius: isHighlighted ? 4 : 2,
         elevation: isHighlighted ? 3 : 1,
       }}
     >
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         {/* Posición */}
-        <View style={{
-          alignItems: 'center',
-          marginRight: responsive.spacing.md,
-        }}>
+        <View
+          style={{
+            alignItems: "center",
+            marginRight: responsive.spacing.md,
+          }}
+        >
           <View
             style={{
               width: 28,
               height: 28,
               borderRadius: 14,
               backgroundColor: getPositionColor(),
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <Text
               style={{
                 fontSize: responsive.fontSize.sm,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: getColor.background.primary,
-                fontFamily: 'Nunito',
+                fontFamily: "Nunito",
               }}
             >
               {position}
@@ -107,9 +133,9 @@ export default function CompactResultCard({
           <Text
             style={{
               fontSize: responsive.fontSize.base,
-              fontWeight: '600',
+              fontWeight: "600",
               color: getColor.gray[800],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
               marginBottom: 2,
             }}
           >
@@ -119,7 +145,7 @@ export default function CompactResultCard({
             style={{
               fontSize: responsive.fontSize.xs,
               color: getColor.gray[500],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
               marginBottom: 2,
             }}
           >
@@ -129,71 +155,62 @@ export default function CompactResultCard({
             style={{
               fontSize: responsive.fontSize.xs,
               color: getColor.gray[400],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
             }}
           >
-            {gimnasta.categoria} {gimnasta.nivel} • Subdiv. {gimnasta.subdivision}
+            {gimnasta.categoria} {gimnasta.nivel} • Subdiv.{" "}
+            {gimnasta.subdivision}
           </Text>
         </View>
 
         {/* Puntajes */}
-        <View style={{ alignItems: 'flex-end' }}>
+        <View style={{ alignItems: "flex-end" }}>
           {/* Puntaje principal */}
           <View
             style={{
               backgroundColor: isNewScore
                 ? getColor.secondary[100]
-                : 'transparent',
+                : "transparent",
               borderRadius: 8,
               paddingHorizontal: 8,
               paddingVertical: 4,
               borderWidth: isNewScore ? 1 : 0,
               borderColor: getColor.secondary[300],
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
             <Text
               style={{
                 fontSize: responsive.fontSize.lg,
-                fontWeight: '700',
-                color: puntaje === null ? getColor.gray[400] : 
-                       isNewScore && vistaSeleccionada === 'aparatos' ? getColor.secondary[700] : 
-                       getColor.primary[600],
-                fontFamily: 'Nunito',
+                fontWeight: "700",
+                color:
+                  puntaje === null
+                    ? getColor.gray[400]
+                    : isNewScore && vistaSeleccionada === "aparatos"
+                    ? getColor.secondary[700]
+                    : getColor.primary[600],
+                fontFamily: "Nunito",
               }}
             >
-              {vistaSeleccionada === 'aparatos' 
+              {vistaSeleccionada === "aparatos"
                 ? formatearPuntaje(puntaje)
-                : puntaje?.toFixed(1) || '--'
-              }
+                : puntaje?.toFixed(1) || "--"}
             </Text>
-            {isNewScore && vistaSeleccionada === 'aparatos' && puntaje !== null && (
-              <Text
-                style={{
-                  fontSize: responsive.fontSize.xs,
-                  color: getColor.secondary[600],
-                  fontFamily: 'Nunito',
-                  fontWeight: '500',
-                }}
-              >
-                NUEVO
-              </Text>
-            )}
+            {isNewScore &&
+              vistaSeleccionada === "aparatos" &&
+              puntaje !== null && (
+                <Text
+                  style={{
+                    fontSize: responsive.fontSize.xs,
+                    color: getColor.secondary[600],
+                    fontFamily: "Nunito",
+                    fontWeight: "500",
+                  }}
+                >
+                  NUEVO
+                </Text>
+              )}
           </View>
-
-          {/* Total secundario */}
-          {vistaSeleccionada === 'aparatos' && (
-            <Text
-              style={{
-                fontSize: responsive.fontSize.xs,
-                color: getColor.gray[400],
-                fontFamily: 'Nunito',
-                marginTop: 4,
-              }}
-            >
-              Total: {gimnasta.allAround.toFixed(1)}
-            </Text>
-          )}
         </View>
       </View>
     </View>
