@@ -5,17 +5,15 @@ import { getColor } from "@/design/colorHelper";
 import { useResponsive } from "@/shared/hooks/useResponsive";
 
 interface CompactResultCardProps {
-  gimnasta: {
-    id: string;
-    nombre: string;
-    club: string;
-    categoria: string;
+  resultado: {
+    aparato: string;
+    gimnasta: string;
+    delegacion: string;
     nivel: string;
+    franja: string;
     subdivision: string;
-    puntajes: { [aparato: string]: number };
-    allAround: number;
-    posicion: number;
-    posicionAparatos: { [aparato: string]: number };
+    puntaje: number;
+    puesto: number;
   };
   position: number;
   aparatoActual: string;
@@ -24,7 +22,7 @@ interface CompactResultCardProps {
 }
 
 export default function CompactResultCard({
-  gimnasta,
+  resultado,
   position,
   aparatoActual,
   vistaSeleccionada,
@@ -32,26 +30,11 @@ export default function CompactResultCard({
 }: CompactResultCardProps) {
   const responsive = useResponsive();
 
-  // Función para formatear puntaje
   const formatearPuntaje = (puntaje: number | null): string => {
     if (puntaje === null) return "--";
     return puntaje.toFixed(1);
   };
 
-  // Determinar qué puntaje mostrar
-  const getPuntajeToShow = () => {
-    if (vistaSeleccionada === "aparatos") {
-      return gimnasta.puntajes[aparatoActual];
-    }
-    return gimnasta.allAround;
-  };
-
-  const puntaje = getPuntajeToShow();
-  const isNewScore =
-    gimnasta.puntajes[aparatoActual] !== null &&
-    vistaSeleccionada === "aparatos";
-
-  // Colores de posición
   const getPositionColor = () => {
     if (position === 1) return getColor.secondary[500];
     if (position === 2) return getColor.gray[400];
@@ -64,6 +47,10 @@ export default function CompactResultCard({
     if (position === 2) return "🥈";
     if (position === 3) return "🥉";
     return "";
+  };
+
+  const construirNombreCategoria = () => {
+    return `${resultado.nivel} ${resultado.franja}`;
   };
 
   return (
@@ -93,7 +80,6 @@ export default function CompactResultCard({
           justifyContent: "space-between",
         }}
       >
-        {/* Posición */}
         <View
           style={{
             alignItems: "center",
@@ -128,7 +114,6 @@ export default function CompactResultCard({
           )}
         </View>
 
-        {/* Info gimnasta */}
         <View style={{ flex: 1, marginRight: responsive.spacing.md }}>
           <Text
             style={{
@@ -139,7 +124,7 @@ export default function CompactResultCard({
               marginBottom: 2,
             }}
           >
-            {gimnasta.nombre}
+            {resultado.gimnasta}
           </Text>
           <Text
             style={{
@@ -149,7 +134,7 @@ export default function CompactResultCard({
               marginBottom: 2,
             }}
           >
-            {gimnasta.club}
+            {resultado.delegacion}
           </Text>
           <Text
             style={{
@@ -158,24 +143,17 @@ export default function CompactResultCard({
               fontFamily: "Nunito",
             }}
           >
-            {gimnasta.categoria} {gimnasta.nivel} • Subdiv.{" "}
-            {gimnasta.subdivision}
+            {construirNombreCategoria()} • Subdiv. {resultado.subdivision}
           </Text>
         </View>
 
-        {/* Puntajes */}
         <View style={{ alignItems: "flex-end" }}>
-          {/* Puntaje principal */}
           <View
             style={{
-              backgroundColor: isNewScore
-                ? getColor.secondary[100]
-                : "transparent",
+              backgroundColor: "transparent",
               borderRadius: 8,
               paddingHorizontal: 8,
               paddingVertical: 4,
-              borderWidth: isNewScore ? 1 : 0,
-              borderColor: getColor.secondary[300],
               alignItems: "center",
             }}
           >
@@ -183,34 +161,24 @@ export default function CompactResultCard({
               style={{
                 fontSize: responsive.fontSize.lg,
                 fontWeight: "700",
-                color:
-                  puntaje === null
-                    ? getColor.gray[400]
-                    : isNewScore && vistaSeleccionada === "aparatos"
-                    ? getColor.secondary[700]
-                    : getColor.primary[600],
+                color: getColor.primary[600],
                 fontFamily: "Nunito",
               }}
             >
-              {vistaSeleccionada === "aparatos"
-                ? formatearPuntaje(puntaje)
-                : puntaje?.toFixed(1) || "--"}
+              {formatearPuntaje(resultado.puntaje)}
             </Text>
-            {isNewScore &&
-              vistaSeleccionada === "aparatos" &&
-              puntaje !== null && (
-                <Text
-                  style={{
-                    fontSize: responsive.fontSize.xs,
-                    color: getColor.secondary[600],
-                    fontFamily: "Nunito",
-                    fontWeight: "500",
-                  }}
-                >
-                  NUEVO
-                </Text>
-              )}
           </View>
+
+          <Text
+            style={{
+              fontSize: responsive.fontSize.xs,
+              color: getColor.gray[400],
+              fontFamily: "Nunito",
+              marginTop: 4,
+            }}
+          >
+            {resultado.aparato}
+          </Text>
         </View>
       </View>
     </View>

@@ -14,19 +14,16 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
-// Components
 import CampeonatoCard from '../components/CampeonatoCard';
 import CampeonatosFilters from '../components/CampeonatosFilters';
 
-// Types y data
 import { 
   Campeonato, 
   CampeonatoFilters, 
   CampeonatosScreenState 
 } from '../types/campeonatos.types';
-import { mockCampeonatos } from '../data/mockCampeonatos';
+import { campeonatosService } from '@/services/api/campeonatos/campeonatosService';
 
-// ✅ IMPORTAR TIPOS DE NAVEGACIÓN ACTUALIZADOS
 import { MainStackParamList } from '@/navigation/MainNavigator';
 
 type CampeonatosScreenNavigationProp = NavigationProp<MainStackParamList>;
@@ -35,7 +32,6 @@ export default function CampeonatosScreen() {
   const navigation = useNavigation<CampeonatosScreenNavigationProp>();
   const responsive = useResponsive();
 
-  // Estado local
   const [state, setState] = useState<CampeonatosScreenState>({
     campeonatos: [],
     filteredCampeonatos: [],
@@ -56,16 +52,13 @@ export default function CampeonatosScreen() {
     availableTypes: [],
   });
 
-  // Simular carga inicial de datos
   useEffect(() => {
     loadCampeonatos();
   }, []);
 
-  // Filtrar campeonatos cuando cambien los filtros
   const filteredCampeonatos = useMemo(() => {
     let filtered = [...state.campeonatos];
 
-    // Filtro por término de búsqueda
     if (state.filters.searchTerm) {
       filtered = filtered.filter(campeonato =>
         campeonato.nombre.toLowerCase().includes(state.filters.searchTerm.toLowerCase()) ||
@@ -73,12 +66,10 @@ export default function CampeonatosScreen() {
       );
     }
 
-    // Filtro por estado
     if (state.filters.estado !== 'todos') {
       filtered = filtered.filter(campeonato => campeonato.estado === state.filters.estado);
     }
 
-    // Ordenamiento
     filtered.sort((a, b) => {
       let comparison = 0;
       
@@ -105,19 +96,18 @@ export default function CampeonatosScreen() {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const campeonatos = await campeonatosService.getCampeonatos();
       
       setState(prev => ({
         ...prev,
-        campeonatos: mockCampeonatos,
+        campeonatos,
         isLoading: false,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading campeonatos:', error);
       setState(prev => ({
         ...prev,
-        error: 'Error al cargar los campeonatos',
+        error: error.message || 'Error al cargar los campeonatos',
         isLoading: false,
       }));
       
@@ -142,27 +132,21 @@ export default function CampeonatosScreen() {
     }));
   };
 
-  // ✅ NAVEGACIÓN REAL AL DETALLE
   const handleCampeonatoPress = (campeonato: Campeonato) => {
-    console.log('🏆 Navegar a detalle de campeonato:', campeonato.nombre);
+    console.log('Navegar a detalle de campeonato:', campeonato.nombre);
     navigation.navigate('CampeonatoDetail', { campeonatoId: campeonato.id });
   };
 
-  // ✅ NAVEGACIÓN ACTUALIZADA PARA SOPORTAR CAMPEONATOS FINALIZADOS
   const handleViewResults = (campeonato: Campeonato) => {
-    console.log('📊 Ver resultados de campeonato:', campeonato.nombre, 'Estado:', campeonato.estado);
+    console.log('Ver resultados de campeonato:', campeonato.nombre, 'Estado:', campeonato.estado);
     
-    // Determinar si el campeonato está finalizado
     const isFinished = campeonato.estado === 'finalizado';
-    
-    // Determinar el texto de log según el estado
     const accionTexto = isFinished ? 'resultados finales' : 'resultados en vivo';
-    console.log(`🎯 Navegar a ${accionTexto} del campeonato:`, campeonato.nombre);
+    console.log(`Navegar a ${accionTexto} del campeonato:`, campeonato.nombre);
     
-    // ✅ NAVEGACIÓN DIRECTA A CATEGORY SELECTOR CON EL PARÁMETRO CORRECTO
     navigation.navigate('CategorySelector', { 
       campeonatoId: campeonato.id,
-      isFinished: isFinished // ✅ PASAR EL ESTADO DEL CAMPEONATO
+      isFinished: isFinished
     });
   };
 
@@ -261,14 +245,12 @@ export default function CampeonatosScreen() {
         showLogo={false}
       />
       
-      {/* Filtros */}
       <CampeonatosFilters
         filters={state.filters}
         onFiltersChange={handleFiltersChange}
         totalCount={filteredCampeonatos.length}
       />
 
-      {/* Lista de campeonatos */}
       <FlatList
         data={filteredCampeonatos}
         renderItem={renderCampeonatoCard}
@@ -291,7 +273,7 @@ export default function CampeonatosScreen() {
         ListEmptyComponent={renderEmptyState}
         ItemSeparatorComponent={() => <View style={{ height: 4 }} />}
         getItemLayout={(data, index) => ({
-          length: 200, // Altura aproximada de cada card
+          length: 200,
           offset: 200 * index,
           index,
         })}

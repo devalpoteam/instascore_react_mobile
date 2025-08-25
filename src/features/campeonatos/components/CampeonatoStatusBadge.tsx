@@ -1,4 +1,4 @@
-// src/features/campeonatos/components/CampeonatoStatusBadge.tsx - HÍBRIDO iOS/Android
+// src/features/campeonatos/components/CampeonatoStatusBadge.tsx
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,40 +21,36 @@ export default function CampeonatoStatusBadge({
     switch (estado) {
       case 'activo':
         return {
-          backgroundColor: getColor.success[500],
+          backgroundColor: getColor.secondary[500],
           textColor: getColor.background.primary,
-          label: 'En Curso',
-          // iOS: emoji, Android: círculo sólido
-          emoji: '🟢',
+          label: 'En Vivo',
+          emoji: '🟠',
           iconName: 'ellipse' as const,
-          iconColor: getColor.success[700] // Más intenso para círculo sólido
+          iconColor: getColor.secondary[700]
         };
       case 'configuracion':
         return {
-          backgroundColor: getColor.warning[500],
+          backgroundColor: getColor.success[500],
           textColor: getColor.background.primary,
-          label: 'Configuración',
-          // iOS: emoji, Android: círculo sólido
-          emoji: '🟠',
+          label: 'Próximo',
+          emoji: '🟢',
           iconName: 'ellipse' as const,
-          iconColor: getColor.warning[700] // Más intenso para círculo sólido
+          iconColor: getColor.success[700]
         };
       case 'finalizado':
         return {
           backgroundColor: getColor.gray[500],
           textColor: getColor.background.primary,
           label: 'Finalizado',
-          // iOS: emoji, Android: círculo sólido
           emoji: '🔴',
           iconName: 'ellipse' as const,
-          iconColor: getColor.gray[700] // Más intenso para círculo sólido
+          iconColor: getColor.gray[700]
         };
       default:
         return {
           backgroundColor: getColor.gray[300],
           textColor: getColor.gray[700],
           label: 'Desconocido',
-          // iOS: emoji, Android: círculo sólido
           emoji: '⚪',
           iconName: 'ellipse' as const,
           iconColor: getColor.gray[500]
@@ -65,10 +61,8 @@ export default function CampeonatoStatusBadge({
   const config = getStatusConfig(estado);
   const isSmall = size === 'sm';
 
-  // Renderizar ícono según plataforma
   const renderIcon = () => {
     if (Platform.OS === 'ios') {
-      // iOS: Usar emojis nativos
       return (
         <Text style={{
           fontSize: isSmall ? 8 : 10,
@@ -78,7 +72,6 @@ export default function CampeonatoStatusBadge({
         </Text>
       );
     } else {
-      // Android: Usar Ionicons
       return (
         <Ionicons
           name={config.iconName}
@@ -105,7 +98,6 @@ export default function CampeonatoStatusBadge({
       shadowRadius: 2,
       elevation: 2,
     }}>
-      {/* Ícono híbrido según plataforma */}
       {renderIcon()}
       
       <Text style={{

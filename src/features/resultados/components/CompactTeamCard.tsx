@@ -1,12 +1,20 @@
 // src/features/resultados/components/CompactTeamCard.tsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { getColor } from '@/design/colorHelper';
-import { useResponsive } from '@/shared/hooks/useResponsive';
-import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
+import React from "react";
+import { View, Text } from "react-native";
+import { getColor } from "@/design/colorHelper";
+import { useResponsive } from "@/shared/hooks/useResponsive";
 
 interface CompactTeamCardProps {
-  equipo: ResultadoEquipo;
+  equipo: {
+    id: string;
+    nombre: string;
+    categoria: string;
+    nivel: string;
+    cantidadGimnastas: number;
+    cantidadMejores: number;
+    puntajeEquipo: number;
+    posicion: number;
+  };
   position: number;
   isHighlighted?: boolean;
 }
@@ -14,7 +22,7 @@ interface CompactTeamCardProps {
 export default function CompactTeamCard({
   equipo,
   position,
-  isHighlighted = false
+  isHighlighted = false,
 }: CompactTeamCardProps) {
   const responsive = useResponsive();
 
@@ -26,53 +34,65 @@ export default function CompactTeamCard({
   };
 
   const getPositionEmoji = () => {
-    if (position === 1) return '🥇';
-    if (position === 2) return '🥈';
-    if (position === 3) return '🥉';
-    return '';
+    if (position === 1) return "🥇";
+    if (position === 2) return "🥈";
+    if (position === 3) return "🥉";
+    return "";
+  };
+
+  const construirNombreCategoria = () => {
+    return `${equipo.categoria} ${equipo.nivel}`;
   };
 
   return (
     <View
       style={{
-        backgroundColor: isHighlighted ? getColor.secondary[50] : getColor.background.primary,
+        backgroundColor: isHighlighted
+          ? getColor.secondary[50]
+          : getColor.background.primary,
         borderRadius: 12,
         padding: responsive.spacing.md,
         marginBottom: responsive.spacing.sm,
         borderWidth: isHighlighted ? 2 : 1,
-        borderColor: isHighlighted ? getColor.secondary[300] : getColor.gray[200],
-        shadowColor: '#000',
+        borderColor: isHighlighted
+          ? getColor.secondary[300]
+          : getColor.gray[200],
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: isHighlighted ? 0.15 : 0.05,
         shadowRadius: isHighlighted ? 4 : 2,
         elevation: isHighlighted ? 3 : 1,
       }}
     >
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <View style={{
-          alignItems: 'center',
-          marginRight: responsive.spacing.md,
-        }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            marginRight: responsive.spacing.md,
+          }}
+        >
           <View
             style={{
               width: 28,
               height: 28,
               borderRadius: 14,
               backgroundColor: getPositionColor(),
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <Text
               style={{
                 fontSize: responsive.fontSize.sm,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: getColor.background.primary,
-                fontFamily: 'Nunito',
+                fontFamily: "Nunito",
               }}
             >
               {position}
@@ -89,9 +109,9 @@ export default function CompactTeamCard({
           <Text
             style={{
               fontSize: responsive.fontSize.base,
-              fontWeight: '600',
+              fontWeight: "600",
               color: getColor.gray[800],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
               marginBottom: 2,
             }}
           >
@@ -101,39 +121,40 @@ export default function CompactTeamCard({
             style={{
               fontSize: responsive.fontSize.xs,
               color: getColor.gray[500],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
               marginBottom: 2,
             }}
           >
-            {equipo.categoria} {equipo.nivel}
+            {construirNombreCategoria()}
           </Text>
           <Text
             style={{
               fontSize: responsive.fontSize.xs,
               color: getColor.gray[400],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
             }}
           >
-            {equipo.cantidadGimnastas} gimnastas • Mejores {equipo.cantidadMejores}
+            {equipo.cantidadGimnastas} gimnastas • Mejores{" "}
+            {equipo.cantidadMejores}
           </Text>
         </View>
 
-        <View style={{ alignItems: 'flex-end' }}>
+        <View style={{ alignItems: "flex-end" }}>
           <View
             style={{
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent",
               borderRadius: 8,
               paddingHorizontal: 8,
               paddingVertical: 4,
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
             <Text
               style={{
                 fontSize: responsive.fontSize.lg,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: getColor.primary[600],
-                fontFamily: 'Nunito',
+                fontFamily: "Nunito",
               }}
             >
               {equipo.puntajeEquipo.toFixed(1)}
@@ -144,7 +165,7 @@ export default function CompactTeamCard({
             style={{
               fontSize: responsive.fontSize.xs,
               color: getColor.gray[400],
-              fontFamily: 'Nunito',
+              fontFamily: "Nunito",
               marginTop: 4,
             }}
           >

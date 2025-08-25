@@ -16,15 +16,12 @@ import { useAppSelector } from "@/store/hooks";
 import BaseLayout from "@/shared/components/layout/BaseLayout";
 import Header from "@/shared/components/layout/Header";
 
-// Componentes optimizados
 import CompactResultCard from "../components/CompactResultCard";
 import UpgradeBanner from "../components/UpgradeBanner";
 import CompactTeamCard from "../components/CompactTeamCard";
 
-// Servicios reales
 import { resultadosService, ResultadoIndividual, ResultadoEquipo } from "@/services/api/resultados/resultadosService";
 
-// Navigation types
 type LiveResultsRouteProp = RouteProp<
   { LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean } },
   "LiveResults"
@@ -81,7 +78,6 @@ export default function LiveResultsScreen() {
         resultadosService.getResultadosEquipos(campeonatoId)
       ]);
 
-      // Extraer aparatos únicos
       const aparatosUnicos = [...new Set(individuales.map(r => r.aparato))].sort();
 
       setState((prev) => ({
@@ -123,12 +119,10 @@ export default function LiveResultsScreen() {
     }));
   };
 
-  // Filtrar gimnastas por aparato seleccionado
   const gimnastasDelAparato = state.resultadosCompletos.filter(
     r => r.aparato === state.aparatoSeleccionado
   );
 
-  // Aplicar lógica Pro/Free
   const gimnastasToShow = isPro ? gimnastasDelAparato : gimnastasDelAparato.slice(0, 3);
   const equiposToShow = isPro ? state.equipos : state.equipos.slice(0, 3);
 
@@ -205,7 +199,6 @@ export default function LiveResultsScreen() {
         onBackPress={() => navigation.goBack()}
       />
 
-      {/* Header con dropdown de aparatos */}
       <View style={{
         backgroundColor: isFinished ? getColor.gray[50] : getColor.secondary[50],
         paddingHorizontal: responsive.spacing.md,
@@ -218,7 +211,6 @@ export default function LiveResultsScreen() {
           justifyContent: "space-between",
           alignItems: "center",
         }}>
-          {/* Dropdown de aparatos o vista de equipos */}
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             {state.vistaSeleccionada === 'equipos' ? (
               <>
@@ -277,7 +269,6 @@ export default function LiveResultsScreen() {
                     />
                   </TouchableOpacity>
 
-                  {/* Dropdown menu */}
                   {state.showAparatoDropdown && (
                     <View style={{
                       position: 'absolute',
@@ -324,7 +315,6 @@ export default function LiveResultsScreen() {
             )}
           </View>
 
-          {/* Indicador de estado */}
           <View style={{
             flexDirection: "row",
             alignItems: "center",
@@ -352,7 +342,6 @@ export default function LiveResultsScreen() {
         </View>
       </View>
 
-      {/* Selector de vista */}
       <View style={{
         flexDirection: "row",
         paddingHorizontal: responsive.spacing.md,
@@ -485,20 +474,9 @@ export default function LiveResultsScreen() {
             <>
               {gimnastasToShow.map((resultado, index) => (
                 <CompactResultCard
-                  key={`${resultado.gimnasta}_${resultado.aparato}`}
-                  gimnasta={{
-                    id: `${resultado.gimnasta}_${resultado.aparato}`,
-                    nombre: resultado.gimnasta,
-                    club: resultado.delegacion,
-                    categoria: resultado.nivel,
-                    nivel: resultado.franja,
-                    subdivision: resultado.subdivision,
-                    puntajes: { [resultado.aparato]: resultado.puntaje },
-                    allAround: resultado.puntaje,
-                    posicion: resultado.puesto,
-                    posicionAparatos: { [resultado.aparato]: resultado.puesto },
-                  }}
-                  position={index + 1}
+                  key={`${resultado.gimnasta}_${resultado.delegacion}_${resultado.aparato}_${resultado.puesto}_${resultado.puntaje}`}
+                  resultado={resultado}
+                  position={resultado.puesto}
                   aparatoActual={state.aparatoSeleccionado}
                   vistaSeleccionada={state.vistaSeleccionada}
                   isHighlighted={index === 0}
