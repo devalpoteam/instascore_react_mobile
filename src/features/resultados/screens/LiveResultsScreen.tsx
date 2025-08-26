@@ -23,7 +23,15 @@ import CompactTeamCard from "../components/CompactTeamCard";
 import { resultadosService, ResultadoIndividual, ResultadoEquipo } from "@/services/api/resultados/resultadosService";
 
 type LiveResultsRouteProp = RouteProp<
-  { LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean } },
+  { 
+    LiveResults: { 
+      campeonatoId: string; 
+      categoriaId: string; 
+      nivelId: string;
+      franjaId: string;
+      isFinished?: boolean 
+    } 
+  },
   "LiveResults"
 >;
 
@@ -46,9 +54,17 @@ export default function LiveResultsScreen() {
   const responsive = useResponsive();
   const { isPro } = useAppSelector((state) => state.auth);
 
-  const { campeonatoId, categoriaId, isFinished = false } = route.params || {
+  const { 
+    campeonatoId, 
+    categoriaId, 
+    nivelId, 
+    franjaId, 
+    isFinished = false 
+  } = route.params || {
     campeonatoId: "1",
     categoriaId: "cat1",
+    nivelId: "nivel1",
+    franjaId: "franja1",
     isFinished: false
   };
 
@@ -67,15 +83,25 @@ export default function LiveResultsScreen() {
 
   useEffect(() => {
     loadResultados();
-  }, [campeonatoId]);
+  }, [campeonatoId, categoriaId, nivelId, franjaId]);
 
   const loadResultados = async () => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       const [individuales, equipos] = await Promise.all([
-        resultadosService.getResultadosIndividuales(campeonatoId),
-        resultadosService.getResultadosEquipos(campeonatoId)
+        resultadosService.getResultadosIndividuales({
+          campeonatoId,
+          categoriaId,
+          nivelId,
+          franjaId
+        }),
+        resultadosService.getResultadosEquipos({
+          campeonatoId,
+          categoriaId,
+          nivelId,
+          franjaId
+        })
       ]);
 
       const aparatosUnicos = [...new Set(individuales.map(r => r.aparato))].sort();

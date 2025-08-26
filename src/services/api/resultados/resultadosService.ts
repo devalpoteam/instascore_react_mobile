@@ -46,11 +46,26 @@ interface ResultadoEquipo {
   posicion: number;
 }
 
+interface GetResultadosParams {
+  campeonatoId: string;
+  categoriaId: string;
+  nivelId: string;
+  franjaId: string;
+}
+
 export const resultadosService = {
-  async getResultadosIndividuales(campeonatoId: string): Promise<ResultadoIndividual[]> {
+  async getResultadosIndividuales({ campeonatoId, categoriaId, nivelId, franjaId }: GetResultadosParams): Promise<ResultadoIndividual[]> {
     try {
+      const queryParams = new URLSearchParams({
+        campeonatoId,
+        modalidad: 'aparato',
+        categoriaId,
+        nivelId,
+        franjaId
+      });
+
       const response = await apiClient.get<ResultadoIndividualAPI[]>(
-        `${API_CONFIG.ENDPOINTS.RESULTADOS.INDIVIDUALES}?campeonatoId=${campeonatoId}&modalidad=aparato`
+        `${API_CONFIG.ENDPOINTS.RESULTADOS.INDIVIDUALES}?${queryParams.toString()}`
       );
 
       return response.data.map(resultado => ({
@@ -72,10 +87,17 @@ export const resultadosService = {
     }
   },
 
-  async getResultadosEquipos(campeonatoId: string): Promise<ResultadoEquipo[]> {
+  async getResultadosEquipos({ campeonatoId, categoriaId, nivelId, franjaId }: GetResultadosParams): Promise<ResultadoEquipo[]> {
     try {
+      const queryParams = new URLSearchParams({
+        campeonatoId,
+        categoriaId,
+        nivelId,
+        franjaId
+      });
+
       const response = await apiClient.get<ResultadoEquipoAPI[]>(
-        `${API_CONFIG.ENDPOINTS.RESULTADOS.EQUIPOS}?campeonatoId=${campeonatoId}`
+        `${API_CONFIG.ENDPOINTS.RESULTADOS.EQUIPOS}?${queryParams.toString()}`
       );
 
       return response.data.map(equipo => ({
@@ -98,4 +120,4 @@ export const resultadosService = {
   }
 };
 
-export type { ResultadoIndividual, ResultadoEquipo };
+export type { ResultadoIndividual, ResultadoEquipo, GetResultadosParams };

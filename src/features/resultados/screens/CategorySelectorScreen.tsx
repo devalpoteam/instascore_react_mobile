@@ -14,19 +14,7 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
-// Services
-import { liveService } from '@/services/api/live/liveServices';
-
-// Types
-interface CategoriaAgrupada {
-  grupo: string;
-  nivel: string;
-  franja: string;
-  disciplina: 'GAF' | 'GAM';
-  numeroParticipantes: number;
-  numeroCategoria: number;
-  id: string;
-}
+import { liveService, CategoriaAgrupada } from '@/services/api/live/liveServices';
 
 interface CampeonatoDetalle {
   id: string;
@@ -39,14 +27,19 @@ interface CampeonatoDetalle {
   numeroCategorias: number;
 }
 
-// Navigation types
 type MainNavigatorParamList = {
   Home: undefined;
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
   Resultados: { campeonatoId?: string };
   CategorySelector: { campeonatoId: string; isFinished?: boolean };
-  LiveResults: { campeonatoId: string; categoriaId: string; isFinished?: boolean };
+  LiveResults: { 
+    campeonatoId: string; 
+    categoriaId: string; 
+    nivelId: string;
+    franjaId: string;
+    isFinished?: boolean 
+  };
   Gimnastas: undefined;
   Ajustes: undefined;
 };
@@ -76,7 +69,6 @@ export default function CategorySelectorScreen() {
       setIsLoading(true);
       setError(null);
       
-      // Cargar datos en paralelo
       const [campeonatoData, categoriasData] = await Promise.all([
         liveService.getCampeonatoDetalle(campeonatoId),
         liveService.getCategoriasAgrupadas(campeonatoId)
@@ -102,13 +94,14 @@ export default function CategorySelectorScreen() {
   const handleCategoriaPress = (categoria: CategoriaAgrupada) => {
     console.log(`Navegar a resultados de categoría (${isFinished ? 'finalizado' : 'en vivo'}):`, categoria.id);
     navigation.navigate('LiveResults', { 
-      campeonatoId, 
-      categoriaId: categoria.id,
+      campeonatoId: categoria.idCampeonato, 
+      categoriaId: categoria.idCategoria,
+      nivelId: categoria.idNivel,
+      franjaId: categoria.idFranja,
       isFinished
     });
   };
 
-  // Función helper para obtener textos dinámicos
   const getDisplayTexts = () => {
     if (isFinished) {
       return {
@@ -278,13 +271,11 @@ export default function CategorySelectorScreen() {
           />
         }
       >
-        {/* Hero Section */}
         <View style={{
           backgroundColor: isFinished ? getColor.gray[100] : getColor.secondary[50],
           paddingHorizontal: responsive.spacing.md,
           paddingVertical: responsive.spacing.xl,
         }}>
-          {/* Status indicator */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -317,7 +308,6 @@ export default function CategorySelectorScreen() {
             </View>
           </View>
 
-          {/* Stats cards */}
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -400,7 +390,6 @@ export default function CategorySelectorScreen() {
             </View>
           </View>
 
-          {/* Location */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -421,7 +410,6 @@ export default function CategorySelectorScreen() {
           </View>
         </View>
 
-        {/* Section title */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingTop: responsive.spacing.xl,
@@ -447,7 +435,6 @@ export default function CategorySelectorScreen() {
           </Text>
         </View>
 
-        {/* Lista de categorías */}
         <View style={{
           paddingHorizontal: responsive.spacing.md,
           paddingBottom: responsive.spacing.xl,
@@ -476,7 +463,6 @@ export default function CategorySelectorScreen() {
                 alignItems: 'center',
               }}>
                 <View style={{ flex: 1 }}>
-                  {/* Header con nombre completo de categoría */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -492,7 +478,6 @@ export default function CategorySelectorScreen() {
                       {construirNombreCategoria(categoria)}
                     </Text>
                     
-                    {/* Badge adaptado al estado */}
                     <View style={{
                       backgroundColor: displayTexts.categoryBadgeColor,
                       borderRadius: 4,
@@ -510,7 +495,6 @@ export default function CategorySelectorScreen() {
                     </View>
                   </View>
                   
-                  {/* Género */}
                   <Text style={{
                     fontSize: responsive.fontSize.sm,
                     color: getColor.gray[500],
@@ -520,7 +504,6 @@ export default function CategorySelectorScreen() {
                     {getGeneroSimple(categoria.disciplina)}
                   </Text>
 
-                  {/* Participantes */}
                   <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -537,7 +520,6 @@ export default function CategorySelectorScreen() {
                   </View>
                 </View>
                 
-                {/* Arrow indicator */}
                 <View style={{
                   backgroundColor: getColor.primary[500],
                   borderRadius: 16,

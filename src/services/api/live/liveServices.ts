@@ -15,6 +15,10 @@ interface CategoriaAgrupadaApiResponse {
   categorias: {
     [grupo: string]: {
       grupo: string;
+      IdCampeonato: string;
+      IdCategoria: string;
+      IdNivel: string;
+      IdFranja: string;
       nivel: string;
       franja: string;
       disciplina: string;
@@ -57,13 +61,20 @@ interface CategoriaActiva {
   participantesActivos: number;
 }
 
+// ✅ INTERFACE ACTUALIZADA CON LOS NUEVOS IDs DE LA API
 interface CategoriaAgrupada {
   grupo: string;
+  // ✅ NUEVOS CAMPOS ID REALES DE LA BASE DE DATOS
+  idCampeonato: string;
+  idCategoria: string;
+  idNivel: string;
+  idFranja: string;
   nivel: string;
   franja: string;
   disciplina: 'GAF' | 'GAM';
   numeroParticipantes: number;
   numeroCategoria: number;
+  // ✅ ID COMPUESTO PARA IDENTIFICACIÓN ÚNICA EN LA APP
   id: string;
 }
 
@@ -95,6 +106,7 @@ export const liveService = {
     }
   },
 
+  // ✅ MÉTODO ACTUALIZADO PARA MANEJAR LOS NUEVOS IDs
   getCategoriasAgrupadas: async (campeonatoId: string): Promise<CategoriaAgrupada[]> => {
     try {
       const response = await apiClient.get<CategoriaAgrupadaApiResponse>(
@@ -104,15 +116,22 @@ export const liveService = {
       const categorias: CategoriaAgrupada[] = [];
       
       Object.entries(response.data.categorias).forEach(([grupo, categoriasGrupo]) => {
-        categoriasGrupo.forEach((categoria, index) => {
+        categoriasGrupo.forEach((categoria) => {
           categorias.push({
             grupo: categoria.grupo,
+            // ✅ MAPEAR LOS NUEVOS CAMPOS ID
+            idCampeonato: categoria.IdCampeonato,
+            idCategoria: categoria.IdCategoria,
+            idNivel: categoria.IdNivel,
+            idFranja: categoria.IdFranja,
             nivel: categoria.nivel,
             franja: categoria.franja,
             disciplina: mapearDisciplina(categoria.disciplina),
             numeroParticipantes: categoria.numeroParticipantes,
             numeroCategoria: categoria.numeroCategoria,
-            id: `${campeonatoId}_${grupo}_${index}`,
+            // ✅ ID COMPUESTO ÚNICO PARA LA APP
+            // Combina todos los IDs para crear una clave única
+            id: `${categoria.IdCampeonato}_${categoria.IdCategoria}_${categoria.IdNivel}_${categoria.IdFranja}`,
           });
         });
       });
@@ -161,3 +180,6 @@ const extraerHora = (fechaCompleta: string): string => {
 const mapearDisciplina = (disciplina: string): 'GAF' | 'GAM' => {
   return disciplina === 'GAM' ? 'GAM' : 'GAF';
 };
+
+// ✅ EXPORTAR EL TIPO ACTUALIZADO
+export type { CategoriaAgrupada };
