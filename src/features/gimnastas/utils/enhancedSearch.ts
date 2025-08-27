@@ -1,5 +1,5 @@
-// src/features/gimnastas/utils/enhancedSearch.ts - BÚSQUEDA FUZZY INTELIGENTE
-import { GimnastaListItem } from '../types/gimnastasList.types';
+// src/features/gimnastas/utils/enhancedSearch.ts
+import { type GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
 
 // Función para normalizar texto (quitar acentos, espacios extra, etc.)
 export const normalizeText = (text: string): string => {
@@ -62,7 +62,7 @@ export const fuzzySearch = (
       maxScore = Math.max(maxScore, clubScore * 0.8); // Peso menor para club
       
       // Buscar en categoría + nivel
-      const categoriaCompleta = `${gimnasta.ultimoCampeonato.categoria} ${gimnasta.ultimoCampeonato.nivel}`;
+      const categoriaCompleta = `${gimnasta.categoria} ${gimnasta.nivel}`;
       const categoriaScore = calculateSimilarity(categoriaCompleta, searchTerm);
       maxScore = Math.max(maxScore, categoriaScore * 0.7);
       
@@ -77,19 +77,16 @@ export const fuzzySearch = (
         maxScore = Math.max(maxScore, 0.9);
       }
       
-      if (searchWords.some(word => 
-        ['activ', 'recient', 'nuevo'].includes(word) && gimnasta.activo
-      )) {
-        maxScore = Math.max(maxScore, 0.8);
-      }
-      
       return { ...gimnasta, searchScore: maxScore };
     })
-    .filter(gimnasta => gimnasta.searchScore >= threshold)
+    .filter(gimnasta => (gimnasta as any).searchScore >= threshold)
     .sort((a, b) => {
+      const aScore = (a as any).searchScore;
+      const bScore = (b as any).searchScore;
+      
       // Ordenar por score descendente, luego por si es medallista, luego alfabético
-      if (b.searchScore !== a.searchScore) {
-        return b.searchScore - a.searchScore;
+      if (bScore !== aScore) {
+        return bScore - aScore;
       }
       if (a.esMedallista !== b.esMedallista) {
         return a.esMedallista ? -1 : 1;
@@ -121,7 +118,7 @@ export const generateSearchSuggestions = (
     }
     
     // Sugerencias de categorías
-    const categoria = `${gimnasta.ultimoCampeonato.categoria} ${gimnasta.ultimoCampeonato.nivel}`;
+    const categoria = `${gimnasta.categoria} ${gimnasta.nivel}`;
     if (normalizeText(categoria).includes(normalizedSearch)) {
       suggestions.add(categoria);
     }
@@ -154,12 +151,7 @@ export const extractSmartFilters = (searchTerm: string) => {
     filters.extractedSearchTerm = searchTerm.replace(/\b(medal\w*|oro|plata|bronce|podium|ganador\w*|campeon\w*)\b/gi, '').trim();
   }
   
-  // Detectar palabras clave para activos
-  const activoKeywords = ['activ', 'recient', 'nuevo', 'actual'];
-  if (words.some(word => activoKeywords.some(keyword => word.includes(keyword)))) {
-    filters.soloActivos = true;
-    filters.extractedSearchTerm = filters.extractedSearchTerm.replace(/\b(activ\w*|recient\w*|nuevo\w*|actual\w*)\b/gi, '').trim();
-  }
+  // Nota: Eliminé la lógica de activos ya que no se usa
   
   return filters;
 };

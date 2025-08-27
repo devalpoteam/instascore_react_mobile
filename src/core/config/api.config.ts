@@ -22,6 +22,10 @@ const API_CONFIG = {
     RESULTADOS: {
       INDIVIDUALES: '/api/PremiacionesResultados/individuales',
       EQUIPOS: '/api/PremiacionesResultados/equipos'
+    },
+    GIMNASTAS: {
+      TODOS: '/api/PuntajesAparato/por-campeonato',
+      PERFIL: '/api/PuntajesAparato'
     }
   },
   

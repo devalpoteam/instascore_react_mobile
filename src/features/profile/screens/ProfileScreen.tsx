@@ -21,19 +21,14 @@ import Header from '@/shared/components/layout/Header';
 
 // Profile components
 import ProfileHeader from '../components/ProfileHeader';
-import FavoritesSection from '../components/FavoritesSection';
 import SettingsSection from '../components/SettingsSection';
 
 // Data and types
 import { 
   UserProfile, 
-  FavoriteGimnasta, 
   ProfileScreenState 
 } from '../types/profile.types';
-import { 
-  mockUserProfile, 
-  generateVariedFavorites
-} from '../data/mockProfileData';
+import { mockUserProfile } from '../data/mockProfileData';
 
 type ProfileNavigationProp = NavigationProp<MainStackParamList>;
 
@@ -48,10 +43,9 @@ export default function ProfileScreen() {
   // Redux state
   const { user: authUser, isPro } = useAppSelector(state => state.auth);
 
-  // Local state
-  const [state, setState] = useState<ProfileScreenState>({
+  // ✅ ESTADO SIMPLIFICADO - SIN FAVORITOS
+  const [state, setState] = useState<Omit<ProfileScreenState, 'favorites'>>({
     user: null,
-    favorites: [],
     isLoading: true,
     isRefreshing: false,
     error: null,
@@ -76,13 +70,9 @@ export default function ProfileScreen() {
         isPro: isPro,
       } as UserProfile;
 
-      // ✅ GENERAR FAVORITOS DINÁMICOS CON VARIEDAD
-      const favoritesData = generateVariedFavorites(isPro);
-
       setState(prev => ({
         ...prev,
         user: profileData,
-        favorites: favoritesData,
         isLoading: false,
       }));
     } catch (error) {
@@ -100,50 +90,9 @@ export default function ProfileScreen() {
     setState(prev => ({ ...prev, isRefreshing: false }));
   };
 
-  // ✅ HANDLERS AGREGADOS PARA FAVORITOS
-  const handleFavoritePress = (favorite: FavoriteGimnasta) => {
-    // ✅ NAVEGAR A LA PANTALLA REAL DEL GIMNASTA
-    console.log('Navegando al perfil de:', favorite.nombre, 'ID:', favorite.id);
-    navigation.navigate('GimnastaProfile', { gimnastaId: favorite.id });
-  };
-
-  const handleRemoveFavorite = (favoriteId: string) => {
-    const favorite = state.favorites.find(fav => fav.id === favoriteId);
-    if (!favorite) return;
-
-    Alert.alert(
-      'Eliminar Favorito',
-      `¿Quieres eliminar a ${favorite.nombre} de tus favoritos?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Eliminar', 
-          style: 'destructive',
-          onPress: () => {
-            setState(prev => ({
-              ...prev,
-              favorites: prev.favorites.filter(fav => fav.id !== favoriteId),
-            }));
-          }
-        },
-      ]
-    );
-  };
-
-  // Favorites actions
-  const handleViewAllFavorites = () => {
-    Alert.alert(
-      'Todos los Favoritos',
-      'Vista completa de favoritos próximamente disponible',
-      [{ text: 'OK' }]
-    );
-    // TODO: navigation.navigate('ProfileFavorites');
-  };
-
-  // Settings actions
-  const handleNotificationSettings = () => {
-    // ✅ NAVEGACIÓN REAL A CONFIGURACIÓN DE NOTIFICACIONES
-    navigation.navigate('NotificationSettings');
+  // Settings actions - CAMBIADO: configuraciones en lugar de notificaciones
+  const handleConfiguraciones = () => {
+    navigation.navigate('Configuraciones');
   };
 
   const handleSubscriptionManage = () => {
@@ -250,18 +199,9 @@ export default function ProfileScreen() {
         {/* Header del perfil */}
         <ProfileHeader user={state.user} />
 
-        {/* Sección de favoritos - CON PROPS CORREGIDAS */}
-        <FavoritesSection
-          favorites={state.favorites}
-          isLoading={state.isLoading}
-          onFavoritePress={handleFavoritePress}
-          onRemoveFavorite={handleRemoveFavorite}
-          onViewAll={handleViewAllFavorites}
-        />
-
-        {/* Sección de configuración */}
+        {/* Sección de configuración - CAMBIADO: configuraciones en lugar de notificaciones */}
         <SettingsSection
-          onNotificationSettings={handleNotificationSettings}
+          onNotificationSettings={handleConfiguraciones}
           onSubscriptionManage={handleSubscriptionManage}
           onLogout={handleLogout}
           isPro={state.user.isPro}

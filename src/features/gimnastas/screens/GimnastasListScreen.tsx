@@ -1,6 +1,6 @@
 // src/features/gimnastas/screens/GimnastasListScreen.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
@@ -8,26 +8,20 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 import SmartSearchBar from '../components/SmartSearchBar';
-import SmartFilterChips, { SmartFilters } from '../components/SmartFilterChips';
 import GimnastaCard from '../components/GimnastaCard';
-import { fuzzySearch, extractSmartFilters } from '../utils/enhancedSearch';
+import { fuzzySearch } from '../utils/enhancedSearch';
 
-// Data y types
-import { 
-  mockGimnastasList, 
-  disponibleParaFiltros
-} from '../data/mockGimnastasList';
-import { GimnastaListItem } from '../types/gimnastasList.types';
+// Servicio integrado
+import { gimnastasService, type GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
 import { MainStackParamList } from '@/navigation/MainNavigator';
 
 type GimnastasListNavigationProp = NavigationProp<MainStackParamList>;
 
-// ✅ ESTADO SIMPLIFICADO PARA FILTROS HÍBRIDOS
-interface SmartGimnastasState {
+// Estado simplificado solo para búsqueda
+interface GimnastasState {
   gimnastas: GimnastaListItem[];
   filteredGimnastas: GimnastaListItem[];
   searchTerm: string;
-  filters: SmartFilters;
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;
@@ -40,96 +34,89 @@ export default function GimnastasListScreen() {
   const navigation = useNavigation<GimnastasListNavigationProp>();
   const responsive = useResponsive();
 
-  // ✅ ESTADO MEJORADO
-  const [state, setState] = useState<SmartGimnastasState>({
-    gimnastas: mockGimnastasList,
-    filteredGimnastas: mockGimnastasList.slice(0, 25),
+  const [state, setState] = useState<GimnastasState>({
+    gimnastas: [],
+    filteredGimnastas: [],
     searchTerm: '',
-    filters: {
-      soloMedallistas: false,
-      soloActivos: false,
-      campeonatoId: null,
-      club: null,
-    },
-    isLoading: false,
+    isLoading: true,
     isLoadingMore: false,
     error: null,
     hasMore: true,
     currentPage: 1,
-    totalCount: mockGimnastasList.length,
+    totalCount: 0,
   });
 
   // Debounce para búsqueda
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // ✅ FUNCIÓN DE BÚSQUEDA INTELIGENTE
-  const performSmartSearch = useMemo(() => {
-    return (searchTerm: string, filters: SmartFilters) => {
+  // Cargar datos iniciales
+  useEffect(() => {
+    loadGimnastas();
+  }, []);
+
+  const loadGimnastas = async () => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    try {
+      const gimnastasFromService = await gimnastasService.getTodosGimnastas();
+      
+      // Convertir a formato compatible con los componentes
+      const gimnastas: GimnastaListItem[] = gimnastasFromService.map(g => ({
+        ...g,
+        rut: `${g.id.slice(0, 8)}-${g.id.slice(8, 9)}`, // Mock RUT desde ID
+        mejorPosicion: Math.floor(Math.random() * 10) + 1, // Mock posición
+        mejorAllAround: Math.round((Math.random() * 3 + 7) * 10) / 10, // Mock score
+        ultimoCampeonato: {
+          ...g.ultimoCampeonato,
+          posicion: Math.floor(Math.random() * 10) + 1,
+          allAround: Math.round((Math.random() * 3 + 7) * 10) / 10,
+        },
+        categoriasCompetidas: [g.categoria],
+        clubes: [g.club],
+      }));
+      
+      setState(prev => ({
+        ...prev,
+        gimnastas,
+        filteredGimnastas: gimnastas.slice(0, 25),
+        totalCount: gimnastas.length,
+        hasMore: gimnastas.length > 25,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: any) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error.message || 'Error al cargar gimnastas',
+        gimnastas: [],
+        filteredGimnastas: [],
+        totalCount: 0,
+        hasMore: false,
+      }));
+    }
+  };
+
+  // Función de búsqueda simplificada
+  const performSearch = useMemo(() => {
+    return (searchTerm: string) => {
       setState(prev => ({ ...prev, isLoading: true }));
       
       setTimeout(() => {
-        // Extraer filtros inteligentes del texto de búsqueda
-        const smartFilters = extractSmartFilters(searchTerm);
-        
-        // Combinar filtros extraídos con filtros manuales
-        const combinedFilters = {
-          ...filters,
-          soloMedallistas: filters.soloMedallistas || smartFilters.soloMedallistas,
-          soloActivos: filters.soloActivos || smartFilters.soloActivos,
-        };
-        
-        // Usar el término de búsqueda limpio (sin palabras clave de filtros)
-        const cleanSearchTerm = smartFilters.extractedSearchTerm;
-        
         // Aplicar búsqueda fuzzy
-        let resultados = fuzzySearch(mockGimnastasList, cleanSearchTerm, 0.2);
+        let resultados = fuzzySearch(state.gimnastas, searchTerm, 0.2);
         
-        // Aplicar filtros adicionales
-        if (combinedFilters.soloMedallistas) {
-          resultados = resultados.filter(g => g.esMedallista);
-        }
-        
-        if (combinedFilters.soloActivos) {
-          resultados = resultados.filter(g => g.activo);
-        }
-        
-        if (combinedFilters.campeonatoId) {
-          resultados = resultados.filter(g => 
-            g.historialCampeonatos.includes(combinedFilters.campeonatoId!)
-          );
-        }
-        
-        if (combinedFilters.club) {
-          resultados = resultados.filter(g => g.club === combinedFilters.club);
-        }
-        
-        if (smartFilters.soloMedallistas || smartFilters.soloActivos) {
-          setState(prev => ({
-            ...prev,
-            filters: {
-              ...prev.filters,
-              soloMedallistas: prev.filters.soloMedallistas || smartFilters.soloMedallistas,
-              soloActivos: prev.filters.soloActivos || smartFilters.soloActivos,
-            },
-            filteredGimnastas: resultados.slice(0, 25),
-            totalCount: resultados.length,
-            hasMore: resultados.length > 25,
-            currentPage: 1,
-            isLoading: false,
-          }));
-        } else {
-          setState(prev => ({
-            ...prev,
-            filteredGimnastas: resultados.slice(0, 25),
-            totalCount: resultados.length,
-            hasMore: resultados.length > 25,
-            currentPage: 1,
-            isLoading: false,
-          }));
-        }
+        setState(prev => ({
+          ...prev,
+          filteredGimnastas: resultados.slice(0, 25),
+          totalCount: resultados.length,
+          hasMore: resultados.length > 25,
+          currentPage: 1,
+          isLoading: false,
+        }));
       }, 300);
     };
-  }, []);
+  }, [state.gimnastas]);
 
   const handleSearchChange = (searchTerm: string) => {
     setState(prev => ({ ...prev, searchTerm }));
@@ -140,20 +127,14 @@ export default function GimnastasListScreen() {
     }
 
     const timer = setTimeout(() => {
-      performSmartSearch(searchTerm, state.filters);
+      performSearch(searchTerm);
     }, 300);
 
     setSearchDebounceTimer(timer);
   };
 
   const handleSuggestionSelect = (suggestion: string) => {
-    performSmartSearch(suggestion, state.filters);
-  };
-
-  const handleFilterChange = (filterUpdates: Partial<SmartFilters>) => {
-    const newFilters = { ...state.filters, ...filterUpdates };
-    setState(prev => ({ ...prev, filters: newFilters }));
-    performSmartSearch(state.searchTerm, newFilters);
+    performSearch(suggestion);
   };
 
   const loadMore = () => {
@@ -162,30 +143,7 @@ export default function GimnastasListScreen() {
     setState(prev => ({ ...prev, isLoadingMore: true }));
 
     setTimeout(() => {
-      const smartFilters = extractSmartFilters(state.searchTerm);
-      const combinedFilters = {
-        ...state.filters,
-        soloMedallistas: state.filters.soloMedallistas || smartFilters.soloMedallistas,
-        soloActivos: state.filters.soloActivos || smartFilters.soloActivos,
-      };
-      
-      let allResults = fuzzySearch(mockGimnastasList, smartFilters.extractedSearchTerm, 0.2);
-      
-      // Aplicar filtros
-      if (combinedFilters.soloMedallistas) {
-        allResults = allResults.filter(g => g.esMedallista);
-      }
-      if (combinedFilters.soloActivos) {
-        allResults = allResults.filter(g => g.activo);
-      }
-      if (combinedFilters.campeonatoId) {
-        allResults = allResults.filter(g => 
-          g.historialCampeonatos.includes(combinedFilters.campeonatoId!)
-        );
-      }
-      if (combinedFilters.club) {
-        allResults = allResults.filter(g => g.club === combinedFilters.club);
-      }
+      let allResults = fuzzySearch(state.gimnastas, state.searchTerm, 0.2);
       
       const nextPage = state.currentPage + 1;
       const startIndex = (nextPage - 1) * 25;
@@ -205,6 +163,67 @@ export default function GimnastasListScreen() {
   const handleGimnastaPress = (gimnasta: GimnastaListItem) => {
     navigation.navigate('GimnastaProfile', { gimnastaId: gimnasta.id });
   };
+
+  const handleRetry = () => {
+    loadGimnastas();
+  };
+
+  // Renderizar estado de error
+  const renderErrorState = () => (
+    <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: responsive.spacing['3xl'],
+    }}>
+      <Ionicons 
+        name="alert-circle" 
+        size={64} 
+        color={getColor.error[500]} 
+        style={{ marginBottom: responsive.spacing.lg }}
+      />
+      <Text style={{
+        fontSize: responsive.fontSize.lg,
+        fontWeight: '600',
+        color: getColor.error[500],
+        fontFamily: 'Nunito',
+        textAlign: 'center',
+        marginBottom: responsive.spacing.sm,
+      }}>
+        Error al cargar gimnastas
+      </Text>
+      <Text style={{
+        fontSize: responsive.fontSize.base,
+        color: getColor.gray[600],
+        fontFamily: 'Nunito',
+        textAlign: 'center',
+        lineHeight: responsive.fontSize.base * 1.4,
+        marginBottom: responsive.spacing.md,
+      }}>
+        {state.error}
+      </Text>
+      
+      <TouchableOpacity
+        style={{
+          backgroundColor: getColor.primary[500],
+          paddingHorizontal: responsive.spacing.lg,
+          paddingVertical: responsive.spacing.sm,
+          borderRadius: 8,
+        }}
+        onPress={handleRetry}
+        activeOpacity={0.7}
+      >
+        <Text style={{
+          color: getColor.background.primary,
+          fontSize: responsive.fontSize.base,
+          fontWeight: '600',
+          fontFamily: 'Nunito',
+        }}>
+          Reintentar
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   // Renderizar empty state mejorado
   const renderEmptyState = () => (
@@ -242,12 +261,12 @@ export default function GimnastasListScreen() {
         marginBottom: responsive.spacing.md,
       }}>
         {state.searchTerm
-          ? 'Intenta con otro término o ajusta los filtros'
+          ? 'Intenta con otro término de búsqueda'
           : 'Los gimnastas aparecerán aquí cuando estén disponibles'
         }
       </Text>
       
-      {/* ✅ SUGERENCIAS DE BÚSQUEDA EN EMPTY STATE */}
+      {/* Sugerencias de búsqueda en empty state */}
       {!state.searchTerm && (
         <View style={{
           backgroundColor: getColor.primary[50],
@@ -263,7 +282,7 @@ export default function GimnastasListScreen() {
             marginBottom: responsive.spacing.xs,
             textAlign: 'center',
           }}>
-            💡 Prueba buscar:
+            Prueba buscar:
           </Text>
           <Text style={{
             fontSize: responsive.fontSize.sm,
@@ -272,7 +291,7 @@ export default function GimnastasListScreen() {
             textAlign: 'center',
             lineHeight: responsive.fontSize.sm * 1.4,
           }}>
-            "amanda", "medallistas", "copa 2024", "club valparaíso"
+            "amanda", "copa 2024", "club valparaíso"
           </Text>
         </View>
       )}
@@ -294,7 +313,7 @@ export default function GimnastasListScreen() {
         fontFamily: 'Nunito',
         marginTop: responsive.spacing.md,
       }}>
-        Buscando gimnastas...
+        Cargando gimnastas...
       </Text>
     </View>
   );
@@ -321,39 +340,6 @@ export default function GimnastasListScreen() {
     );
   };
 
-  // ✅ CONTADOR DE RESULTADOS
-  const renderResultsCounter = () => {
-    if (state.isLoading && !state.filteredGimnastas.length) return null;
-
-    const hasActiveFilters = 
-      state.searchTerm ||
-      state.filters.campeonatoId ||
-      state.filters.club ||
-      state.filters.soloMedallistas ||
-      state.filters.soloActivos;
-
-    const searchInfo = state.searchTerm ? ` para "${state.searchTerm}"` : '';
-
-    return (
-      <View style={{
-        marginHorizontal: responsive.spacing.md,
-        marginBottom: responsive.spacing.md,
-        marginTop: 2,
-      }}>
-        <Text style={{
-          fontSize: responsive.fontSize.sm,
-          color: getColor.gray[600],
-          fontFamily: 'Nunito',
-        }}>
-          {hasActiveFilters
-            ? `${state.totalCount} gimnasta${state.totalCount !== 1 ? 's' : ''} encontrado${state.totalCount !== 1 ? 's' : ''}${searchInfo}`
-            : `${state.totalCount} gimnastas registrados`
-          }
-        </Text>
-      </View>
-    );
-  };
-
   return (
     <BaseLayout>
       <Header 
@@ -363,29 +349,20 @@ export default function GimnastasListScreen() {
         showLogo={false}
       />
 
-      {/* ✅ BÚSQUEDA INTELIGENTE */}
+      {/* Búsqueda inteligente */}
       <SmartSearchBar
         value={state.searchTerm}
         onChangeText={handleSearchChange}
         onSuggestionSelect={handleSuggestionSelect}
-        gimnastas={mockGimnastasList}
+        gimnastas={state.gimnastas}
         placeholder="Buscar gimnasta, club, categoría o campeonato..."
         isLoading={state.isLoading}
       />
 
-      {/* ✅ FILTROS HÍBRIDOS SIMPLIFICADOS */}
-      <SmartFilterChips
-        filters={state.filters}
-        onFilterChange={handleFilterChange}
-        availableCampeonatos={disponibleParaFiltros.campeonatos}
-        availableClubes={disponibleParaFiltros.clubes}
-      />
-
-      {/* Contador de resultados */}
-      {renderResultsCounter()}
-
-      {/* Lista de gimnastas */}
-      {state.isLoading && !state.filteredGimnastas.length ? (
+      {/* Estados de la pantalla */}
+      {state.error ? (
+        renderErrorState()
+      ) : state.isLoading && !state.filteredGimnastas.length ? (
         renderLoadingState()
       ) : state.filteredGimnastas.length === 0 ? (
         renderEmptyState()
@@ -401,6 +378,7 @@ export default function GimnastasListScreen() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
+            paddingTop: responsive.spacing.sm,
             paddingBottom: responsive.spacing['3xl'],
           }}
           onEndReached={loadMore}

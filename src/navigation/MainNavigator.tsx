@@ -13,28 +13,29 @@ import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen';
 import GimnastasListScreen from '@/features/gimnastas/screens/GimnastasListScreen';
 import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileScreen';
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
+import ConfiguracionesScreen from '@/features/profile/screens/ConfiguracionesScreen';
 
-// ✅ IMPORTAR PANTALLAS DE NOTIFICACIONES
+// Importar pantallas de notificaciones
 import NotificationSettingsScreen from '@/features/settings/screens/NotificationSettingsScreen';
 import NotificationHistoryScreen from '@/features/settings/screens/NotificationHistoryScreen';
 
-// ✅ TIPOS DE NAVEGACIÓN ACTUALIZADOS PARA SOPORTAR CAMPEONATOS FINALIZADOS
+// Tipos de navegación actualizados
 export type MainStackParamList = {
   Home: undefined;
   Resultados: undefined;
   Campeonatos: undefined;
   CampeonatoDetail: { campeonatoId: string };
   
-  // ✅ RUTAS ACTUALIZADAS PARA SOPORTAR CAMPEONATOS FINALIZADOS
+  // Rutas actualizadas para soportar campeonatos finalizados
   CategorySelector: { 
     campeonatoId: string;
-    isFinished?: boolean; // ✅ NUEVO: indica si es campeonato finalizado
+    isFinished?: boolean;
   };
   LiveResults: { 
     campeonatoId: string; 
     categoriaId: string; 
     categoriaNombre: string;
-    isFinished?: boolean; // ✅ NUEVO: indica si es campeonato finalizado
+    isFinished?: boolean;
   };
   
   // Rutas de gimnastas
@@ -43,18 +44,19 @@ export type MainStackParamList = {
   
   // Rutas de perfil
   Perfil: undefined;
+  Configuraciones: undefined;
   ProfileSettings: undefined;
   ProfileFavorites: undefined;
   
-  // ✅ RUTAS DE NOTIFICACIONES
+  // Rutas de notificaciones
   NotificationSettings: undefined;
   NotificationHistory: undefined;
 };
 
-// ✅ TIPOS AUXILIARES PARA MEJORAR LA NAVEGACIÓN
+// Tipos auxiliares para mejorar la navegación
 export type CampeonatoResultsMode = 'live' | 'finished';
 
-// ✅ HELPER FUNCTIONS PARA NAVEGACIÓN TIPADA
+// Helper functions para navegación tipada
 export const NavigationHelpers = {
   // Para navegar a selector de categorías
   toCategorySelector: (campeonatoId: string, isFinished: boolean = false) => ({
@@ -133,7 +135,7 @@ export default function MainNavigator() {
         component={CampeonatoDetailScreen}
       />
       
-      {/* ✅ PANTALLAS ACTUALIZADAS - AHORA SOPORTAN CAMPEONATOS FINALIZADOS */}
+      {/* Pantallas actualizadas - ahora soportan campeonatos finalizados */}
       <Stack.Screen 
         name="CategorySelector" 
         component={CategorySelectorScreen}
@@ -170,7 +172,16 @@ export default function MainNavigator() {
         }}
       />
       
-      {/* ✅ PANTALLAS DE NOTIFICACIONES */}
+      {/* Nueva pantalla de configuraciones */}
+      <Stack.Screen 
+        name="Configuraciones" 
+        component={ConfiguracionesScreen}
+        options={{
+          title: 'Configuraciones',
+        }}
+      />
+      
+      {/* Pantallas de notificaciones */}
       <Stack.Screen 
         name="NotificationSettings" 
         component={NotificationSettingsScreen}
@@ -186,25 +197,6 @@ export default function MainNavigator() {
           title: 'Historial de Notificaciones',
         }}
       />
-      
-      {/* TODO: Implementar estas pantallas cuando sean necesarias */}
-      {/* 
-      <Stack.Screen 
-        name="ProfileSettings" 
-        component={ProfileSettingsScreen}
-        options={{
-          title: 'Configuración de Perfil',
-        }}
-      />
-      
-      <Stack.Screen 
-        name="ProfileFavorites" 
-        component={ProfileFavoritesScreen}
-        options={{
-          title: 'Mis Favoritos',
-        }}
-      />
-      */}
     </Stack.Navigator>
   );
 }

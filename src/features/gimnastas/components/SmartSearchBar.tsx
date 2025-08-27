@@ -1,11 +1,11 @@
-// src/features/gimnastas/components/SmartSearchBar.tsx - BÚSQUEDA INTELIGENTE
+// src/features/gimnastas/components/SmartSearchBar.tsx
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import { generateSearchSuggestions } from '../utils/enhancedSearch';
-import { GimnastaListItem } from '../types/gimnastasList.types';
+import { type GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
 
 interface SmartSearchBarProps {
   value: string;
@@ -77,7 +77,7 @@ export default function SmartSearchBar({
         borderColor: value ? getColor.primary[300] : getColor.gray[200],
         minHeight: 44,
       }}>
-        {/* Ícono de búsqueda inteligente */}
+        {/* Icono de búsqueda inteligente */}
         <Ionicons 
           name={showSuggestions ? "search" : "search-outline"}
           size={20} 
@@ -138,7 +138,7 @@ export default function SmartSearchBar({
         ) : null}
       </View>
 
-      {/* ✅ SUGERENCIAS INTELIGENTES */}
+      {/* Sugerencias inteligentes */}
       {showSuggestions && suggestions.length > 0 && (
         <View style={{
           backgroundColor: getColor.background.primary,
@@ -198,7 +198,7 @@ export default function SmartSearchBar({
         </View>
       )}
 
-      {/* ✅ INDICADORES DE BÚSQUEDA INTELIGENTE */}
+      {/* Indicadores de búsqueda inteligente */}
       {value.length > 0 && !showSuggestions && (
         <View style={{
           marginTop: responsive.spacing.xs,
@@ -210,7 +210,7 @@ export default function SmartSearchBar({
             fontFamily: 'Nunito',
             fontStyle: 'italic',
           }}>
-            💡 Prueba: "amanda val", "pre medal", "copa 2024", "activos"
+            Prueba: "amanda val", "pre medal", "copa 2024", "activos"
           </Text>
         </View>
       )}

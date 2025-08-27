@@ -115,8 +115,9 @@ export default function SettingsSection({
     <View style={{
       backgroundColor: getColor.background.primary,
       borderRadius: 16,
-      marginHorizontal: responsive.spacing.md,
-      marginBottom: responsive.spacing.sm,
+      marginHorizontal: responsive.spacing.lg,
+      marginVertical: responsive.spacing.lg, // CAMBIADO: más espacio vertical
+      marginBottom: responsive.spacing.xl, // AGREGADO: más espacio en la parte inferior
       borderWidth: 1,
       borderColor: getColor.gray[200],
       shadowColor: getColor.gray[400],
@@ -126,14 +127,14 @@ export default function SettingsSection({
       elevation: 2,
       overflow: 'hidden',
     }}>
-      {/* Solo las 2 opciones esenciales */}
+      {/* CAMBIADO: Configuraciones en lugar de Notificaciones */}
       <SettingsItem
-        icon="notifications-outline"
-        title="Notificaciones"
-        subtitle="Configurar alertas y avisos"
+        icon="settings-outline"
+        title="Configuraciones"
+        subtitle="Editar datos y cambiar contraseña"
         type="navigation"
         onPress={onNotificationSettings}
-        iconColor={getColor.secondary[500]}
+        iconColor={getColor.primary[500]}
       />
 
       <SettingsItem
