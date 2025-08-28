@@ -4,7 +4,8 @@ import { View, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { CampeonatoEstado } from '../types/campeonatos.types';
+
+type CampeonatoEstado = 'activo' | 'configuracion' | 'finalizado';
 
 interface CampeonatoStatusBadgeProps {
   estado: CampeonatoEstado;
@@ -24,7 +25,7 @@ export default function CampeonatoStatusBadge({
           backgroundColor: getColor.secondary[500],
           textColor: getColor.background.primary,
           label: 'En Vivo',
-          emoji: '🟠',
+          emoji: '🔴',
           iconName: 'ellipse' as const,
           iconColor: getColor.secondary[700]
         };
@@ -42,7 +43,7 @@ export default function CampeonatoStatusBadge({
           backgroundColor: getColor.gray[500],
           textColor: getColor.background.primary,
           label: 'Finalizado',
-          emoji: '🔴',
+          emoji: '🔵',
           iconName: 'ellipse' as const,
           iconColor: getColor.gray[700]
         };

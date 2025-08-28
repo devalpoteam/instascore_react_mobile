@@ -6,7 +6,8 @@ import {
   ScrollView, 
   TouchableOpacity,
   Alert,
-  Dimensions 
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +18,7 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 import CampeonatoStatusBadge from '../components/CampeonatoStatusBadge';
-import { Campeonato } from '../types/campeonatos.types';
-import { mockCampeonatos } from '../data/mockCampeonatos';
+import { useCampeonatoDetail } from '../hooks/useCampeonatoDetail';
 
 type CampeonatoDetailRouteProp = RouteProp<
   { CampeonatoDetail: { campeonatoId: string } },
@@ -29,12 +29,9 @@ export default function CampeonatoDetailScreen() {
   const route = useRoute<CampeonatoDetailRouteProp>();
   const navigation = useNavigation();
   const responsive = useResponsive();
-  const { width } = Dimensions.get('window');
 
-  // En una implementación real, esto vendría de Redux/API
-  // Por ahora simulamos con mock data
-  const campeonatoId = route.params?.campeonatoId || '1';
-  const campeonato = mockCampeonatos.find(c => c.id === campeonatoId) || mockCampeonatos[0];
+  const campeonatoId = route.params?.campeonatoId;
+  const { campeonato, loading, error, refetch } = useCampeonatoDetail(campeonatoId);
 
   const formatFecha = (fechaInicio: string, fechaFin: string) => {
     const inicio = new Date(fechaInicio);
@@ -62,7 +59,9 @@ export default function CampeonatoDetailScreen() {
   };
 
   const handleViewResults = () => {
-    console.log('📊 Ver resultados de campeonato:', campeonato.nombre);
+    if (!campeonato) return;
+    
+    console.log('Ver resultados de campeonato:', campeonato.nombre);
     
     const mensaje = campeonato.estado === 'activo' 
       ? `Ir a resultados en vivo de: ${campeonato.nombre}`
@@ -84,12 +83,143 @@ export default function CampeonatoDetailScreen() {
   };
 
   const handleShare = () => {
+    if (!campeonato) return;
+    
     Alert.alert(
       'Compartir Campeonato',
       `Compartir información de: ${campeonato.nombre}`,
       [{ text: 'OK' }]
     );
   };
+
+  const handleRetry = () => {
+    refetch();
+  };
+
+  // Estados de carga y error
+  if (loading) {
+    return (
+      <BaseLayout>
+        <Header 
+          title="Cargando..."
+          subtitle="Obteniendo información del campeonato"
+          showLogo={false}
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: responsive.spacing.xl,
+        }}>
+          <ActivityIndicator 
+            size="large" 
+            color={getColor.primary[500]} 
+            style={{ marginBottom: responsive.spacing.lg }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: '600',
+            color: getColor.gray[700],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+            marginBottom: responsive.spacing.sm,
+          }}>
+            Cargando campeonato...
+          </Text>
+          <Text style={{
+            fontSize: responsive.fontSize.base,
+            color: getColor.gray[500],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+          }}>
+            Por favor espera un momento
+          </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
+  if (error || !campeonato) {
+    return (
+      <BaseLayout>
+        <Header 
+          title="Error"
+          subtitle="No se pudo cargar el campeonato"
+          showLogo={false}
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: responsive.spacing.xl,
+        }}>
+          <Ionicons 
+            name="alert-circle" 
+            size={64} 
+            color={getColor.error[500]} 
+            style={{ marginBottom: responsive.spacing.lg }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.xl,
+            fontWeight: '700',
+            color: getColor.error[600],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+            marginBottom: responsive.spacing.md,
+          }}>
+            Error al cargar
+          </Text>
+          <Text style={{
+            fontSize: responsive.fontSize.base,
+            color: getColor.gray[600],
+            fontFamily: 'Nunito',
+            textAlign: 'center',
+            marginBottom: responsive.spacing.xl,
+            lineHeight: responsive.fontSize.base * 1.5,
+          }}>
+            {error || 'No se pudo obtener la información del campeonato'}
+          </Text>
+          
+          <TouchableOpacity
+            style={{
+              backgroundColor: getColor.primary[500],
+              borderRadius: 16,
+              paddingVertical: responsive.spacing.md,
+              paddingHorizontal: responsive.spacing.xl,
+              flexDirection: 'row',
+              alignItems: 'center',
+              shadowColor: getColor.primary[500],
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
+            onPress={handleRetry}
+            activeOpacity={0.8}
+          >
+            <Ionicons 
+              name="refresh" 
+              size={20} 
+              color={getColor.background.primary} 
+              style={{ marginRight: responsive.spacing.sm }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.lg,
+              fontWeight: '700',
+              color: getColor.background.primary,
+              fontFamily: 'Nunito',
+            }}>
+              Reintentar
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </BaseLayout>
+    );
+  }
 
   const canViewResults = campeonato.estado === 'activo' || campeonato.estado === 'finalizado';
 
@@ -263,6 +393,14 @@ export default function CampeonatoDetailScreen() {
 
       <ScrollView 
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refetch}
+            colors={[getColor.primary[500]]}
+            tintColor={getColor.primary[500]}
+          />
+        }
         contentContainerStyle={{
           paddingTop: responsive.spacing.md,
           paddingBottom: 100, // Espacio para botones fijos
@@ -303,17 +441,6 @@ export default function CampeonatoDetailScreen() {
             </View>
             <CampeonatoStatusBadge estado={campeonato.estado} size="md" />
           </View>
-
-          {campeonato.descripcion && (
-            <Text style={{
-              fontSize: responsive.fontSize.base,
-              color: getColor.gray[600],
-              fontFamily: 'Nunito',
-              lineHeight: responsive.fontSize.base * 1.5,
-            }}>
-              {campeonato.descripcion}
-            </Text>
-          )}
         </View>
 
         {/* Información General */}
@@ -400,9 +527,9 @@ export default function CampeonatoDetailScreen() {
               fontFamily: 'Nunito',
               marginBottom: responsive.spacing.xs,
             }}>
-              {campeonato.estado === 'activo' && '🔴 Campeonato en curso'}
-              {campeonato.estado === 'configuracion' && '⚙️ En configuración'}
-              {campeonato.estado === 'finalizado' && '✅ Campeonato finalizado'}
+              {campeonato.estado === 'activo' && 'Campeonato en curso'}
+              {campeonato.estado === 'configuracion' && 'En configuración'}
+              {campeonato.estado === 'finalizado' && 'Campeonato finalizado'}
             </Text>
             <Text style={{
               fontSize: responsive.fontSize.sm,

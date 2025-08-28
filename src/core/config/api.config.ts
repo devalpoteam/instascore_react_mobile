@@ -25,7 +25,8 @@ const API_CONFIG = {
     },
     GIMNASTAS: {
       TODOS: '/api/PuntajesAparato/por-campeonato',
-      PERFIL: '/api/PuntajesAparato'
+      PERFIL: '/api/PuntajesAparato',
+      PUNTAJES_POR_RUT: '/api/PuntajesAparato/participantePuntaje'
     }
   },
   

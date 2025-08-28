@@ -7,7 +7,9 @@ interface GimnastaApiResponse {
   id: string;
   nombre: string;
   año: number;
+  rut: string;
   club: string;
+  subdivision: string;
   categoria: string;
   franja: string;
   nivel: string;
@@ -18,11 +20,13 @@ interface GimnastaApiResponse {
 interface GimnastaListItem {
   id: string;
   nombre: string;
+  rut: string;
   club: string;
   año: number;
   categoria: string;
   nivel: string;
   franja: string;
+  subdivision: string;
   ultimoCampeonato: {
     id: string;
     nombre: string;
@@ -32,7 +36,6 @@ interface GimnastaListItem {
   };
   historialCampeonatos: string[];
   searchString: string;
-  esMedallista: boolean;
 }
 
 interface GimnastasApiResponseGrouped {
@@ -47,8 +50,11 @@ export const gimnastasService = {
       );
 
       const gimnastasPlana: GimnastaApiResponse[] = [];
-      Object.values(response.data).forEach(gimnastasPorCampeonato => {
-        gimnastasPlana.push(...gimnastasPorCampeonato);
+      
+      Object.entries(response.data).forEach(([campeonatoId, gimnastasPorCampeonato]) => {
+        if (Array.isArray(gimnastasPorCampeonato)) {
+          gimnastasPlana.push(...gimnastasPorCampeonato);
+        }
       });
 
       const gimnastasAgrupados = agruparPorGimnasta(gimnastasPlana);
@@ -88,7 +94,7 @@ const agruparPorGimnasta = (gimnastas: GimnastaApiResponse[]): GimnastaApiRespon
   const grupos: { [key: string]: GimnastaApiResponse[] } = {};
   
   gimnastas.forEach(gimnasta => {
-    const clave = `${gimnasta.nombre}_${gimnasta.club}`.toLowerCase();
+    const clave = gimnasta.rut || `${gimnasta.nombre}_${gimnasta.club}`.toLowerCase();
     
     if (!grupos[clave]) {
       grupos[clave] = [];
@@ -112,6 +118,7 @@ const convertirAGimnastaApp = (grupo: GimnastaApiResponse[]): GimnastaListItem =
     masReciente.categoria,
     masReciente.nivel,
     masReciente.franja,
+    masReciente.rut,
     ...grupo.map(g => g.nombreCampeonato)
   ];
   
@@ -125,25 +132,23 @@ const convertirAGimnastaApp = (grupo: GimnastaApiResponse[]): GimnastaListItem =
   return {
     id: masReciente.id,
     nombre: masReciente.nombre,
+    rut: masReciente.rut,
     club: masReciente.club,
     año: masReciente.año,
-    
     categoria: masReciente.categoria,
     nivel: masReciente.nivel,
     franja: masReciente.franja,
-    
+    subdivision: masReciente.subdivision,
     ultimoCampeonato: {
       id: masReciente.campeonatoId,
       nombre: masReciente.nombreCampeonato,
       categoria: masReciente.categoria,
       nivel: `${masReciente.categoria} ${masReciente.nivel}`,
-      fecha: masReciente.fecha
+      fecha: masReciente.fecha,
     },
-    
     historialCampeonatos: [...new Set(grupo.map(g => g.campeonatoId))],
     searchString,
-    esMedallista: false,
   };
 };
 
-export type { GimnastaListItem };
+export type { GimnastaListItem, GimnastaApiResponse };
