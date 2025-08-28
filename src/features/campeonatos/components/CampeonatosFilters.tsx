@@ -22,8 +22,8 @@ export default function CampeonatosFilters({
     icon: string;
   }> = [
     { key: "todos", label: "Todos", icon: "apps-outline" },
-    { key: "activo", label: "En Curso", icon: "play-circle-outline" },
-    { key: "configuracion", label: "Config.", icon: "settings-outline" },
+    { key: "activo", label: "En Vivo", icon: "play-circle-outline" },
+    { key: "configuracion", label: "Próximo", icon: "calendar-outline" },
     {
       key: "finalizado",
       label: "Finalizados",

@@ -336,12 +336,11 @@ export default function CampeonatoDetailScreen() {
     color: string; 
   }) => (
     <View style={{
-      flex: 1,
       backgroundColor: `${color}10`,
       borderRadius: 16,
       padding: responsive.spacing.md,
+      flexDirection: 'row',
       alignItems: 'center',
-      marginHorizontal: 4,
       borderWidth: 1,
       borderColor: `${color}30`,
     }}>
@@ -352,7 +351,7 @@ export default function CampeonatoDetailScreen() {
         backgroundColor: `${color}20`,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: responsive.spacing.sm,
+        marginRight: responsive.spacing.md,
       }}>
         <Ionicons 
           name={icon as any} 
@@ -360,24 +359,25 @@ export default function CampeonatoDetailScreen() {
           color={color} 
         />
       </View>
-      <Text style={{
-        fontSize: responsive.fontSize['2xl'],
-        fontWeight: '700',
-        color: color,
-        fontFamily: 'Nunito',
-        marginBottom: 4,
-      }}>
-        {value}
-      </Text>
-      <Text style={{
-        fontSize: responsive.fontSize.sm,
-        fontWeight: '500',
-        color: getColor.gray[600],
-        fontFamily: 'Nunito',
-        textAlign: 'center',
-      }}>
-        {label}
-      </Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{
+          fontSize: responsive.fontSize['2xl'],
+          fontWeight: '700',
+          color: color,
+          fontFamily: 'Nunito',
+          marginBottom: 2,
+        }}>
+          {value}
+        </Text>
+        <Text style={{
+          fontSize: responsive.fontSize.sm,
+          fontWeight: '500',
+          color: getColor.gray[600],
+          fontFamily: 'Nunito',
+        }}>
+          {label}
+        </Text>
+      </View>
     </View>
   );
 
@@ -474,9 +474,8 @@ export default function CampeonatoDetailScreen() {
         {/* Estadísticas */}
         <InfoCard title="Estadísticas de Participación" icon="stats-chart-outline">
           <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
             marginTop: responsive.spacing.sm,
+            gap: responsive.spacing.sm,
           }}>
             <StatCard 
               icon="trophy"

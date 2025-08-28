@@ -519,7 +519,11 @@ export default function LiveResultsScreen() {
                 alignItems: "center",
                 marginTop: responsive.spacing.lg,
               }}>
-                <Ionicons name="time-outline" size={48} color={getColor.gray[400]} />
+                <Ionicons 
+                  name={isFinished ? "document-outline" : "time-outline"} 
+                  size={48} 
+                  color={getColor.gray[400]} 
+                />
                 <Text style={{
                   fontSize: responsive.fontSize.base,
                   fontWeight: "600",
@@ -528,7 +532,10 @@ export default function LiveResultsScreen() {
                   marginTop: responsive.spacing.md,
                   fontFamily: "Nunito",
                 }}>
-                  No hay puntajes disponibles en este momento. Vuelve más tarde.
+                  {isFinished 
+                    ? "No hay datos disponibles para este campeonato."
+                    : "No hay puntajes disponibles en este momento. Vuelve más tarde."
+                  }
                 </Text>
               </View>
             )
@@ -580,7 +587,11 @@ export default function LiveResultsScreen() {
               alignItems: "center",
               marginTop: responsive.spacing.lg,
             }}>
-              <Ionicons name="time-outline" size={48} color={getColor.gray[400]} />
+              <Ionicons 
+                name={isFinished ? "document-outline" : "time-outline"} 
+                size={48} 
+                color={getColor.gray[400]} 
+              />
               <Text style={{
                 fontSize: responsive.fontSize.base,
                 fontWeight: "600",
@@ -589,7 +600,10 @@ export default function LiveResultsScreen() {
                 marginTop: responsive.spacing.md,
                 fontFamily: "Nunito",
               }}>
-                No hay puntajes disponibles en este momento. Vuelve más tarde.
+                {isFinished 
+                  ? "No hay datos disponibles para este campeonato."
+                  : "No hay puntajes disponibles en este momento. Vuelve más tarde."
+                }
               </Text>
             </View>
           )}
