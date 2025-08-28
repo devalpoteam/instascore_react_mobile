@@ -496,7 +496,7 @@ export default function LiveResultsScreen() {
                       borderStyle: "dashed",
                       marginTop: responsive.spacing.sm,
                     }}
-                    onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los equipos")}
+                    onPress={() => Alert.alert("Upgrade", "Actualiza a Premium para ver todos los equipos")}
                   >
                     <Ionicons name="people" size={24} color={getColor.gray[400]} />
                     <Text style={{
@@ -506,7 +506,7 @@ export default function LiveResultsScreen() {
                       marginTop: responsive.spacing.xs,
                       fontFamily: "Nunito",
                     }}>
-                      +{state.equipos.length - 3} equipos más en Pro
+                      +{state.equipos.length - 3} equipos más en Premium
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -557,7 +557,7 @@ export default function LiveResultsScreen() {
                     borderStyle: "dashed",
                     marginTop: responsive.spacing.sm,
                   }}
-                  onPress={() => Alert.alert("Upgrade", "Actualiza a Pro para ver todos los resultados")}
+                  onPress={() => Alert.alert("Upgrade", "Actualiza a Premium para ver todos los resultados")}
                 >
                   <Ionicons name="lock-closed" size={24} color={getColor.gray[400]} />
                   <Text style={{
@@ -567,7 +567,7 @@ export default function LiveResultsScreen() {
                     marginTop: responsive.spacing.xs,
                     fontFamily: "Nunito",
                   }}>
-                    +{gimnastasActuales.length - 3} resultados más en Pro
+                    +{gimnastasActuales.length - 3} resultados más en Premium
                   </Text>
                 </TouchableOpacity>
               )}

@@ -49,8 +49,22 @@ export const loginAsync = createAsyncThunk(
           user: {
             id: 'dev-user-id',
             email: 'dev@test.com',
-            name: 'Usuario Dev',
+            name: 'Usuario Free',
             isPro: false
+          }
+        };
+      }
+
+      if (credentials.email === 'premium@test.com') {
+        const token = 'premium-token-456';
+        await saveToken(token);
+        return {
+          token,
+          user: {
+            id: 'premium-user-id',
+            email: 'premium@test.com',
+            name: 'Usuario Premium',
+            isPro: true
           }
         };
       }
