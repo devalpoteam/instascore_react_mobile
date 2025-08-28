@@ -315,6 +315,49 @@ export default function GimnastaProfileScreen() {
           </View>
         )}
 
+        {!isLoadingCampeonatos && campeonatos.length === 0 && (
+          <View style={{
+            backgroundColor: getColor.background.primary,
+            marginHorizontal: responsive.spacing.md,
+            marginTop: responsive.spacing.lg,
+            borderRadius: 16,
+            padding: responsive.spacing.xl,
+            alignItems: "center",
+            shadowColor: getColor.gray[400],
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 2,
+            borderWidth: 1,
+            borderColor: getColor.gray[100],
+          }}>
+            <Ionicons
+              name="calendar-outline"
+              size={48}
+              color={getColor.gray[400]}
+              style={{ marginBottom: responsive.spacing.md }}
+            />
+            <Text style={{
+              fontSize: responsive.fontSize.base,
+              fontWeight: "600",
+              color: getColor.gray[600],
+              fontFamily: "Nunito",
+              textAlign: "center",
+              marginBottom: responsive.spacing.xs,
+            }}>
+              No hay campeonatos disponibles
+            </Text>
+            <Text style={{
+              fontSize: responsive.fontSize.sm,
+              color: getColor.gray[500],
+              fontFamily: "Nunito",
+              textAlign: "center",
+            }}>
+              Este gimnasta aún no ha participado en competencias
+            </Text>
+          </View>
+        )}
+
         <View style={{
           backgroundColor: getColor.background.primary,
           marginHorizontal: responsive.spacing.md,
@@ -482,15 +525,16 @@ export default function GimnastaProfileScreen() {
           )}
         </View>
 
-        <View style={{
-          backgroundColor: getColor.secondary[500],
-          marginHorizontal: responsive.spacing.md,
-          marginTop: responsive.spacing.md,
-          borderRadius: 16,
-          padding: responsive.spacing.lg,
-          ...shadowStyles.orange.base,
-          alignItems: "center",
-        }}>
+        {campeonatos.length > 0 && (
+          <View style={{
+            backgroundColor: getColor.secondary[500],
+            marginHorizontal: responsive.spacing.md,
+            marginTop: responsive.spacing.md,
+            borderRadius: 16,
+            padding: responsive.spacing.lg,
+            ...shadowStyles.orange.base,
+            alignItems: "center",
+          }}>
           <Text style={{
             fontSize: responsive.fontSize.sm,
             fontWeight: "600",
@@ -500,20 +544,52 @@ export default function GimnastaProfileScreen() {
           }}>
             PUNTAJE ALL AROUND
           </Text>
-          <Text style={{
-            fontSize: responsive.fontSize["4xl"],
-            fontWeight: "700",
-            color: getColor.background.primary,
-            fontFamily: "Nunito",
-          }}>
-            {isLoadingResultados ? "..." : calculateAllAround().toFixed(1)}
-          </Text>
-        </View>
+          {isLoadingResultados ? (
+            <Text style={{
+              fontSize: responsive.fontSize["4xl"],
+              fontWeight: "700",
+              color: getColor.background.primary,
+              fontFamily: "Nunito",
+            }}>
+              ...
+            </Text>
+          ) : resultados.length === 0 || calculateAllAround() === 0 ? (
+            <View style={{ alignItems: "center" }}>
+              <Ionicons
+                name="time-outline"
+                size={32}
+                color={getColor.background.primary}
+                style={{ marginBottom: responsive.spacing.xs }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                fontWeight: "600",
+                color: getColor.background.primary,
+                fontFamily: "Nunito",
+                textAlign: "center",
+                opacity: 0.9,
+              }}>
+                No hay puntajes disponibles
+              </Text>
+            </View>
+          ) : (
+            <Text style={{
+              fontSize: responsive.fontSize["4xl"],
+              fontWeight: "700",
+              color: getColor.background.primary,
+              fontFamily: "Nunito",
+            }}>
+              {calculateAllAround().toFixed(1)}
+            </Text>
+          )}
+          </View>
+        )}
 
-        <View style={{
-          marginHorizontal: responsive.spacing.md,
-          marginTop: responsive.spacing.md,
-        }}>
+        {campeonatos.length > 0 && (
+          <View style={{
+            marginHorizontal: responsive.spacing.md,
+            marginTop: responsive.spacing.md,
+          }}>
           <Text style={{
             fontSize: responsive.fontSize.lg,
             fontWeight: "700",
@@ -538,6 +614,45 @@ export default function GimnastaProfileScreen() {
                 marginTop: responsive.spacing.sm,
               }}>
                 Cargando rendimiento...
+              </Text>
+            </View>
+          ) : resultados.length === 0 ? (
+            <View style={{
+              backgroundColor: getColor.background.primary,
+              borderRadius: 16,
+              padding: responsive.spacing.xl,
+              alignItems: "center",
+              shadowColor: getColor.gray[400],
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+              elevation: 2,
+              borderWidth: 1,
+              borderColor: getColor.gray[100],
+            }}>
+              <Ionicons
+                name="time-outline"
+                size={48}
+                color={getColor.gray[400]}
+                style={{ marginBottom: responsive.spacing.md }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.base,
+                fontWeight: "600",
+                color: getColor.gray[600],
+                fontFamily: "Nunito",
+                textAlign: "center",
+                marginBottom: responsive.spacing.xs,
+              }}>
+                No hay puntajes disponibles en este momento
+              </Text>
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                color: getColor.gray[500],
+                fontFamily: "Nunito",
+                textAlign: "center",
+              }}>
+                Vuelve más tarde para ver los resultados
               </Text>
             </View>
           ) : (
@@ -654,7 +769,8 @@ export default function GimnastaProfileScreen() {
               );
             })
           )}
-        </View>
+          </View>
+        )}
       </ScrollView>
     </BaseLayout>
   );

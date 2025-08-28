@@ -5,10 +5,12 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
+import { useAppSelector } from '@/store/hooks';
 import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 import SmartSearchBar from '../components/SmartSearchBar';
 import GimnastaCard from '../components/GimnastaCard';
+import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 import { fuzzySearch } from '../utils/enhancedSearch';
 
 import { gimnastasService, type GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
@@ -31,6 +33,7 @@ interface GimnastasState {
 export default function GimnastasListScreen() {
   const navigation = useNavigation<GimnastasListNavigationProp>();
   const responsive = useResponsive();
+  const { isPro } = useAppSelector((state) => state.auth);
 
   const [state, setState] = useState<GimnastasState>({
     gimnastas: [],
@@ -45,6 +48,7 @@ export default function GimnastasListScreen() {
   });
 
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   useEffect(() => {
     loadGimnastas();
@@ -139,11 +143,25 @@ export default function GimnastasListScreen() {
   };
 
   const handleGimnastaPress = (gimnasta: GimnastaListItem) => {
-    navigation.navigate('GimnastaProfile', { gimnastaId: gimnasta.id });
+    if (isPro) {
+      navigation.navigate('GimnastaProfile', { gimnastaId: gimnasta.id });
+    } else {
+      setShowPremiumModal(true);
+    }
   };
 
   const handleRetry = () => {
     loadGimnastas();
+  };
+
+  const handlePremiumUpgrade = () => {
+    setShowPremiumModal(false);
+    // TODO: Navigate to premium upgrade screen or handle upgrade logic
+    console.log('Navigate to premium upgrade');
+  };
+
+  const handleClosePremiumModal = () => {
+    setShowPremiumModal(false);
   };
 
   const renderErrorState = () => (
@@ -366,6 +384,12 @@ export default function GimnastasListScreen() {
           })}
         />
       )}
+
+      <PremiumUpgradeModal
+        visible={showPremiumModal}
+        onClose={handleClosePremiumModal}
+        onUpgrade={handlePremiumUpgrade}
+      />
     </BaseLayout>
   );
 }

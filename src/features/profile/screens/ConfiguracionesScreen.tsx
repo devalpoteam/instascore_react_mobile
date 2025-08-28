@@ -295,7 +295,8 @@ export default function ConfiguracionesScreen() {
         title="Configuraciones"
         subtitle="Gestiona tu información personal"
         showLogo={false}
-        showBackButton={true}
+        showBack={true}
+        onBackPress={() => navigation.goBack()}
         onNotificationPress={handleNotificationPress}
         notificationCount={unreadCount}
       />
