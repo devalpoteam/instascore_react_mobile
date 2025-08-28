@@ -129,8 +129,6 @@ export const liveService = {
             disciplina: mapearDisciplina(categoria.disciplina),
             numeroParticipantes: categoria.numeroParticipantes,
             numeroCategoria: categoria.numeroCategoria,
-            // ✅ ID COMPUESTO ÚNICO PARA LA APP
-            // Combina todos los IDs para crear una clave única
             id: `${categoria.IdCampeonato}_${categoria.IdCategoria}_${categoria.IdNivel}_${categoria.IdFranja}`,
           });
         });

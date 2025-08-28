@@ -1,6 +1,6 @@
-// src/features/gimnastas/screens/GimnastaProfileScreen.tsx - CON DATOS DINÁMICOS REALES
-import React, { useState, useMemo } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+// src/features/gimnastas/screens/GimnastaProfileScreen.tsx
+import React, { useState, useEffect } from "react";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useRoute,
@@ -15,222 +15,97 @@ import Header from "@/shared/components/layout/Header";
 import { shadowStyles } from "@/styles/shadowStyles";
 import { MainStackParamList } from "@/navigation/MainNavigator";
 
-// ✅ IMPORTAR DATOS REALES
-import { mockGimnastasList } from "../data/mockGimnastasList";
-import { GimnastaListItem } from "../types/gimnastasList.types";
+import { gimnastaProfileService, GimnastaPerfil } from "@/services/api/gimnastas/gimnastaProfileService";
+import { puntajesRutService, CampeonatoParticipacion } from "@/services/api/gimnastas/puntajesRutService";
+import { resultadosService, ResultadoIndividual } from "@/services/api/resultados/resultadosService";
 
-// Tipos de navegación
-type GimnastaProfileRouteProp = RouteProp<
-  MainStackParamList,
-  "GimnastaProfile"
->;
+type GimnastaProfileRouteProp = RouteProp<MainStackParamList, "GimnastaProfile">;
 type GimnastaProfileNavigationProp = NavigationProp<MainStackParamList>;
-
-// Tipos para los aparatos (simplificado)
-type AparatoGAF = "salto" | "asimetricas" | "viga" | "suelo";
+type AparatoGAF = "Salto" | "Asimetricas" | "Viga" | "Suelo";
 
 export default function GimnastaProfileScreen() {
   const route = useRoute<GimnastaProfileRouteProp>();
   const navigation = useNavigation<GimnastaProfileNavigationProp>();
   const responsive = useResponsive();
-
-  // ✅ OBTENER GIMNASTA REAL POR ID
   const { gimnastaId } = route.params;
 
-  const gimnasta = useMemo(() => {
-    return mockGimnastasList.find((g) => g.id === gimnastaId);
+  const [gimnasta, setGimnasta] = useState<GimnastaPerfil | null>(null);
+  const [campeonatos, setCampeonatos] = useState<CampeonatoParticipacion[]>([]);
+  const [resultados, setResultados] = useState<ResultadoIndividual[]>([]);
+  const [campeonatoSeleccionado, setCampeonatoSeleccionado] = useState<number>(0);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingCampeonatos, setIsLoadingCampeonatos] = useState(false);
+  const [isLoadingResultados, setIsLoadingResultados] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadGimnastaPerfil = async () => {
+      try {
+        setIsLoadingProfile(true);
+        setError(null);
+        const perfilData = await gimnastaProfileService.getGimnastaPerfil(gimnastaId);
+        setGimnasta(perfilData);
+
+        if (perfilData.rut) {
+          await loadCampeonatos(perfilData.rut);
+        }
+      } catch (err: any) {
+        setError(err.message || 'Error al cargar perfil del gimnasta');
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadGimnastaPerfil();
   }, [gimnastaId]);
 
-  // Si no se encuentra el gimnasta, mostrar error
-  if (!gimnasta) {
-    return (
-      <BaseLayout>
-        <Header
-          title="Error"
-          subtitle="Gimnasta no encontrado"
-          showBack={true}
-          onBackPress={() => navigation.goBack()}
-          showLogo={false}
-        />
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: responsive.spacing.xl,
-          }}
-        >
-          <Ionicons
-            name="alert-circle"
-            size={64}
-            color={getColor.error[500]}
-            style={{ marginBottom: responsive.spacing.lg }}
-          />
-          <Text
-            style={{
-              fontSize: responsive.fontSize.lg,
-              fontWeight: "600",
-              color: getColor.error[500],
-              fontFamily: "Nunito",
-              textAlign: "center",
-              marginBottom: responsive.spacing.sm,
-            }}
-          >
-            Gimnasta no encontrado
-          </Text>
-          <Text
-            style={{
-              fontSize: responsive.fontSize.base,
-              color: getColor.gray[600],
-              fontFamily: "Nunito",
-              textAlign: "center",
-              lineHeight: responsive.fontSize.base * 1.4,
-            }}
-          >
-            No se pudo encontrar información{"\n"}para el ID: {gimnastaId}
-          </Text>
-        </View>
-      </BaseLayout>
-    );
-  }
-
-  // ✅ GENERAR DATOS MOCK PARA MÚLTIPLES CAMPEONATOS BASADOS EN EL GIMNASTA REAL
-  const generateMockCampeonatos = (baseGimnasta: GimnastaListItem) => {
-    // Generar puntajes realistas basados en el mejor All Around del gimnasta
-    const generatePuntajes = (
-      baseAllAround: number,
-      variation: number = 0.3
-    ) => {
-      const baseScore = baseAllAround / 4; // Promedio por aparato
-      const variationRange = baseScore * variation;
-
-      return {
-        salto:
-          Math.round(
-            (baseScore + (Math.random() - 0.5) * variationRange) * 10
-          ) / 10,
-        asimetricas:
-          Math.round(
-            (baseScore + (Math.random() - 0.5) * variationRange) * 10
-          ) / 10,
-        viga:
-          Math.round(
-            (baseScore + (Math.random() - 0.5) * variationRange) * 10
-          ) / 10,
-        suelo:
-          Math.round(
-            (baseScore + (Math.random() - 0.5) * variationRange) * 10
-          ) / 10,
-      } as Record<AparatoGAF, number>;
-    };
-
-    const generatePosicionAparatos = () => {
-      const posiciones = [1, 2, 3, 4, 5, 6, 7, 8].sort(
-        () => Math.random() - 0.5
-      );
-      return {
-        salto: posiciones[0],
-        asimetricas: posiciones[1],
-        viga: posiciones[2],
-        suelo: posiciones[3],
-      } as Record<AparatoGAF, number>;
-    };
-
-    // Campeonato principal (el de la lista)
-    const puntajesPrincipal = generatePuntajes(baseGimnasta.mejorAllAround);
-    const allAroundPrincipal = Object.values(puntajesPrincipal).reduce(
-      (sum, score) => sum + score,
-      0
-    );
-
-    const campeonatos = [
-      {
-        campeonatoId: baseGimnasta.ultimoCampeonato.id,
-        campeonatoNombre: baseGimnasta.ultimoCampeonato.nombre,
-        categoria: baseGimnasta.ultimoCampeonato.categoria,
-        nivel: baseGimnasta.ultimoCampeonato.nivel,
-        franja: baseGimnasta.ultimoCampeonato.nivel,
-        subdivision: "A",
-        puntajes: puntajesPrincipal,
-        allAround: Math.round(allAroundPrincipal * 10) / 10,
-        posicion: baseGimnasta.ultimoCampeonato.posicion,
-        posicionAparatos: generatePosicionAparatos(),
-      },
-    ];
-
-    // Generar campeonatos adicionales si tiene historial
-    if (baseGimnasta.historialCampeonatos.length > 1) {
-      const campeonatosAdicionales = [
-        "Copa Regional Centro 2024",
-        "Torneo Nacional 2024",
-        "Campeonato Escolar 2024",
-      ];
-
-      for (
-        let i = 1;
-        i < Math.min(baseGimnasta.historialCampeonatos.length, 4);
-        i++
-      ) {
-        const puntajes = generatePuntajes(baseGimnasta.mejorAllAround, 0.4);
-        const allAround = Object.values(puntajes).reduce(
-          (sum, score) => sum + score,
-          0
-        );
-
-        campeonatos.push({
-          campeonatoId: baseGimnasta.historialCampeonatos[i] || `mock_${i}`,
-          campeonatoNombre: campeonatosAdicionales[i - 1] || `Campeonato ${i}`,
-          categoria: baseGimnasta.ultimoCampeonato.categoria,
-          nivel: baseGimnasta.ultimoCampeonato.nivel,
-          franja: baseGimnasta.ultimoCampeonato.nivel,
-          subdivision: i % 2 === 0 ? "A" : "B",
-          puntajes,
-          allAround: Math.round(allAround * 10) / 10,
-          posicion: Math.floor(Math.random() * 8) + 1,
-          posicionAparatos: generatePosicionAparatos(),
-        });
+  const loadCampeonatos = async (rut: string) => {
+    try {
+      setIsLoadingCampeonatos(true);
+      const campeonatosData = await puntajesRutService.getCampeonatosPorRut(rut);
+      setCampeonatos(campeonatosData);
+      
+      if (campeonatosData.length > 0) {
+        await loadResultados(campeonatosData[0], 0);
       }
+    } catch (err: any) {
+      console.error('Error al cargar campeonatos:', err.message);
+    } finally {
+      setIsLoadingCampeonatos(false);
     }
-
-    return campeonatos;
   };
 
-  const campeonatos = useMemo(
-    () => generateMockCampeonatos(gimnasta),
-    [gimnasta]
-  );
-  const [campeonatoSeleccionado, setCampeonatoSeleccionado] = useState(0);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const loadResultados = async (campeonato: CampeonatoParticipacion, index: number) => {
+    if (!gimnasta) return;
 
-  const campeonatoActual = campeonatos[campeonatoSeleccionado];
-
-  const getAparatoDisplayName = (aparato: AparatoGAF) => {
-    const names: Record<AparatoGAF, string> = {
-      salto: "Salto",
-      asimetricas: "Asimétricas",
-      viga: "Viga",
-      suelo: "Suelo",
-    };
-    return names[aparato] || aparato;
+    try {
+      setIsLoadingResultados(true);
+      
+      const resultadosData = await resultadosService.getResultadosIndividuales({
+        campeonatoId: campeonato.campeonatoId,
+        categoriaId: gimnasta.ultimoCampeonato.categoriaId,
+        nivelId: gimnasta.ultimoCampeonato.nivelId,
+        franjaId: gimnasta.ultimoCampeonato.franjaId,
+        participanteId: campeonato.participante.idParticipante
+      });
+      
+      setResultados(resultadosData);
+      setCampeonatoSeleccionado(index);
+    } catch (err: any) {
+      console.error('Error al cargar resultados:', err.message);
+      setResultados([]);
+    } finally {
+      setIsLoadingResultados(false);
+    }
   };
 
-  const getPositionColor = (posicion: number) => {
-    if (posicion === 1) return getColor.secondary[500]; // Oro
-    if (posicion === 2) return getColor.gray[400]; // Plata
-    if (posicion === 3) return "#CD7F32"; // Bronce
-    return getColor.gray[600];
-  };
-
-  const handleCampeonatoChange = (index: number) => {
-    setCampeonatoSeleccionado(index);
+  const handleCampeonatoChange = async (index: number) => {
     setDropdownVisible(false);
+    await loadResultados(campeonatos[index], index);
   };
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
-
-  // ✅ OBTENER INICIALES PARA EL AVATAR
   const getInitials = (nombre: string) => {
     return nombre
       .split(" ")
@@ -240,13 +115,101 @@ export default function GimnastaProfileScreen() {
       .toUpperCase();
   };
 
+  const getPositionColor = (posicion: number) => {
+    if (posicion === 1) return getColor.secondary[500];
+    if (posicion === 2) return getColor.gray[400];
+    if (posicion === 3) return "#CD7F32";
+    return getColor.gray[600];
+  };
+
+  const getAparatoDisplayName = (aparato: string) => {
+    const names: Record<string, string> = {
+      "Salto": "Salto",
+      "Asimetricas": "Asimétricas", 
+      "Viga": "Viga",
+      "Suelo": "Suelo",
+    };
+    return names[aparato] || aparato;
+  };
+
+  const calculateAllAround = () => {
+    if (resultados.length === 0) return 0;
+    const totalPuntaje = resultados.reduce((sum, resultado) => sum + resultado.puntaje, 0);
+    return Math.round(totalPuntaje * 10) / 10;
+  };
+
+  if (error || (!isLoadingProfile && !gimnasta)) {
+    return (
+      <BaseLayout>
+        <Header
+          title="Error"
+          subtitle="Gimnasta no encontrado"
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+          showLogo={false}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: responsive.spacing.xl,
+        }}>
+          <Ionicons
+            name="alert-circle"
+            size={64}
+            color={getColor.error[500]}
+            style={{ marginBottom: responsive.spacing.lg }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: "600",
+            color: getColor.error[500],
+            fontFamily: "Nunito",
+            textAlign: "center",
+            marginBottom: responsive.spacing.sm,
+          }}>
+            {error || "Gimnasta no encontrado"}
+          </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
+  if (isLoadingProfile) {
+    return (
+      <BaseLayout>
+        <Header
+          title="Cargando..."
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+          showLogo={false}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+          <ActivityIndicator size="large" color={getColor.primary[500]} />
+          <Text style={{
+            fontSize: responsive.fontSize.base,
+            color: getColor.primary[500],
+            fontFamily: "Nunito",
+            marginTop: responsive.spacing.md,
+          }}>
+            Cargando perfil...
+          </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
   return (
     <BaseLayout>
       <Header
         title="Perfil del Gimnasta"
-        subtitle={`${gimnasta.club}`}
+        subtitle={gimnasta?.club}
         showBack={true}
-        onBackPress={handleGoBack}
+        onBackPress={() => navigation.goBack()}
         showLogo={false}
       />
 
@@ -256,15 +219,12 @@ export default function GimnastaProfileScreen() {
           paddingBottom: responsive.spacing["3xl"],
         }}
       >
-        {/* Dropdown de Campeonatos */}
         {campeonatos.length > 1 && (
-          <View
-            style={{
-              marginHorizontal: responsive.spacing.md,
-              marginTop: responsive.spacing.md,
-              zIndex: 10,
-            }}
-          >
+          <View style={{
+            marginHorizontal: responsive.spacing.md,
+            marginTop: responsive.spacing.md,
+            zIndex: 10,
+          }}>
             <TouchableOpacity
               style={{
                 backgroundColor: getColor.background.primary,
@@ -281,26 +241,21 @@ export default function GimnastaProfileScreen() {
               activeOpacity={0.7}
             >
               <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: responsive.fontSize.base,
-                    fontWeight: "600",
-                    color: getColor.primary[600],
-                    fontFamily: "Nunito",
-                  }}
-                >
-                  {campeonatoActual.campeonatoNombre}
+                <Text style={{
+                  fontSize: responsive.fontSize.base,
+                  fontWeight: "600",
+                  color: getColor.primary[600],
+                  fontFamily: "Nunito",
+                }}>
+                  {campeonatos[campeonatoSeleccionado]?.nombre || "Seleccionar campeonato"}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: responsive.fontSize.xs,
-                    color: getColor.gray[500],
-                    fontFamily: "Nunito",
-                    marginTop: 2,
-                  }}
-                >
-                  {campeonatoActual.categoria} {campeonatoActual.nivel} •
-                  Posición #{campeonatoActual.posicion}
+                <Text style={{
+                  fontSize: responsive.fontSize.xs,
+                  color: getColor.gray[500],
+                  fontFamily: "Nunito",
+                  marginTop: 2,
+                }}>
+                  {campeonatos[campeonatoSeleccionado]?.estado}
                 </Text>
               </View>
 
@@ -311,19 +266,16 @@ export default function GimnastaProfileScreen() {
               />
             </TouchableOpacity>
 
-            {/* Opciones del dropdown */}
             {dropdownVisible && (
-              <View
-                style={{
-                  backgroundColor: getColor.background.primary,
-                  borderRadius: 12,
-                  marginTop: responsive.spacing.xs,
-                  ...shadowStyles.neutral.base,
-                  borderWidth: 1,
-                  borderColor: getColor.gray[200],
-                  overflow: "hidden",
-                }}
-              >
+              <View style={{
+                backgroundColor: getColor.background.primary,
+                borderRadius: 12,
+                marginTop: responsive.spacing.xs,
+                ...shadowStyles.neutral.base,
+                borderWidth: 1,
+                borderColor: getColor.gray[200],
+                overflow: "hidden",
+              }}>
                 {campeonatos.map((campeonato, index) => (
                   <TouchableOpacity
                     key={campeonato.campeonatoId}
@@ -331,39 +283,30 @@ export default function GimnastaProfileScreen() {
                       padding: responsive.spacing.md,
                       borderBottomWidth: index < campeonatos.length - 1 ? 1 : 0,
                       borderBottomColor: getColor.gray[100],
-                      backgroundColor:
-                        index === campeonatoSeleccionado
-                          ? getColor.primary[50]
-                          : "transparent",
+                      backgroundColor: index === campeonatoSeleccionado
+                        ? getColor.primary[50]
+                        : "transparent",
                     }}
                     onPress={() => handleCampeonatoChange(index)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={{
-                        fontSize: responsive.fontSize.base,
-                        fontWeight:
-                          index === campeonatoSeleccionado ? "700" : "600",
-                        color:
-                          index === campeonatoSeleccionado
-                            ? getColor.primary[600]
-                            : getColor.gray[800],
-                        fontFamily: "Nunito",
-                      }}
-                    >
-                      {campeonato.campeonatoNombre}
+                    <Text style={{
+                      fontSize: responsive.fontSize.base,
+                      fontWeight: index === campeonatoSeleccionado ? "700" : "600",
+                      color: index === campeonatoSeleccionado
+                        ? getColor.primary[600]
+                        : getColor.gray[800],
+                      fontFamily: "Nunito",
+                    }}>
+                      {campeonato.nombre}
                     </Text>
-                    <Text
-                      style={{
-                        fontSize: responsive.fontSize.xs,
-                        color: getColor.gray[500],
-                        fontFamily: "Nunito",
-                        marginTop: 2,
-                      }}
-                    >
-                      {campeonato.categoria} {campeonato.nivel} • #
-                      {campeonato.posicion} lugar •{" "}
-                      {campeonato.allAround.toFixed(1)} pts
+                    <Text style={{
+                      fontSize: responsive.fontSize.xs,
+                      color: getColor.gray[500],
+                      fontFamily: "Nunito",
+                      marginTop: 2,
+                    }}>
+                      {campeonato.estado}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -372,463 +315,345 @@ export default function GimnastaProfileScreen() {
           </View>
         )}
 
-        {/* Hero Section - CON DATOS REALES */}
-        <View
-          style={{
-            backgroundColor: getColor.background.primary,
-            marginHorizontal: responsive.spacing.md,
-            marginTop: responsive.spacing.lg,
-            borderRadius: 20,
-            padding: responsive.spacing.xl,
-            ...shadowStyles.instascore.base,
-            borderWidth: 1,
-            borderColor: getColor.primary[100],
-          }}
-        >
-          {/* Avatar y nombre */}
-          <View
-            style={{
+        <View style={{
+          backgroundColor: getColor.background.primary,
+          marginHorizontal: responsive.spacing.md,
+          marginTop: responsive.spacing.lg,
+          borderRadius: 20,
+          padding: responsive.spacing.xl,
+          ...shadowStyles.instascore.base,
+          borderWidth: 1,
+          borderColor: getColor.primary[100],
+        }}>
+          <View style={{
+            alignItems: "center",
+            marginBottom: responsive.spacing.lg,
+          }}>
+            <View style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: getColor.primary[500],
+              justifyContent: "center",
               alignItems: "center",
-              marginBottom: responsive.spacing.lg,
-            }}
-          >
-            {/* ✅ AVATAR CON INICIALES REALES */}
-            <View
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: gimnasta.esMedallista
-                  ? getColor.primary[500]
-                  : getColor.gray[300],
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: responsive.spacing.md,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: responsive.fontSize["2xl"],
-                  fontWeight: "700",
-                  color: getColor.background.primary,
-                  fontFamily: "Nunito",
-                }}
-              >
-                {getInitials(gimnasta.nombre)}
+              marginBottom: responsive.spacing.md,
+            }}>
+              <Text style={{
+                fontSize: responsive.fontSize["2xl"],
+                fontWeight: "700",
+                color: getColor.background.primary,
+                fontFamily: "Nunito",
+              }}>
+                {gimnasta ? getInitials(gimnasta.nombre) : "??"}
               </Text>
             </View>
 
-            {/* ✅ NOMBRE REAL */}
-            <Text
-              style={{
-                fontSize: responsive.fontSize["2xl"],
-                fontWeight: "700",
-                color: getColor.primary[600],
-                fontFamily: "Nunito",
-                textAlign: "center",
-                marginBottom: responsive.spacing.xs,
-              }}
-            >
-              {gimnasta.nombre}
+            <Text style={{
+              fontSize: responsive.fontSize["2xl"],
+              fontWeight: "700",
+              color: getColor.primary[600],
+              fontFamily: "Nunito",
+              textAlign: "center",
+              marginBottom: responsive.spacing.xs,
+            }}>
+              {gimnasta?.nombre}
             </Text>
 
-            {/* Badge de posición - DINÁMICO */}
-            <View
-              style={{
-                backgroundColor: getPositionColor(campeonatoActual.posicion),
+            {gimnasta && (
+              <View style={{
+                backgroundColor: getPositionColor(gimnasta.ultimoCampeonato.posicion),
                 borderRadius: 20,
                 paddingHorizontal: responsive.spacing.md,
                 paddingVertical: responsive.spacing.sm,
                 flexDirection: "row",
                 alignItems: "center",
-              }}
-            >
-              <Ionicons
-                name="trophy"
-                size={16}
-                color={getColor.background.primary}
-                style={{ marginRight: responsive.spacing.xs }}
-              />
-              <Text
-                style={{
+              }}>
+                <Ionicons
+                  name="trophy"
+                  size={16}
+                  color={getColor.background.primary}
+                  style={{ marginRight: responsive.spacing.xs }}
+                />
+                <Text style={{
                   fontSize: responsive.fontSize.sm,
                   fontWeight: "700",
                   color: getColor.background.primary,
                   fontFamily: "Nunito",
-                }}
-              >
-                {campeonatoActual.posicion}° Lugar
-              </Text>
-            </View>
-
-            {/* ✅ BADGES ADICIONALES */}
-            <View
-              style={{
-                flexDirection: "row",
-                marginTop: responsive.spacing.sm,
-                gap: responsive.spacing.xs,
-              }}
-            >
-              {gimnasta.esMedallista && (
-                <View
-                  style={{
-                    backgroundColor: getColor.secondary[500],
-                    borderRadius: 12,
-                    paddingHorizontal: responsive.spacing.sm,
-                    paddingVertical: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: responsive.fontSize.xs,
-                      fontWeight: "600",
-                      color: getColor.background.primary,
-                      fontFamily: "Nunito",
-                    }}
-                  >
-                    🏆 Medallista
-                  </Text>
-                </View>
-              )}
-              {gimnasta.activo && (
-                <View
-                  style={{
-                    backgroundColor: getColor.success[500],
-                    borderRadius: 12,
-                    paddingHorizontal: responsive.spacing.sm,
-                    paddingVertical: 4,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: responsive.fontSize.xs,
-                      fontWeight: "600",
-                      color: getColor.background.primary,
-                      fontFamily: "Nunito",
-                    }}
-                  >
-                    ⚡ Activo
-                  </Text>
-                </View>
-              )}
-            </View>
+                }}>
+                  {gimnasta.ultimoCampeonato.posicion}° Lugar
+                </Text>
+              </View>
+            )}
           </View>
 
-          {/* ✅ INFORMACIÓN BÁSICA REAL */}
-          <View
-            style={{
+          {gimnasta && (
+            <View style={{
               backgroundColor: getColor.gray[50],
               borderRadius: 16,
               padding: responsive.spacing.lg,
-            }}
-          >
-            <View
-              style={{
+            }}>
+              <View style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
                 marginBottom: responsive.spacing.md,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
                     fontSize: responsive.fontSize.xs,
                     color: getColor.gray[500],
                     fontFamily: "Nunito",
                     marginBottom: 4,
-                  }}
-                >
-                  Año de Nacimiento
-                </Text>
-                <Text
-                  style={{
+                  }}>
+                    RUT
+                  </Text>
+                  <Text style={{
                     fontSize: responsive.fontSize.base,
                     fontWeight: "600",
                     color: getColor.gray[800],
                     fontFamily: "Nunito",
-                  }}
-                >
-                  {gimnasta.año}
-                </Text>
-              </View>
+                  }}>
+                    {gimnasta.rut}
+                  </Text>
+                </View>
 
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
+                <View style={{ flex: 1 }}>
+                  <Text style={{
                     fontSize: responsive.fontSize.xs,
                     color: getColor.gray[500],
                     fontFamily: "Nunito",
                     marginBottom: 4,
-                  }}
-                >
-                  Categoría
-                </Text>
-                <Text
-                  style={{
+                  }}>
+                    Año de Nacimiento
+                  </Text>
+                  <Text style={{
                     fontSize: responsive.fontSize.base,
                     fontWeight: "600",
                     color: getColor.gray[800],
                     fontFamily: "Nunito",
-                  }}
-                >
-                  {campeonatoActual.categoria} {campeonatoActual.nivel}
-                </Text>
+                  }}>
+                    {gimnasta.año}
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            <View
-              style={{
+              <View style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
+              }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
                     fontSize: responsive.fontSize.xs,
                     color: getColor.gray[500],
                     fontFamily: "Nunito",
                     marginBottom: 4,
-                  }}
-                >
-                  Club/Delegación
-                </Text>
-                <Text
-                  style={{
+                  }}>
+                    Club/Delegación
+                  </Text>
+                  <Text style={{
                     fontSize: responsive.fontSize.base,
                     fontWeight: "600",
                     color: getColor.gray[800],
                     fontFamily: "Nunito",
-                  }}
-                >
-                  {gimnasta.club}
-                </Text>
-              </View>
+                  }}>
+                    {gimnasta.club}
+                  </Text>
+                </View>
 
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
+                <View style={{ flex: 1 }}>
+                  <Text style={{
                     fontSize: responsive.fontSize.xs,
                     color: getColor.gray[500],
                     fontFamily: "Nunito",
                     marginBottom: 4,
-                  }}
-                >
-                  Mejor All Around
-                </Text>
-                <Text
-                  style={{
+                  }}>
+                    Categoría
+                  </Text>
+                  <Text style={{
                     fontSize: responsive.fontSize.base,
                     fontWeight: "600",
-                    color: getColor.secondary[600],
+                    color: getColor.gray[800],
                     fontFamily: "Nunito",
-                  }}
-                >
-                  {gimnasta.mejorAllAround.toFixed(1)}
-                </Text>
+                  }}>
+                    {gimnasta.categoria} {gimnasta.nivel}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </View>
 
-        {/* All Around Score - DINÁMICO */}
-        <View
-          style={{
-            backgroundColor: getColor.secondary[500],
-            marginHorizontal: responsive.spacing.md,
-            marginTop: responsive.spacing.md,
-            borderRadius: 16,
-            padding: responsive.spacing.lg,
-            ...shadowStyles.orange.base,
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: responsive.fontSize.sm,
-              fontWeight: "600",
-              color: getColor.background.primary,
-              fontFamily: "Nunito",
-              marginBottom: responsive.spacing.xs,
-            }}
-          >
-            PUNTAJE ALL AROUND -{" "}
-            {campeonatoActual.campeonatoNombre.toUpperCase()}
+        <View style={{
+          backgroundColor: getColor.secondary[500],
+          marginHorizontal: responsive.spacing.md,
+          marginTop: responsive.spacing.md,
+          borderRadius: 16,
+          padding: responsive.spacing.lg,
+          ...shadowStyles.orange.base,
+          alignItems: "center",
+        }}>
+          <Text style={{
+            fontSize: responsive.fontSize.sm,
+            fontWeight: "600",
+            color: getColor.background.primary,
+            fontFamily: "Nunito",
+            marginBottom: responsive.spacing.xs,
+          }}>
+            PUNTAJE ALL AROUND
           </Text>
-          <Text
-            style={{
-              fontSize: responsive.fontSize["4xl"],
-              fontWeight: "700",
-              color: getColor.background.primary,
-              fontFamily: "Nunito",
-            }}
-          >
-            {campeonatoActual.allAround.toFixed(1)}
+          <Text style={{
+            fontSize: responsive.fontSize["4xl"],
+            fontWeight: "700",
+            color: getColor.background.primary,
+            fontFamily: "Nunito",
+          }}>
+            {isLoadingResultados ? "..." : calculateAllAround().toFixed(1)}
           </Text>
         </View>
 
-        {/* Puntajes por Aparato */}
-        <View
-          style={{
-            marginHorizontal: responsive.spacing.md,
-            marginTop: responsive.spacing.md,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: responsive.fontSize.lg,
-              fontWeight: "700",
-              color: getColor.primary[600],
-              fontFamily: "Nunito",
-              marginBottom: responsive.spacing.md,
-              textAlign: "center",
-            }}
-          >
-            📈 RENDIMIENTO POR APARATO
+        <View style={{
+          marginHorizontal: responsive.spacing.md,
+          marginTop: responsive.spacing.md,
+        }}>
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: "700",
+            color: getColor.primary[600],
+            fontFamily: "Nunito",
+            marginBottom: responsive.spacing.md,
+            textAlign: "center",
+          }}>
+            RENDIMIENTO POR APARATO
           </Text>
 
-          {(
-            Object.entries(campeonatoActual.puntajes) as [AparatoGAF, number][]
-          ).map(([aparato, puntaje]) => {
-            const posicionAparato = campeonatoActual.posicionAparatos[aparato];
-            const porcentaje = (puntaje / 10) * 100; // Asumiendo puntaje máximo de 10
+          {isLoadingResultados ? (
+            <View style={{
+              padding: responsive.spacing.xl,
+              alignItems: "center",
+            }}>
+              <ActivityIndicator size="small" color={getColor.primary[500]} />
+              <Text style={{
+                fontSize: responsive.fontSize.base,
+                color: getColor.gray[500],
+                fontFamily: "Nunito",
+                marginTop: responsive.spacing.sm,
+              }}>
+                Cargando rendimiento...
+              </Text>
+            </View>
+          ) : (
+            resultados.map((resultado) => {
+              const porcentaje = (resultado.puntaje / 10) * 100;
 
-            return (
-              <View
-                key={aparato}
-                style={{
-                  backgroundColor: getColor.background.primary,
-                  borderRadius: 12,
-                  padding: responsive.spacing.md,
-                  marginBottom: responsive.spacing.sm,
-                  shadowColor: getColor.gray[400],
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 3,
-                  elevation: 2,
-                  borderWidth: 1,
-                  borderColor: getColor.gray[100],
-                }}
-              >
-                {/* Header del aparato */}
+              return (
                 <View
+                  key={resultado.aparato}
                   style={{
+                    backgroundColor: getColor.background.primary,
+                    borderRadius: 12,
+                    padding: responsive.spacing.md,
+                    marginBottom: responsive.spacing.sm,
+                    shadowColor: getColor.gray[400],
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3,
+                    elevation: 2,
+                    borderWidth: 1,
+                    borderColor: getColor.gray[100],
+                  }}
+                >
+                  <View style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "center",
                     marginBottom: responsive.spacing.sm,
-                  }}
-                >
-                  <Text
-                    style={{
+                  }}>
+                    <Text style={{
                       fontSize: responsive.fontSize.lg,
                       fontWeight: "700",
                       color: getColor.primary[600],
                       fontFamily: "Nunito",
-                    }}
-                  >
-                    {getAparatoDisplayName(aparato)}
-                  </Text>
+                    }}>
+                      {getAparatoDisplayName(resultado.aparato)}
+                    </Text>
 
-                  <View
-                    style={{
+                    <View style={{
                       flexDirection: "row",
                       alignItems: "center",
                       gap: responsive.spacing.xs,
-                    }}
-                  >
-                    <Text
-                      style={{
+                    }}>
+                      <Text style={{
                         fontSize: responsive.fontSize.xl,
                         fontWeight: "700",
                         color: getColor.gray[800],
                         fontFamily: "Nunito",
-                      }}
-                    >
-                      {puntaje.toFixed(1)}
-                    </Text>
-                    <View
-                      style={{
-                        backgroundColor: getPositionColor(posicionAparato),
+                      }}>
+                        {resultado.puntaje.toFixed(1)}
+                      </Text>
+                      <View style={{
+                        backgroundColor: getPositionColor(resultado.puesto),
                         borderRadius: 16,
                         paddingHorizontal: responsive.spacing.xs,
                         paddingVertical: 4,
                         minWidth: 32,
                         alignItems: "center",
-                      }}
-                    >
-                      <Text
-                        style={{
+                      }}>
+                        <Text style={{
                           fontSize: responsive.fontSize.xs,
                           fontWeight: "700",
                           color: getColor.background.primary,
                           fontFamily: "Nunito",
-                        }}
-                      >
-                        #{posicionAparato}
-                      </Text>
+                        }}>
+                          #{resultado.puesto}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                {/* Barra de progreso */}
-                <View
-                  style={{
+                  <View style={{
                     backgroundColor: getColor.gray[200],
                     borderRadius: 8,
                     height: 8,
                     overflow: "hidden",
                     marginBottom: responsive.spacing.xs,
-                  }}
-                >
-                  <View
-                    style={{
+                  }}>
+                    <View style={{
                       backgroundColor: getColor.secondary[500],
                       height: "100%",
                       width: `${porcentaje}%`,
                       borderRadius: 8,
-                    }}
-                  />
-                </View>
+                    }} />
+                  </View>
 
-                {/* Indicadores de escala */}
-                <View
-                  style={{
+                  <View style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
-                  }}
-                >
-                  <Text
-                    style={{
+                  }}>
+                    <Text style={{
                       fontSize: responsive.fontSize.xs,
                       color: getColor.gray[400],
                       fontFamily: "Nunito",
-                    }}
-                  >
-                    0.0
-                  </Text>
-                  <Text
-                    style={{
+                    }}>
+                      0.0
+                    </Text>
+                    <Text style={{
                       fontSize: responsive.fontSize.xs,
                       color: getColor.gray[400],
                       fontFamily: "Nunito",
-                    }}
-                  >
-                    5.0
-                  </Text>
-                  <Text
-                    style={{
+                    }}>
+                      5.0
+                    </Text>
+                    <Text style={{
                       fontSize: responsive.fontSize.xs,
                       color: getColor.gray[400],
                       fontFamily: "Nunito",
-                    }}
-                  >
-                    10.0
-                  </Text>
+                    }}>
+                      10.0
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </View>
       </ScrollView>
     </BaseLayout>

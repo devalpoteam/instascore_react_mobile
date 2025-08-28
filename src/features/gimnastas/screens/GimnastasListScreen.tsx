@@ -11,13 +11,11 @@ import SmartSearchBar from '../components/SmartSearchBar';
 import GimnastaCard from '../components/GimnastaCard';
 import { fuzzySearch } from '../utils/enhancedSearch';
 
-// Servicio integrado
 import { gimnastasService, type GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
 import { MainStackParamList } from '@/navigation/MainNavigator';
 
 type GimnastasListNavigationProp = NavigationProp<MainStackParamList>;
 
-// Estado simplificado solo para búsqueda
 interface GimnastasState {
   gimnastas: GimnastaListItem[];
   filteredGimnastas: GimnastaListItem[];
@@ -46,10 +44,8 @@ export default function GimnastasListScreen() {
     totalCount: 0,
   });
 
-  // Debounce para búsqueda
   const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // Cargar datos iniciales
   useEffect(() => {
     loadGimnastas();
   }, []);
@@ -60,27 +56,12 @@ export default function GimnastasListScreen() {
     try {
       const gimnastasFromService = await gimnastasService.getTodosGimnastas();
       
-      // Convertir a formato compatible con los componentes
-      const gimnastas: GimnastaListItem[] = gimnastasFromService.map(g => ({
-        ...g,
-        rut: `${g.id.slice(0, 8)}-${g.id.slice(8, 9)}`, // Mock RUT desde ID
-        mejorPosicion: Math.floor(Math.random() * 10) + 1, // Mock posición
-        mejorAllAround: Math.round((Math.random() * 3 + 7) * 10) / 10, // Mock score
-        ultimoCampeonato: {
-          ...g.ultimoCampeonato,
-          posicion: Math.floor(Math.random() * 10) + 1,
-          allAround: Math.round((Math.random() * 3 + 7) * 10) / 10,
-        },
-        categoriasCompetidas: [g.categoria],
-        clubes: [g.club],
-      }));
-      
       setState(prev => ({
         ...prev,
-        gimnastas,
-        filteredGimnastas: gimnastas.slice(0, 25),
-        totalCount: gimnastas.length,
-        hasMore: gimnastas.length > 25,
+        gimnastas: gimnastasFromService,
+        filteredGimnastas: gimnastasFromService.slice(0, 25),
+        totalCount: gimnastasFromService.length,
+        hasMore: gimnastasFromService.length > 25,
         isLoading: false,
         error: null,
       }));
@@ -97,13 +78,11 @@ export default function GimnastasListScreen() {
     }
   };
 
-  // Función de búsqueda simplificada
   const performSearch = useMemo(() => {
     return (searchTerm: string) => {
       setState(prev => ({ ...prev, isLoading: true }));
       
       setTimeout(() => {
-        // Aplicar búsqueda fuzzy
         let resultados = fuzzySearch(state.gimnastas, searchTerm, 0.2);
         
         setState(prev => ({
@@ -121,7 +100,6 @@ export default function GimnastasListScreen() {
   const handleSearchChange = (searchTerm: string) => {
     setState(prev => ({ ...prev, searchTerm }));
 
-    // Debounce la búsqueda
     if (searchDebounceTimer) {
       clearTimeout(searchDebounceTimer);
     }
@@ -168,7 +146,6 @@ export default function GimnastasListScreen() {
     loadGimnastas();
   };
 
-  // Renderizar estado de error
   const renderErrorState = () => (
     <View style={{
       flex: 1,
@@ -225,7 +202,6 @@ export default function GimnastasListScreen() {
     </View>
   );
 
-  // Renderizar empty state mejorado
   const renderEmptyState = () => (
     <View style={{
       flex: 1,
@@ -266,7 +242,6 @@ export default function GimnastasListScreen() {
         }
       </Text>
       
-      {/* Sugerencias de búsqueda en empty state */}
       {!state.searchTerm && (
         <View style={{
           backgroundColor: getColor.primary[50],
@@ -291,14 +266,13 @@ export default function GimnastasListScreen() {
             textAlign: 'center',
             lineHeight: responsive.fontSize.sm * 1.4,
           }}>
-            "amanda", "copa 2024", "club valparaíso"
+            "Julieta", "USAG", "Delegacion de Matias"
           </Text>
         </View>
       )}
     </View>
   );
 
-  // Renderizar loading state
   const renderLoadingState = () => (
     <View style={{
       flex: 1,
@@ -318,7 +292,6 @@ export default function GimnastasListScreen() {
     </View>
   );
 
-  // Renderizar footer de carga
   const renderFooter = () => {
     if (!state.isLoadingMore) return null;
     
@@ -349,17 +322,15 @@ export default function GimnastasListScreen() {
         showLogo={false}
       />
 
-      {/* Búsqueda inteligente */}
       <SmartSearchBar
         value={state.searchTerm}
         onChangeText={handleSearchChange}
         onSuggestionSelect={handleSuggestionSelect}
         gimnastas={state.gimnastas}
         placeholder="Buscar gimnasta, club, categoría o campeonato..."
-        isLoading={state.isLoading}
+        isLoading={false}
       />
 
-      {/* Estados de la pantalla */}
       {state.error ? (
         renderErrorState()
       ) : state.isLoading && !state.filteredGimnastas.length ? (

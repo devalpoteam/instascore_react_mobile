@@ -37,6 +37,7 @@ type LiveResultsRouteProp = RouteProp<
 
 interface LiveResultsState {
   resultadosCompletos: ResultadoIndividual[];
+  resultadosAllAround: ResultadoIndividual[];
   equipos: ResultadoEquipo[];
   aparatos: string[];
   aparatoSeleccionado: string;
@@ -70,6 +71,7 @@ export default function LiveResultsScreen() {
 
   const [state, setState] = useState<LiveResultsState>({
     resultadosCompletos: [],
+    resultadosAllAround: [],
     equipos: [],
     aparatos: [],
     aparatoSeleccionado: "",
@@ -82,19 +84,24 @@ export default function LiveResultsScreen() {
   });
 
   useEffect(() => {
-    loadResultados();
+    const loadInitialData = async () => {
+      await loadResultados('aparato');
+      await loadResultados('all around');
+    };
+    loadInitialData();
   }, [campeonatoId, categoriaId, nivelId, franjaId]);
 
-  const loadResultados = async () => {
+  const loadResultados = async (modalidad: 'aparato' | 'all around' = 'aparato') => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      const [individuales, equipos] = await Promise.all([
+      const [resultados, equipos] = await Promise.all([
         resultadosService.getResultadosIndividuales({
           campeonatoId,
           categoriaId,
           nivelId,
-          franjaId
+          franjaId,
+          modalidad
         }),
         resultadosService.getResultadosEquipos({
           campeonatoId,
@@ -104,14 +111,17 @@ export default function LiveResultsScreen() {
         })
       ]);
 
-      const aparatosUnicos = [...new Set(individuales.map(r => r.aparato))].sort();
+      const aparatosUnicos = modalidad === 'aparato' 
+        ? [...new Set(resultados.map(r => r.aparato))].sort()
+        : [];
 
       setState((prev) => ({
         ...prev,
-        resultadosCompletos: individuales,
+        resultadosCompletos: modalidad === 'aparato' ? resultados : prev.resultadosCompletos,
+        resultadosAllAround: modalidad === 'all around' ? resultados : prev.resultadosAllAround,
         equipos,
-        aparatos: aparatosUnicos,
-        aparatoSeleccionado: aparatosUnicos[0] || "",
+        aparatos: modalidad === 'aparato' ? aparatosUnicos : prev.aparatos,
+        aparatoSeleccionado: modalidad === 'aparato' ? (aparatosUnicos[0] || "") : prev.aparatoSeleccionado,
         isLoading: false,
       }));
     } catch (error: any) {
@@ -125,7 +135,8 @@ export default function LiveResultsScreen() {
 
   const handleRefresh = async () => {
     setState((prev) => ({ ...prev, isRefreshing: true }));
-    await loadResultados();
+    await loadResultados('aparato');
+    await loadResultados('all around');
     setState((prev) => ({ ...prev, isRefreshing: false }));
   };
 
@@ -149,7 +160,13 @@ export default function LiveResultsScreen() {
     r => r.aparato === state.aparatoSeleccionado
   );
 
-  const gimnastasToShow = isPro ? gimnastasDelAparato : gimnastasDelAparato.slice(0, 3);
+  const gimnastasAllAround = state.resultadosAllAround;
+
+  const gimnastasActuales = state.vistaSeleccionada === 'allaround' 
+    ? gimnastasAllAround 
+    : gimnastasDelAparato;
+
+  const gimnastasToShow = isPro ? gimnastasActuales : gimnastasActuales.slice(0, 3);
   const equiposToShow = isPro ? state.equipos : state.equipos.slice(0, 3);
 
   const getDisplayTexts = () => {
@@ -254,6 +271,25 @@ export default function LiveResultsScreen() {
                     fontFamily: "Nunito",
                   }}>
                     Por Equipos
+                  </Text>
+                </View>
+              </>
+            ) : state.vistaSeleccionada === 'allaround' ? (
+              <>
+                <Ionicons
+                  name="trophy"
+                  size={30}
+                  color={isFinished ? getColor.gray[600] : getColor.secondary[700]}
+                  style={{ marginRight: responsive.spacing.sm }}
+                />
+                <View>
+                  <Text style={{
+                    fontSize: responsive.fontSize.lg,
+                    fontWeight: "800",
+                    color: isFinished ? getColor.gray[700] : getColor.secondary[700],
+                    fontFamily: "Nunito",
+                  }}>
+                    All Around
                   </Text>
                 </View>
               </>
@@ -483,7 +519,7 @@ export default function LiveResultsScreen() {
                 alignItems: "center",
                 marginTop: responsive.spacing.lg,
               }}>
-                <Ionicons name="people-outline" size={48} color={getColor.gray[400]} />
+                <Ionicons name="time-outline" size={48} color={getColor.gray[400]} />
                 <Text style={{
                   fontSize: responsive.fontSize.base,
                   fontWeight: "600",
@@ -492,11 +528,11 @@ export default function LiveResultsScreen() {
                   marginTop: responsive.spacing.md,
                   fontFamily: "Nunito",
                 }}>
-                  Sin datos de equipos
+                  No hay puntajes disponibles en este momento. Vuelve más tarde.
                 </Text>
               </View>
             )
-          ) : (
+          ) : gimnastasActuales.length > 0 ? (
             <>
               {gimnastasToShow.map((resultado, index) => (
                 <CompactResultCard
@@ -509,7 +545,7 @@ export default function LiveResultsScreen() {
                 />
               ))}
 
-              {!isPro && gimnastasDelAparato.length > 3 && (
+              {!isPro && gimnastasActuales.length > 3 && (
                 <TouchableOpacity
                   style={{
                     backgroundColor: getColor.gray[50],
@@ -531,11 +567,31 @@ export default function LiveResultsScreen() {
                     marginTop: responsive.spacing.xs,
                     fontFamily: "Nunito",
                   }}>
-                    +{gimnastasDelAparato.length - 3} resultados más en Pro
+                    +{gimnastasActuales.length - 3} resultados más en Pro
                   </Text>
                 </TouchableOpacity>
               )}
             </>
+          ) : (
+            <View style={{
+              backgroundColor: getColor.gray[50],
+              borderRadius: 12,
+              padding: responsive.spacing.xl,
+              alignItems: "center",
+              marginTop: responsive.spacing.lg,
+            }}>
+              <Ionicons name="time-outline" size={48} color={getColor.gray[400]} />
+              <Text style={{
+                fontSize: responsive.fontSize.base,
+                fontWeight: "600",
+                color: getColor.gray[600],
+                textAlign: "center",
+                marginTop: responsive.spacing.md,
+                fontFamily: "Nunito",
+              }}>
+                No hay puntajes disponibles en este momento. Vuelve más tarde.
+              </Text>
+            </View>
           )}
         </View>
 

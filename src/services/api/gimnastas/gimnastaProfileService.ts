@@ -21,24 +21,27 @@ interface GimnastaPerfilApiResponse {
   };
 }
 
-interface GimnastaPerfil {
-  id: string;
-  nombre: string;
-  rut: string;
-  club: string;
-  año: number;
-  categoria: string;
-  nivel: string;
-  franja: string;
-  ultimoCampeonato: {
-    fecha: string;
+  interface GimnastaPerfil {
+    id: string;
+    nombre: string;
+    rut: string;
+    club: string;
+    año: number;
     categoria: string;
     nivel: string;
     franja: string;
-    posicion: number;
-    allAround: number;
-  };
-}
+    ultimoCampeonato: {
+      fecha: string;
+      categoria: string;
+      categoriaId: string;
+      nivel: string;
+      nivelId: string;
+      franja: string;
+      franjaId: string;
+      posicion: number;
+      allAround: number;
+    };
+  }
 
 class GimnastaProfileService {
   async getGimnastaPerfil(gimnastaId: string): Promise<GimnastaPerfil> {
@@ -67,8 +70,11 @@ class GimnastaProfileService {
       ultimoCampeonato: {
         fecha: apiData.ultimoCampeonato.fecha,
         categoria: apiData.ultimoCampeonato.categoria,
+        categoriaId: apiData.ultimoCampeonato.categoriaId,
         nivel: apiData.ultimoCampeonato.nivel,
+        nivelId: apiData.ultimoCampeonato.nivelId,
         franja: apiData.ultimoCampeonato.franja,
+        franjaId: apiData.ultimoCampeonato.franjaId,
         posicion: apiData.ultimoCampeonato.puesto,
         allAround: apiData.ultimoCampeonato.AllAround,
       }

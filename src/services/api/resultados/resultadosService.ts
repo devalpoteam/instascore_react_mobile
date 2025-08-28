@@ -6,11 +6,18 @@ interface ResultadoIndividualAPI {
   aparato: string;
   gimnasta: string;
   delegacion: string;
+  categoria: string;
   nivel: string;
   franja: string;
   subdivision: string;
   puntaje: number;
   puesto: number;
+  IdCampeonato: string;
+  IdCategoria: string;
+  IdNivel: string;
+  IdFranja: string;
+  nombreCampeonato: string;
+  IdParticipante: string;
 }
 
 interface ResultadoEquipoAPI {
@@ -28,11 +35,18 @@ interface ResultadoIndividual {
   aparato: string;
   gimnasta: string;
   delegacion: string;
+  categoria: string;
   nivel: string;
   franja: string;
   subdivision: string;
   puntaje: number;
   puesto: number;
+  idCampeonato: string;
+  idCategoria: string;
+  idNivel: string;
+  idFranja: string;
+  nombreCampeonato: string;
+  idParticipante: string;
 }
 
 interface ResultadoEquipo {
@@ -51,18 +65,26 @@ interface GetResultadosParams {
   categoriaId: string;
   nivelId: string;
   franjaId: string;
+  participanteId?: string;
+  modalidad?: 'aparato' | 'all around';
 }
 
 export const resultadosService = {
-  async getResultadosIndividuales({ campeonatoId, categoriaId, nivelId, franjaId }: GetResultadosParams): Promise<ResultadoIndividual[]> {
+  async getResultadosIndividuales({
+    campeonatoId, categoriaId, nivelId, franjaId, participanteId, modalidad = 'aparato'
+  }: GetResultadosParams): Promise<ResultadoIndividual[]> {
     try {
       const queryParams = new URLSearchParams({
         campeonatoId,
-        modalidad: 'aparato',
+        modalidad,          // <<--- USAR EL PARAMETRO
         categoriaId,
         nivelId,
         franjaId
       });
+
+      if (participanteId) {
+        queryParams.append('participanteId', participanteId);
+      }
 
       const response = await apiClient.get<ResultadoIndividualAPI[]>(
         `${API_CONFIG.ENDPOINTS.RESULTADOS.INDIVIDUALES}?${queryParams.toString()}`
@@ -72,11 +94,18 @@ export const resultadosService = {
         aparato: resultado.aparato,
         gimnasta: resultado.gimnasta,
         delegacion: resultado.delegacion,
+        categoria: resultado.categoria,
         nivel: resultado.nivel,
         franja: resultado.franja,
         subdivision: resultado.subdivision,
         puntaje: resultado.puntaje,
-        puesto: resultado.puesto
+        puesto: resultado.puesto,
+        idCampeonato: resultado.IdCampeonato,
+        idCategoria: resultado.IdCategoria,
+        idNivel: resultado.IdNivel,
+        idFranja: resultado.IdFranja,
+        nombreCampeonato: resultado.nombreCampeonato,
+        idParticipante: resultado.IdParticipante
       }));
     } catch (error: any) {
       const serverMessage = error.response?.data?.message;

@@ -46,7 +46,6 @@ export default function GimnastaCard({ gimnasta, onPress }: GimnastaCardProps) {
         padding: responsive.spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
-        // Sombra sutil
         shadowColor: getColor.gray[400],
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -58,12 +57,11 @@ export default function GimnastaCard({ gimnasta, onPress }: GimnastaCardProps) {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      {/* Avatar con iniciales */}
       <View style={{
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: gimnasta.esMedallista ? getColor.primary[500] : getColor.gray[300],
+        backgroundColor: getColor.primary[500],
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: responsive.spacing.md,
@@ -78,9 +76,7 @@ export default function GimnastaCard({ gimnasta, onPress }: GimnastaCardProps) {
         </Text>
       </View>
 
-      {/* Información principal */}
       <View style={{ flex: 1 }}>
-        {/* Nombre del gimnasta - más grande */}
         <Text style={{
           fontSize: responsive.fontSize.lg,
           fontWeight: '700',
@@ -91,17 +87,15 @@ export default function GimnastaCard({ gimnasta, onPress }: GimnastaCardProps) {
           {gimnasta.nombre}
         </Text>
 
-        {/* Último campeonato y categoría */}
         <Text style={{
           fontSize: responsive.fontSize.sm,
           color: getColor.primary[600],
           fontFamily: 'Nunito',
           marginBottom: 4,
         }}>
-          {formatCampeonatoName(gimnasta.ultimoCampeonato.nombre)} • {gimnasta.ultimoCampeonato.categoria} {gimnasta.ultimoCampeonato.nivel}
+          {formatCampeonatoName(gimnasta.ultimoCampeonato.nombre)} • {gimnasta.categoria} {gimnasta.nivel}
         </Text>
 
-        {/* Club/Delegación - más grande */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -124,7 +118,6 @@ export default function GimnastaCard({ gimnasta, onPress }: GimnastaCardProps) {
         </View>
       </View>
 
-      {/* Flecha indicadora */}
       <View style={{
         marginLeft: responsive.spacing.sm,
       }}>
