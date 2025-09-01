@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean
   token: string | null
   user: User | null
+  userId: string | null
   isPro: boolean
   isLoading: boolean
   error: string | null
@@ -24,6 +25,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   token: null,
   user: null,
+  userId: null,
   isPro: false,
   isLoading: false,
   error: null
@@ -46,6 +48,7 @@ export const loginAsync = createAsyncThunk(
         await saveToken(token);
         return {
           token,
+          userId: 'dev-user-id',
           user: {
             id: 'dev-user-id',
             email: 'dev@test.com',
@@ -60,6 +63,7 @@ export const loginAsync = createAsyncThunk(
         await saveToken(token);
         return {
           token,
+          userId: 'premium-user-id',
           user: {
             id: 'premium-user-id',
             email: 'premium@test.com',
@@ -73,11 +77,12 @@ export const loginAsync = createAsyncThunk(
       await saveToken(response.token);
       return {
         token: response.token,
+        userId: response.userId,
         user: {
-          id: '',
+          id: response.userId,
           email: credentials.email,
           name: credentials.email,
-          isPro: false
+          isPro: response.premium
         }
       };
     } catch (error: any) {
@@ -103,11 +108,12 @@ export const registerAsync = createAsyncThunk(
       
       return {
         token: loginResponse.token,
+        userId: loginResponse.userId,
         user: {
-          id: '',
+          id: loginResponse.userId,
           email: userData.email,
           name: userData.fullName,
-          isPro: false
+          isPro: loginResponse.premium
         }
       };
     } catch (error: any) {
@@ -131,10 +137,11 @@ export const authSlice = createSlice({
       state.isLoading = true;
       state.error = null;
     },
-    loginSuccess: (state, action: PayloadAction<{token: string, user: User}>) => {
+    loginSuccess: (state, action: PayloadAction<{token: string, userId: string, user: User}>) => {
       state.isAuthenticated = true;
       state.token = action.payload.token;
       state.user = action.payload.user;
+      state.userId = action.payload.userId;
       state.isPro = action.payload.user.isPro;
       state.isLoading = false;
       state.error = null;
@@ -145,6 +152,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
+      state.userId = null;
       state.isPro = false;
       state.isLoading = false;
       state.error = action.payload;
@@ -153,10 +161,11 @@ export const authSlice = createSlice({
       state.isLoading = true;
       state.error = null;
     },
-    registerSuccess: (state, action: PayloadAction<{token: string, user: User}>) => {
+    registerSuccess: (state, action: PayloadAction<{token: string, userId: string, user: User}>) => {
       state.isAuthenticated = true;
       state.token = action.payload.token;
       state.user = action.payload.user;
+      state.userId = action.payload.userId;
       state.isPro = action.payload.user.isPro;
       state.isLoading = false;
       state.error = null;
@@ -167,6 +176,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
+      state.userId = null;
       state.isPro = false;
       state.isLoading = false;
       state.error = action.payload;
@@ -176,6 +186,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
+      state.userId = null;
       state.isPro = false;
       state.isLoading = false;
       state.error = null;
@@ -194,6 +205,7 @@ export const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.userId = action.payload.userId;
         state.isPro = action.payload.user.isPro;
         state.isLoading = false;
         state.error = null;
@@ -202,6 +214,7 @@ export const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.userId = null;
         state.isPro = false;
         state.isLoading = false;
         state.error = action.payload as string;
@@ -214,6 +227,7 @@ export const authSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload.user;
+        state.userId = action.payload.userId;
         state.isPro = action.payload.user.isPro;
         state.isLoading = false;
         state.error = null;
@@ -222,6 +236,7 @@ export const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.userId = null;
         state.isPro = false;
         state.isLoading = false;
         state.error = action.payload as string;
@@ -230,6 +245,7 @@ export const authSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+        state.userId = null;
         state.isPro = false;
       });
   }

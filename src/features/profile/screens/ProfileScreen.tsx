@@ -5,11 +5,14 @@ import {
   ScrollView, 
   RefreshControl, 
   Alert,
-  ActivityIndicator 
+  ActivityIndicator,
+  Text,
+  TouchableOpacity
 } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { logout } from '@/features/auth/store/authSlice';
+import { userProfileService, UserProfile as ApiUserProfile } from '@/services/api/users/userProfileService';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import { useNotifications } from '@/shared/hooks/useNotifications';
@@ -28,7 +31,6 @@ import {
   UserProfile, 
   ProfileScreenState 
 } from '../types/profile.types';
-import { mockUserProfile } from '../data/mockProfileData';
 
 type ProfileNavigationProp = NavigationProp<MainStackParamList>;
 
@@ -41,7 +43,7 @@ export default function ProfileScreen() {
   const { unreadCount, handleNotificationPress } = useNotifications();
   
   // Redux state
-  const { user: authUser, isPro } = useAppSelector(state => state.auth);
+  const { user: authUser, userId, isPro } = useAppSelector(state => state.auth);
 
   // ✅ ESTADO SIMPLIFICADO - SIN FAVORITOS
   const [state, setState] = useState<Omit<ProfileScreenState, 'favorites'>>({
@@ -60,26 +62,40 @@ export default function ProfileScreen() {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      if (!userId) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'No se pudo identificar tu usuario. Por favor inicia sesión nuevamente.',
+        }));
+        return;
+      }
+
+      // Call real API service
+      const apiProfileData = await userProfileService.getProfile(userId);
       
-      // Usar datos mock (en producción vendría del backend)
-      const profileData = {
-        ...mockUserProfile,
-        ...authUser, // Override con datos reales del auth
-        isPro: isPro,
-      } as UserProfile;
+      // Convert API response to local UserProfile format
+      const profileData: UserProfile = {
+        id: apiProfileData.userId,
+        name: apiProfileData.fullName,
+        email: apiProfileData.email,
+        gender: apiProfileData.sexo === 'Masculino' ? 'masculino' : 
+               apiProfileData.sexo === 'Femenino' ? 'femenino' : 'otro',
+        age: parseInt(apiProfileData.edad),
+        isPro: apiProfileData.premium,
+      };
 
       setState(prev => ({
         ...prev,
         user: profileData,
         isLoading: false,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading profile:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,
+        error: error.message || 'Error al cargar el perfil. Intenta de nuevo.',
       }));
     }
   };
@@ -156,7 +172,7 @@ export default function ProfileScreen() {
     );
   }
 
-  if (!state.user) {
+  if (!state.user && state.error) {
     return (
       <BaseLayout>
         <Header 
@@ -166,6 +182,40 @@ export default function ProfileScreen() {
           onNotificationPress={handleNotificationPress}
           notificationCount={unreadCount}
         />
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: responsive.spacing.xl,
+        }}>
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            color: getColor.gray[600],
+            textAlign: 'center',
+            marginBottom: responsive.spacing.lg,
+            fontFamily: 'Nunito',
+          }}>
+            {state.error}
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: getColor.primary[500],
+              paddingHorizontal: responsive.spacing.lg,
+              paddingVertical: responsive.spacing.md,
+              borderRadius: 12,
+            }}
+            onPress={loadProfileData}
+          >
+            <Text style={{
+              color: getColor.background.primary,
+              fontSize: responsive.fontSize.base,
+              fontWeight: '600',
+              fontFamily: 'Nunito',
+            }}>
+              Intentar de nuevo
+            </Text>
+          </TouchableOpacity>
+        </View>
       </BaseLayout>
     );
   }

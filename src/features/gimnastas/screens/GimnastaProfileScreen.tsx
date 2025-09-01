@@ -34,6 +34,7 @@ export default function GimnastaProfileScreen() {
   const [resultados, setResultados] = useState<ResultadoIndividual[]>([]);
   const [campeonatoSeleccionado, setCampeonatoSeleccionado] = useState<number>(0);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [datosActuales, setDatosActuales] = useState<GimnastaPerfil | null>(null);
   
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingCampeonatos, setIsLoadingCampeonatos] = useState(false);
@@ -51,6 +52,9 @@ export default function GimnastaProfileScreen() {
         if (perfilData.rut) {
           await loadCampeonatos(perfilData.rut);
         }
+        
+        // Establecer datos actuales con el perfil inicial
+        setDatosActuales(perfilData);
       } catch (err: any) {
         setError(err.message || 'Error al cargar perfil del gimnasta');
       } finally {
@@ -83,16 +87,20 @@ export default function GimnastaProfileScreen() {
     try {
       setIsLoadingResultados(true);
       
+      // Obtener el perfil específico de esta participación para obtener los IDs correctos
+      const perfilParticipacion = await gimnastaProfileService.getGimnastaPerfil(campeonato.participante.idParticipante);
+      
       const resultadosData = await resultadosService.getResultadosIndividuales({
         campeonatoId: campeonato.campeonatoId,
-        categoriaId: gimnasta.ultimoCampeonato.categoriaId,
-        nivelId: gimnasta.ultimoCampeonato.nivelId,
-        franjaId: gimnasta.ultimoCampeonato.franjaId,
+        categoriaId: perfilParticipacion.ultimoCampeonato.categoriaId,
+        nivelId: perfilParticipacion.ultimoCampeonato.nivelId,
+        franjaId: perfilParticipacion.ultimoCampeonato.franjaId,
         participanteId: campeonato.participante.idParticipante
       });
       
       setResultados(resultadosData);
       setCampeonatoSeleccionado(index);
+      setDatosActuales(perfilParticipacion);
     } catch (err: any) {
       console.error('Error al cargar resultados:', err.message);
       setResultados([]);
@@ -236,9 +244,11 @@ export default function GimnastaProfileScreen() {
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
+                opacity: isLoadingResultados ? 0.6 : 1,
               }}
-              onPress={() => setDropdownVisible(!dropdownVisible)}
+              onPress={() => !isLoadingResultados && setDropdownVisible(!dropdownVisible)}
               activeOpacity={0.7}
+              disabled={isLoadingResultados}
             >
               <View style={{ flex: 1 }}>
                 <Text style={{
@@ -255,15 +265,19 @@ export default function GimnastaProfileScreen() {
                   fontFamily: "Nunito",
                   marginTop: 2,
                 }}>
-                  {campeonatos[campeonatoSeleccionado]?.estado}
+                  {isLoadingResultados ? "Cargando..." : campeonatos[campeonatoSeleccionado]?.estado}
                 </Text>
               </View>
 
-              <Ionicons
-                name={dropdownVisible ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={getColor.primary[500]}
-              />
+              {isLoadingResultados ? (
+                <ActivityIndicator size="small" color={getColor.primary[500]} />
+              ) : (
+                <Ionicons
+                  name={dropdownVisible ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color={getColor.primary[500]}
+                />
+              )}
             </TouchableOpacity>
 
             {dropdownVisible && (
@@ -402,9 +416,9 @@ export default function GimnastaProfileScreen() {
               {gimnasta?.nombre}
             </Text>
 
-            {gimnasta && (
+            {datosActuales && datosActuales.ultimoCampeonato.posicion && (
               <View style={{
-                backgroundColor: getPositionColor(gimnasta.ultimoCampeonato.posicion),
+                backgroundColor: getPositionColor(datosActuales.ultimoCampeonato.posicion),
                 borderRadius: 20,
                 paddingHorizontal: responsive.spacing.md,
                 paddingVertical: responsive.spacing.sm,
@@ -423,7 +437,7 @@ export default function GimnastaProfileScreen() {
                   color: getColor.background.primary,
                   fontFamily: "Nunito",
                 }}>
-                  {gimnasta.ultimoCampeonato.posicion}° Lugar
+                  {datosActuales.ultimoCampeonato.posicion}° Lugar
                 </Text>
               </View>
             )}
@@ -517,7 +531,7 @@ export default function GimnastaProfileScreen() {
                     color: getColor.gray[800],
                     fontFamily: "Nunito",
                   }}>
-                    {gimnasta.categoria} {gimnasta.nivel}
+                    {datosActuales ? `${datosActuales.categoria} ${datosActuales.nivel}` : `${gimnasta.categoria} ${gimnasta.nivel}`}
                   </Text>
                 </View>
               </View>

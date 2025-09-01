@@ -1,15 +1,17 @@
 // src/features/profile/screens/ConfiguracionesScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   ScrollView, 
   Text,
   TextInput,
   TouchableOpacity,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '@/store/hooks';
+import { userProfileService } from '@/services/api/users/userProfileService';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import { useNotifications } from '@/shared/hooks/useNotifications';
@@ -20,8 +22,8 @@ import BaseLayout from '@/shared/components/layout/BaseLayout';
 import Header from '@/shared/components/layout/Header';
 
 const genderOptions = [
-  { value: "M", label: "Masculino", icon: "man-outline" },
-  { value: "F", label: "Femenino", icon: "woman-outline" },
+  { value: "masculino", label: "Masculino", icon: "man-outline" },
+  { value: "femenino", label: "Femenino", icon: "woman-outline" },
 ];
 
 export default function ConfiguracionesScreen() {
@@ -29,15 +31,35 @@ export default function ConfiguracionesScreen() {
   const responsive = useResponsive();
   
   const { unreadCount, handleNotificationPress } = useNotifications();
-  const { user: authUser } = useAppSelector(state => state.auth);
+  const { user: authUser, userId } = useAppSelector(state => state.auth);
 
   // Estados para los formularios
   const [personalData, setPersonalData] = useState({
-    name: authUser?.name || '',
-    email: authUser?.email || '',
-    age: authUser?.age ? authUser.age.toString() : '',
-    gender: authUser?.gender || '',
+    fullName: '', // Vacío inicialmente
+    email: '', // Vacío inicialmente  
+    confirmEmail: '', // Vacío inicialmente
+    age: '', // Vacío inicialmente
+    gender: '', // Vacío inicialmente
   });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
+
+  // Cargar datos actuales del perfil para mostrar como referencia
+  useEffect(() => {
+    const loadCurrentProfile = async () => {
+      if (!userId) return;
+      
+      try {
+        const profile = await userProfileService.getProfile(userId);
+        setCurrentProfile(profile);
+      } catch (error) {
+        console.error('Error loading current profile:', error);
+      }
+    };
+    
+    loadCurrentProfile();
+  }, [userId]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -46,12 +68,102 @@ export default function ConfiguracionesScreen() {
   });
 
   // Handlers
-  const handleSavePersonalData = () => {
-    Alert.alert(
-      'Datos guardados',
-      'Tus datos personales han sido actualizados correctamente',
-      [{ text: 'OK' }]
-    );
+  const handleSavePersonalData = async () => {
+    // Verificar que se haya ingresado al menos un campo
+    const hasChanges = personalData.fullName || personalData.email || personalData.age || personalData.gender;
+    if (!hasChanges) {
+      Alert.alert(
+        'Sin cambios',
+        'Ingresa al menos un campo para actualizar'
+      );
+      return;
+    }
+
+    // Validation: si hay email, debe coincidir con confirmEmail
+    if (personalData.email || personalData.confirmEmail) {
+      if (personalData.email !== personalData.confirmEmail) {
+        Alert.alert(
+          'Error de validación',
+          'Los campos de correo electrónico no coinciden'
+        );
+        return;
+      }
+
+      // Validate email format si se proporciona
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (personalData.email && !emailRegex.test(personalData.email)) {
+        Alert.alert(
+          'Error de validación',
+          'Por favor ingresa un email válido'
+        );
+        return;
+      }
+    }
+
+    // Validate age si se proporciona
+    if (personalData.age) {
+      const age = parseInt(personalData.age);
+      if (isNaN(age) || age < 1 || age > 150) {
+        Alert.alert(
+          'Error de validación',
+          'Por favor ingresa una edad válida'
+        );
+        return;
+      }
+    }
+
+    if (!userId || !currentProfile) {
+      Alert.alert(
+        'Error',
+        'No se pudo identificar tu usuario. Por favor inicia sesión nuevamente.'
+      );
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Usar valores actuales como base y sobrescribir solo los campos modificados
+      const updateData = {
+        userId,
+        userName: personalData.email || currentProfile.email,
+        email: personalData.email || currentProfile.email,
+        fullName: personalData.fullName || currentProfile.fullName,
+        sexo: personalData.gender === 'masculino' ? 'Masculino' :
+              personalData.gender === 'femenino' ? 'Femenino' : 
+              currentProfile.sexo,
+        edad: personalData.age || currentProfile.edad,
+      };
+
+      await userProfileService.updateProfile(updateData);
+
+      Alert.alert(
+        'Datos guardados',
+        'Tus datos personales han sido actualizados correctamente',
+        [{ text: 'OK', onPress: () => {
+          // Limpiar el formulario después de guardar
+          setPersonalData({
+            fullName: '',
+            email: '',
+            confirmEmail: '',
+            age: '',
+            gender: '',
+          });
+          // Recargar perfil actual
+          if (userId) {
+            userProfileService.getProfile(userId).then(setCurrentProfile);
+          }
+        }}]
+      );
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'No se pudieron guardar los cambios. Intenta de nuevo.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangePassword = () => {
@@ -126,92 +238,107 @@ export default function ConfiguracionesScreen() {
           placeholderTextColor={getColor.gray[400]}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
       </View>
     </View>
   );
 
-  const renderGenderSelector = () => (
-    <View style={{ marginBottom: responsive.spacing.md }}>
-      <Text style={{
-        fontSize: responsive.fontSize.sm,
-        fontWeight: '600',
-        color: getColor.gray[700],
-        fontFamily: 'Nunito',
-        marginBottom: responsive.spacing.xs,
-      }}>
-        Género
-      </Text>
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: responsive.spacing.sm,
-      }}>
-        {genderOptions.map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={{
-              flex: 1,
-              height: 48,
-              borderRadius: 12,
-              backgroundColor: personalData.gender === option.value 
-                ? getColor.primary[500] 
-                : getColor.gray[50],
-              borderWidth: 1,
-              borderColor: personalData.gender === option.value 
-                ? getColor.primary[500] 
-                : getColor.gray[200],
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-            }}
-            onPress={() => setPersonalData({ ...personalData, gender: option.value })}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={option.icon as any}
-              size={20}
-              color={personalData.gender === option.value 
-                ? getColor.background.primary 
-                : getColor.gray[600]}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={{
-              fontSize: responsive.fontSize.sm,
-              fontWeight: '600',
-              color: personalData.gender === option.value 
-                ? getColor.background.primary 
-                : getColor.gray[600],
-              fontFamily: 'Nunito',
-            }}>
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+  const renderGenderSelector = () => {
+    const currentGender = currentProfile?.sexo === 'Masculino' ? 'masculino' : 
+                         currentProfile?.sexo === 'Femenino' ? 'femenino' : '';
+    
+    return (
+      <View style={{ marginBottom: responsive.spacing.md }}>
+        <Text style={{
+          fontSize: responsive.fontSize.sm,
+          fontWeight: '600',
+          color: getColor.gray[700],
+          fontFamily: 'Nunito',
+          marginBottom: responsive.spacing.xs,
+        }}>
+          Género {currentProfile && `(actual: ${currentProfile.sexo})`}
+        </Text>
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          gap: responsive.spacing.sm,
+        }}>
+          {genderOptions.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={{
+                flex: 1,
+                height: 48,
+                borderRadius: 12,
+                backgroundColor: personalData.gender === option.value 
+                  ? getColor.primary[500] 
+                  : getColor.gray[50],
+                borderWidth: 1,
+                borderColor: personalData.gender === option.value 
+                  ? getColor.primary[500] 
+                  : getColor.gray[200],
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+              }}
+              onPress={() => setPersonalData({ ...personalData, gender: option.value })}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={option.icon as any}
+                size={20}
+                color={personalData.gender === option.value 
+                  ? getColor.background.primary 
+                  : getColor.gray[600]}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={{
+                fontSize: responsive.fontSize.sm,
+                fontWeight: '600',
+                color: personalData.gender === option.value 
+                  ? getColor.background.primary 
+                  : getColor.gray[600],
+                fontFamily: 'Nunito',
+              }}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
-  const renderButton = (title: string, onPress: () => void, color: string) => (
+  const renderButton = (title: string, onPress: () => void, color: string, disabled?: boolean) => (
     <TouchableOpacity
       style={{
-        backgroundColor: color,
+        backgroundColor: disabled ? getColor.gray[300] : color,
         height: 50,
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: responsive.spacing.md,
+        flexDirection: 'row',
       }}
-      onPress={onPress}
-      activeOpacity={0.8}
+      onPress={disabled ? undefined : onPress}
+      activeOpacity={disabled ? 1 : 0.8}
     >
+      {disabled && (
+        <ActivityIndicator 
+          size="small" 
+          color={getColor.background.primary} 
+          style={{ marginRight: 8 }}
+        />
+      )}
       <Text style={{
         fontSize: responsive.fontSize.base,
         fontWeight: '600',
         color: getColor.background.primary,
         fontFamily: 'Nunito',
       }}>
-        {title}
+        {disabled ? 'Guardando...' : title}
       </Text>
     </TouchableOpacity>
   );
@@ -315,9 +442,9 @@ export default function ConfiguracionesScreen() {
           <View>
             {renderInput(
               'Nombre completo',
-              personalData.name,
-              (text) => setPersonalData({ ...personalData, name: text }),
-              'Tu nombre completo',
+              personalData.fullName,
+              (text) => setPersonalData({ ...personalData, fullName: text }),
+              currentProfile?.fullName || 'Tu nombre completo',
               false,
               'default',
               'person-outline'
@@ -327,7 +454,17 @@ export default function ConfiguracionesScreen() {
               'Correo electrónico',
               personalData.email,
               (text) => setPersonalData({ ...personalData, email: text }),
-              'tu@email.com',
+              currentProfile?.email || 'tu@email.com',
+              false,
+              'email-address',
+              'mail-outline'
+            )}
+
+            {renderInput(
+              'Repetir correo',
+              personalData.confirmEmail,
+              (text) => setPersonalData({ ...personalData, confirmEmail: text }),
+              currentProfile?.email || 'Confirma tu correo electrónico',
               false,
               'email-address',
               'mail-outline'
@@ -336,8 +473,12 @@ export default function ConfiguracionesScreen() {
             {renderInput(
               'Edad',
               personalData.age,
-              (text) => setPersonalData({ ...personalData, age: text }),
-              'Tu edad',
+              (text) => {
+                // Solo permitir números
+                const numericText = text.replace(/[^0-9]/g, '');
+                setPersonalData({ ...personalData, age: numericText });
+              },
+              currentProfile?.edad || 'Tu edad',
               false,
               'numeric',
               'calendar-outline'
@@ -348,7 +489,8 @@ export default function ConfiguracionesScreen() {
             {renderButton(
               'Guardar cambios',
               handleSavePersonalData,
-              getColor.primary[500]
+              getColor.primary[500],
+              isLoading
             )}
           </View>
         )}

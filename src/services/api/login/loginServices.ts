@@ -10,6 +10,8 @@ interface LoginResponse {
   message: string;
   token: string;
   expires: string;
+  userId: string;
+  premium: boolean;
 }
 
 export const loginService = {

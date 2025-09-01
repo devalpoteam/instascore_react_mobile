@@ -12,6 +12,9 @@ interface PuntajesRutApiResponse {
     idParticipante: string;
     nombre: string;
     delegacion: string;
+    categoriaId?: string;
+    nivelId?: string;
+    franjaId?: string;
   };
 }
 
@@ -25,17 +28,48 @@ interface CampeonatoParticipacion {
     idParticipante: string;
     nombre: string;
     delegacion: string;
+    categoriaId?: string;
+    nivelId?: string;
+    franjaId?: string;
   };
 }
 
 class PuntajesRutService {
   async getCampeonatosPorRut(rut: string): Promise<CampeonatoParticipacion[]> {
     try {
-      const response = await apiClient.get<PuntajesRutApiResponse[]>(
-        `${API_CONFIG.ENDPOINTS.GIMNASTAS.PUNTAJES_POR_RUT}?rut=${rut}`
+      // Usar el endpoint que devuelve todos los participantes por campeonato
+      const response = await apiClient.get<Record<string, any[]>>(
+        `${API_CONFIG.ENDPOINTS.GIMNASTAS.TODOS}`
       );
 
-      return response.data.map(item => this.mapApiResponseToCampeonato(item));
+      const campeonatosParticipante: CampeonatoParticipacion[] = [];
+
+      // Buscar en todos los campeonatos por el RUT específico
+      Object.entries(response.data).forEach(([campeonatoId, participantes]) => {
+        const participante = participantes.find(p => p.rut === rut);
+        if (participante) {
+          campeonatosParticipante.push({
+            campeonatoId: campeonatoId,
+            nombre: participante.nombreCampeonato,
+            fechaInicio: participante.fecha,
+            fechaFin: participante.fecha,
+            estado: new Date(participante.fecha).toLocaleDateString('es-ES', { 
+              year: 'numeric', 
+              month: 'long' 
+            }).replace(/^\w/, c => c.toUpperCase()),
+            participante: {
+              idParticipante: participante.id,
+              nombre: participante.nombre,
+              delegacion: participante.club,
+              categoriaId: undefined, // Se obtendrá del perfil específico
+              nivelId: undefined,
+              franjaId: undefined,
+            }
+          });
+        }
+      });
+
+      return campeonatosParticipante;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Error al cargar campeonatos del participante';
       throw new Error(errorMessage);
@@ -53,6 +87,9 @@ class PuntajesRutService {
         idParticipante: apiData.participante.idParticipante,
         nombre: apiData.participante.nombre,
         delegacion: apiData.participante.delegacion,
+        categoriaId: apiData.participante.categoriaId,
+        nivelId: apiData.participante.nivelId,
+        franjaId: apiData.participante.franjaId,
       }
     };
   }
