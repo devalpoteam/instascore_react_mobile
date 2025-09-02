@@ -12,6 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '@/store/hooks';
 import { userProfileService } from '@/services/api/users/userProfileService';
+import { passwordService } from '@/services/api/users/passwordService';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import { useNotifications } from '@/shared/hooks/useNotifications';
@@ -166,7 +167,7 @@ export default function ConfiguracionesScreen() {
     }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
@@ -176,16 +177,39 @@ export default function ConfiguracionesScreen() {
       return;
     }
 
-    Alert.alert(
-      'Contraseña cambiada',
-      'Tu contraseña ha sido actualizada correctamente',
-      [{ 
-        text: 'OK', 
-        onPress: () => {
-          setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        }
-      }]
-    );
+    if (!authUser?.email || !passwordData.currentPassword) {
+      Alert.alert('Error', 'Se requiere el email y la contraseña actual');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await passwordService.resetPassword({
+        email: authUser.email,
+        token: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      Alert.alert(
+        'Contraseña cambiada',
+        'Tu contraseña ha sido actualizada correctamente',
+        [{ 
+          text: 'OK', 
+          onPress: () => {
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+          }
+        }]
+      );
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'No se pudo cambiar la contraseña. Intenta de nuevo.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderInput = (
@@ -532,7 +556,8 @@ export default function ConfiguracionesScreen() {
             {renderButton(
               'Cambiar contraseña',
               handleChangePassword,
-              getColor.warning[500]
+              getColor.warning[500],
+              isLoading
             )}
           </View>
         )}
