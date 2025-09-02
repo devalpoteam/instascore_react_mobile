@@ -21,6 +21,8 @@ import UpgradeBanner from "../components/UpgradeBanner";
 import CompactTeamCard from "../components/CompactTeamCard";
 
 import { resultadosService, ResultadoIndividual, ResultadoEquipo } from "@/services/api/resultados/resultadosService";
+import { liveService, CategoriaAgrupada } from "@/services/api/live/liveServices";
+import { campeonatoDetailService } from "@/services/api/campeonatos/campeonatoDetailService";
 
 type LiveResultsRouteProp = RouteProp<
   { 
@@ -47,6 +49,8 @@ interface LiveResultsState {
   error: string | null;
   showUpgradeBanner: boolean;
   showAparatoDropdown: boolean;
+  campeonatoNombre: string;
+  categoriaNombre: string;
 }
 
 export default function LiveResultsScreen() {
@@ -81,15 +85,45 @@ export default function LiveResultsScreen() {
     error: null,
     showUpgradeBanner: !isPro,
     showAparatoDropdown: false,
+    campeonatoNombre: "",
+    categoriaNombre: "",
   });
 
   useEffect(() => {
     const loadInitialData = async () => {
+      await loadCampeonatoYCategoria();
       await loadResultados('aparato');
       await loadResultados('all around');
     };
     loadInitialData();
   }, [campeonatoId, categoriaId, nivelId, franjaId]);
+
+  const loadCampeonatoYCategoria = async () => {
+    try {
+      const [campeonato, categorias] = await Promise.all([
+        campeonatoDetailService.getCampeonatoById(campeonatoId),
+        liveService.getCategoriasAgrupadas(campeonatoId)
+      ]);
+
+      const categoriaEncontrada = categorias.find(cat => 
+        cat.idCategoria === categoriaId && 
+        cat.idNivel === nivelId && 
+        cat.idFranja === franjaId
+      );
+
+      const categoriaNombre = categoriaEncontrada 
+        ? `${categoriaEncontrada.grupo} ${categoriaEncontrada.nivel} ${categoriaEncontrada.franja}`
+        : "Categoría";
+
+      setState(prev => ({
+        ...prev,
+        campeonatoNombre: campeonato.nombre,
+        categoriaNombre: categoriaNombre
+      }));
+    } catch (error) {
+      console.error('Error loading campeonato y categoria:', error);
+    }
+  };
 
   const loadResultados = async (modalidad: 'aparato' | 'all around' = 'aparato') => {
     try {
@@ -135,6 +169,7 @@ export default function LiveResultsScreen() {
 
   const handleRefresh = async () => {
     setState((prev) => ({ ...prev, isRefreshing: true }));
+    await loadCampeonatoYCategoria();
     await loadResultados('aparato');
     await loadResultados('all around');
     setState((prev) => ({ ...prev, isRefreshing: false }));
@@ -196,7 +231,12 @@ export default function LiveResultsScreen() {
   if (state.isLoading && !state.isRefreshing) {
     return (
       <BaseLayout>
-        <Header title={displayTexts.headerTitle} showBack={true} onBackPress={() => navigation.goBack()} />
+        <Header 
+          title={state.categoriaNombre || displayTexts.headerTitle} 
+          subtitle={state.campeonatoNombre}
+          showBack={true} 
+          onBackPress={() => navigation.goBack()} 
+        />
         <View style={{
           flex: 1,
           justifyContent: "center",
@@ -222,10 +262,15 @@ export default function LiveResultsScreen() {
   if (state.error) {
     return (
       <BaseLayout>
-        <Header title="Error" showBack={true} onBackPress={() => navigation.goBack()} />
+        <Header 
+          title={state.categoriaNombre || "Error"} 
+          subtitle={state.campeonatoNombre}
+          showBack={true} 
+          onBackPress={() => navigation.goBack()} 
+        />
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Text>Error: {state.error}</Text>
-          <TouchableOpacity onPress={loadResultados} style={{ marginTop: 16, padding: 12, backgroundColor: getColor.primary[500], borderRadius: 8 }}>
+          <TouchableOpacity onPress={() => loadResultados()} style={{ marginTop: 16, padding: 12, backgroundColor: getColor.primary[500], borderRadius: 8 }}>
             <Text style={{ color: "white" }}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -236,8 +281,8 @@ export default function LiveResultsScreen() {
   return (
     <BaseLayout>
       <Header 
-        title="Resultados"
-        subtitle="Campeonato"
+        title={state.categoriaNombre || "Resultados"}
+        subtitle={state.campeonatoNombre || "Campeonato"}
         showBack={true}
         onBackPress={() => navigation.goBack()}
       />
