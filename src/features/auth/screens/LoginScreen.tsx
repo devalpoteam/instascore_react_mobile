@@ -8,8 +8,6 @@ import {
   StatusBar,
   Alert,
   Text,
-  Modal,
-  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getColor } from "@/design/colorHelper";
@@ -33,7 +31,6 @@ export default function LoginScreen() {
 
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [showDevModal, setShowDevModal] = useState(false);
 
   const responsive = useResponsive();
 
@@ -89,15 +86,6 @@ export default function LoginScreen() {
     navigation.navigate("Register" as never);
   };
 
-  const showDevCredentials = () => {
-    setShowDevModal(true);
-  };
-
-  const selectCredentials = (userEmail: string, userPassword: string) => {
-    setEmail(userEmail);
-    setPassword(userPassword);
-    setShowDevModal(false);
-  };
 
   const handleForgotPassword = () => {
     setShowForgotPasswordModal(true);
@@ -133,31 +121,6 @@ export default function LoginScreen() {
           justifyContent: "center",
         }}
       >
-        {/* BOTÓN DEV */}
-        <TouchableOpacity
-          onPress={showDevCredentials}
-          style={{
-            position: "absolute",
-            top: 50,
-            right: 20,
-            zIndex: 10,
-            backgroundColor: getColor.gray[600],
-            borderRadius: 20,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-          }}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={{
-              color: getColor.background.primary,
-              fontSize: 12,
-              fontWeight: "bold",
-            }}
-          >
-            DEV
-          </Text>
-        </TouchableOpacity>
 
         {/* LOGO */}
         <View style={{ alignItems: "center", marginBottom: 40 }}>
@@ -512,182 +475,6 @@ export default function LoginScreen() {
         </View>
       </View>
 
-      {/* DEV CREDENTIALS MODAL */}
-      <Modal
-        visible={showDevModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowDevModal(false)}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 20,
-        }}>
-          <View style={{
-            backgroundColor: getColor.background.primary,
-            borderRadius: 16,
-            padding: 20,
-            width: '90%',
-            maxWidth: 400,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 8,
-          }}>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}>
-              <Text style={{
-                fontSize: 20,
-                fontWeight: '700',
-                color: getColor.primary[600],
-                fontFamily: 'Nunito',
-              }}>
-                Credenciales de Desarrollo
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowDevModal(false)}
-                style={{
-                  padding: 8,
-                  borderRadius: 20,
-                  backgroundColor: getColor.gray[100],
-                }}
-              >
-                <Ionicons name="close" size={20} color={getColor.gray[600]} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Usuario Premium */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: getColor.primary[50],
-                  borderWidth: 2,
-                  borderColor: getColor.primary[200],
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 16,
-                }}
-                onPress={() => selectCredentials("premium@test.com", "123456")}
-                activeOpacity={0.8}
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 8,
-                }}>
-                  <Ionicons name="star" size={20} color={getColor.primary[500]} />
-                  <Text style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: getColor.primary[600],
-                    marginLeft: 8,
-                    fontFamily: 'Nunito',
-                  }}>
-                    Usuario Premium
-                  </Text>
-                </View>
-                <Text style={{
-                  fontSize: 14,
-                  color: getColor.gray[600],
-                  marginBottom: 4,
-                  fontFamily: 'Nunito',
-                }}>
-                  Email: premium@test.com
-                </Text>
-                <Text style={{
-                  fontSize: 14,
-                  color: getColor.gray[600],
-                  fontFamily: 'Nunito',
-                }}>
-                  Contraseña: 123456
-                </Text>
-                <Text style={{
-                  fontSize: 12,
-                  color: getColor.primary[500],
-                  marginTop: 8,
-                  fontStyle: 'italic',
-                  fontFamily: 'Nunito',
-                }}>
-                  Acceso completo a todas las funcionalidades
-                </Text>
-              </TouchableOpacity>
-
-              {/* Usuario Free */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: getColor.gray[50],
-                  borderWidth: 2,
-                  borderColor: getColor.gray[200],
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 16,
-                }}
-                onPress={() => selectCredentials("dev@test.com", "123456")}
-                activeOpacity={0.8}
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 8,
-                }}>
-                  <Ionicons name="person" size={20} color={getColor.gray[500]} />
-                  <Text style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: getColor.gray[700],
-                    marginLeft: 8,
-                    fontFamily: 'Nunito',
-                  }}>
-                    Usuario Free
-                  </Text>
-                </View>
-                <Text style={{
-                  fontSize: 14,
-                  color: getColor.gray[600],
-                  marginBottom: 4,
-                  fontFamily: 'Nunito',
-                }}>
-                  Email: dev@test.com
-                </Text>
-                <Text style={{
-                  fontSize: 14,
-                  color: getColor.gray[600],
-                  fontFamily: 'Nunito',
-                }}>
-                  Contraseña: 123456
-                </Text>
-                <Text style={{
-                  fontSize: 12,
-                  color: getColor.gray[500],
-                  marginTop: 8,
-                  fontStyle: 'italic',
-                  fontFamily: 'Nunito',
-                }}>
-                  Funcionalidades limitadas
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-
-            <Text style={{
-              fontSize: 12,
-              color: getColor.gray[400],
-              textAlign: 'center',
-              marginTop: 12,
-              fontFamily: 'Nunito',
-            }}>
-              Toca cualquier opción para usar esas credenciales
-            </Text>
-          </View>
-        </View>
-      </Modal>
 
       {/* FORGOT PASSWORD MODAL */}
       <ForgotPasswordModal

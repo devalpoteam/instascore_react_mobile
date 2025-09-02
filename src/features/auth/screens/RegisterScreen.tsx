@@ -126,13 +126,6 @@ export default function RegisterScreen() {
     navigation.navigate("Login" as never);
   };
 
-  const showDevCredentials = () => {
-    setName("Usuario Test");
-    setGender("M");
-    setAge("25");
-    setEmail("test@register.com");
-    setPassword("123456");
-  };
 
   const handleNameChange = (text: string) => {
     setName(text);
@@ -177,30 +170,6 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity
-            onPress={showDevCredentials}
-            style={{
-              position: "absolute",
-              top: 50,
-              right: 20,
-              zIndex: 10,
-              backgroundColor: getColor.gray[600],
-              borderRadius: 20,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-            }}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={{
-                color: getColor.background.primary,
-                fontSize: 12,
-                fontWeight: "bold",
-              }}
-            >
-              DEV
-            </Text>
-          </TouchableOpacity>
 
           <View
             style={{

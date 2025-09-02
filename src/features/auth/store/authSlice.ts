@@ -43,35 +43,6 @@ export const loginAsync = createAsyncThunk(
   'auth/loginAsync',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      if (credentials.email === 'dev@test.com') {
-        const token = 'dev-token-123';
-        await saveToken(token);
-        return {
-          token,
-          userId: 'dev-user-id',
-          user: {
-            id: 'dev-user-id',
-            email: 'dev@test.com',
-            name: 'Usuario Free',
-            isPro: false
-          }
-        };
-      }
-
-      if (credentials.email === 'premium@test.com') {
-        const token = 'premium-token-456';
-        await saveToken(token);
-        return {
-          token,
-          userId: 'premium-user-id',
-          user: {
-            id: 'premium-user-id',
-            email: 'premium@test.com',
-            name: 'Usuario Premium',
-            isPro: true
-          }
-        };
-      }
 
       const response = await loginService.login(credentials);
       await saveToken(response.token);

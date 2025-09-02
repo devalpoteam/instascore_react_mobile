@@ -4,7 +4,12 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { ResultadoEquipo, formatearPuntajeEquipo } from '../data/mockTeamResultsData';
+import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
+
+// Helper function para formatear puntajes de equipo
+const formatearPuntajeEquipo = (puntaje: number): string => {
+  return puntaje.toFixed(1);
+};
 
 interface TeamResultsViewProps {
   equipos: ResultadoEquipo[];
@@ -80,7 +85,7 @@ export default function TeamResultsView({
                 color: getColor.background.primary,
                 fontFamily: 'Nunito',
               }}>
-                {equipo.posicionEquipo}
+                {equipo.posicion}
               </Text>
             </View>
 
@@ -100,7 +105,7 @@ export default function TeamResultsView({
                 color: getColor.gray[500],
                 fontFamily: 'Nunito',
               }}>
-                {equipo.totalGimnastas} gimnastas • Cuentan mejores {equipo.gimnastasQueCuentan}
+                {equipo.cantidadGimnastas} gimnastas • Cuentan mejores {equipo.cantidadMejores}
               </Text>
             </View>
           </View>
@@ -145,7 +150,7 @@ export default function TeamResultsView({
           </View>
         )}
 
-        {/* Contenido expandible */}
+        {/* Contenido expandible simplificado */}
         {isExpanded && (
           <View style={{
             paddingHorizontal: responsive.spacing.lg,
@@ -153,150 +158,24 @@ export default function TeamResultsView({
             borderTopWidth: 1,
             borderTopColor: getColor.gray[100],
           }}>
-            {/* Puntajes por aparato */}
             <Text style={{
               fontSize: responsive.fontSize.base,
               fontWeight: '600',
               color: getColor.gray[700],
               fontFamily: 'Nunito',
-              marginBottom: responsive.spacing.sm,
+              textAlign: 'center',
             }}>
-              Por Aparatos
+              Detalles del equipo {equipo.nombre}
             </Text>
-            
-            <View style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              marginBottom: responsive.spacing.md,
-            }}>
-              {aparatos.map((aparato) => {
-                const aparatoData = equipo.puntajesAparatos[aparato];
-                if (!aparatoData) return null;
-
-                return (
-                  <View
-                    key={aparato}
-                    style={{
-                      backgroundColor: getColor.gray[50],
-                      borderRadius: 8,
-                      padding: responsive.spacing.sm,
-                      margin: 4,
-                      minWidth: 80,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{
-                      fontSize: responsive.fontSize.xs,
-                      color: getColor.gray[600],
-                      fontFamily: 'Nunito',
-                      textTransform: 'capitalize',
-                    }}>
-                      {aparato}
-                    </Text>
-                    <Text style={{
-                      fontSize: responsive.fontSize.base,
-                      fontWeight: '600',
-                      color: getColor.gray[800],
-                      fontFamily: 'Nunito',
-                    }}>
-                      {formatearPuntajeEquipo(aparatoData.puntajeEquipo)}
-                    </Text>
-                    <Text style={{
-                      fontSize: responsive.fontSize.xs,
-                      color: getColor.gray[500],
-                      fontFamily: 'Nunito',
-                    }}>
-                      #{aparatoData.posicionEquipo}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            {/* Integrantes del equipo */}
             <Text style={{
-              fontSize: responsive.fontSize.base,
-              fontWeight: '600',
-              color: getColor.gray[700],
+              fontSize: responsive.fontSize.sm,
+              color: getColor.gray[500],
               fontFamily: 'Nunito',
-              marginBottom: responsive.spacing.sm,
+              textAlign: 'center',
+              marginTop: responsive.spacing.xs,
             }}>
-              Integrantes
+              Categoría: {equipo.categoria} • Nivel: {equipo.nivel}
             </Text>
-
-            {equipo.gimnastas.map((gimnasta, gimnastaIndex) => (
-              <View
-                key={gimnasta.id}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: responsive.spacing.xs,
-                  opacity: gimnasta.contribuyeAlEquipo ? 1 : 0.6,
-                }}
-              >
-                <View style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  backgroundColor: gimnasta.contribuyeAlEquipo 
-                    ? getColor.secondary[100] 
-                    : getColor.gray[100],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: responsive.spacing.sm,
-                }}>
-                  <Text style={{
-                    fontSize: responsive.fontSize.xs,
-                    fontWeight: '600',
-                    color: gimnasta.contribuyeAlEquipo 
-                      ? getColor.secondary[600] 
-                      : getColor.gray[500],
-                    fontFamily: 'Nunito',
-                  }}>
-                    {gimnasta.posicionIndividual}
-                  </Text>
-                </View>
-
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    fontSize: responsive.fontSize.sm,
-                    fontWeight: gimnasta.contribuyeAlEquipo ? '600' : '400',
-                    color: gimnasta.contribuyeAlEquipo ? getColor.gray[800] : getColor.gray[600],
-                    fontFamily: 'Nunito',
-                  }}>
-                    {gimnasta.nombre}
-                  </Text>
-                </View>
-
-                <Text style={{
-                  fontSize: responsive.fontSize.sm,
-                  fontWeight: '600',
-                  color: gimnasta.contribuyeAlEquipo ? getColor.secondary[600] : getColor.gray[500],
-                  fontFamily: 'Nunito',
-                }}>
-                  {gimnasta.allAround.toFixed(1)}
-                </Text>
-
-                {gimnasta.contribuyeAlEquipo && (
-                  <View style={{
-                    backgroundColor: getColor.secondary[500],
-                    borderRadius: 8,
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    marginLeft: responsive.spacing.xs,
-                  }}>
-                    <Text style={{
-                      fontSize: responsive.fontSize.xs,
-                      color: getColor.background.primary,
-                      fontFamily: 'Nunito',
-                      fontWeight: '600',
-                    }}>
-                      ✓
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ))}
           </View>
         )}
       </View>

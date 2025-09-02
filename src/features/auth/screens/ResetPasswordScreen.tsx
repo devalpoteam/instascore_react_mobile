@@ -99,11 +99,6 @@ export default function ResetPasswordScreen() {
     navigation.navigate('Login' as never);
   };
 
-  const showDevCredentials = () => {
-    console.log('🛠️ Dev credentials for reset');
-    setNewPassword('newpass123');
-    setConfirmPassword('newpass123');
-  };
 
   // 🎯 HANDLERS PARA INPUTS
   const handleNewPasswordChange = (text: string) => {
@@ -147,29 +142,6 @@ export default function ResetPasswordScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* BOTÓN DEV */}
-          <TouchableOpacity
-            onPress={showDevCredentials}
-            style={{
-              position: 'absolute',
-              top: 50,
-              right: 20,
-              zIndex: 10,
-              backgroundColor: getColor.gray[600],
-              borderRadius: 20,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={{ 
-              color: getColor.background.primary, 
-              fontSize: 12, 
-              fontWeight: 'bold' 
-            }}>
-              DEV
-            </Text>
-          </TouchableOpacity>
 
           {/* BOTÓN VOLVER */}
           <TouchableOpacity

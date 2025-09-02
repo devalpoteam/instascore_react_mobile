@@ -7,14 +7,14 @@ import { useResponsive } from '@/shared/hooks/useResponsive';
 import { 
   ResultadosCategoria, 
   GimnastaResultado,
-  EquipoResultado,
   formatearPuntaje,
-  getAparatoDisplayNameResults,
-  mockEquiposResultados
+  getAparatoDisplayNameResults
 } from '../data/mockLiveResultsData';
+import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
 
 interface ResultadosTableProps {
   resultados: ResultadosCategoria;
+  equipos?: ResultadoEquipo[];
   aparatoSeleccionado: string;
   vistaSeleccionada: 'aparatos' | 'allaround' | 'equipos';
   isPro: boolean;
@@ -48,6 +48,7 @@ const getGeneroFromTipo = (tipo: string): string => {
 
 export default function ResultadosTable({
   resultados,
+  equipos = [],
   aparatoSeleccionado,
   vistaSeleccionada,
   isPro,
@@ -58,7 +59,7 @@ export default function ResultadosTable({
   // ✅ VISTA DE EQUIPOS CON TABLA REAL
   if (vistaSeleccionada === 'equipos') {
     // Filtrar equipos según tipo de usuario
-    const equiposToShow = isPro ? mockEquiposResultados : mockEquiposResultados.slice(0, 3);
+    const equiposToShow = isPro ? equipos : equipos.slice(0, 3);
 
     const renderTableHeaderEquipos = () => (
       <View style={{
@@ -108,7 +109,7 @@ export default function ResultadosTable({
       </View>
     );
 
-    const renderEquipoRow = (equipo: EquipoResultado, index: number) => {
+    const renderEquipoRow = (equipo: ResultadoEquipo, index: number) => {
       const isEven = index % 2 === 0;
 
       return (
@@ -166,7 +167,7 @@ export default function ResultadosTable({
               color: getColor.gray[500],
               fontFamily: 'Nunito',
             }}>
-              Mejores {equipo.gimnastasQueCuentan} de {equipo.totalGimnastas}
+              Mejores {equipo.cantidadMejores} de {equipo.cantidadGimnastas}
             </Text>
           </View>
 
@@ -178,7 +179,7 @@ export default function ResultadosTable({
               fontFamily: 'Nunito',
               lineHeight: responsive.fontSize.xs * 1.3,
             }}>
-              {equipo.totalGimnastas} gimnastas
+              {equipo.cantidadGimnastas} gimnastas
             </Text>
           </View>
 
@@ -210,9 +211,9 @@ export default function ResultadosTable({
     };
 
     const renderUpgradePromptEquipos = () => {
-      if (isPro || mockEquiposResultados.length <= 3) return null;
+      if (isPro || equipos.length <= 3) return null;
 
-      const equiposRestantes = mockEquiposResultados.length - 3;
+      const equiposRestantes = equipos.length - 3;
 
       return (
         <TouchableOpacity
