@@ -15,7 +15,6 @@ import { logout } from '@/features/auth/store/authSlice';
 import { userProfileService, UserProfile as ApiUserProfile } from '@/services/api/users/userProfileService';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { useNotifications } from '@/shared/hooks/useNotifications';
 import { MainStackParamList } from '@/navigation/MainNavigator';
 
 // Layout components
@@ -39,8 +38,6 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const responsive = useResponsive();
   
-  // ✅ USAR HOOK DE NOTIFICACIONES
-  const { unreadCount, handleNotificationPress } = useNotifications();
   
   // Redux state
   const { user: authUser, userId, isPro } = useAppSelector(state => state.auth);
@@ -157,8 +154,6 @@ export default function ProfileScreen() {
           title="Perfil"
           subtitle="Tu información personal"
           showLogo={false}
-          onNotificationPress={handleNotificationPress}
-          notificationCount={unreadCount}
         />
         <View style={{
           flex: 1,
@@ -179,8 +174,6 @@ export default function ProfileScreen() {
           title="Perfil"
           subtitle="Error al cargar"
           showLogo={false}
-          onNotificationPress={handleNotificationPress}
-          notificationCount={unreadCount}
         />
         <View style={{
           flex: 1,
@@ -226,8 +219,6 @@ export default function ProfileScreen() {
         title="Perfil"
         subtitle={state.user.name}
         showLogo={false}
-        onNotificationPress={handleNotificationPress}
-        notificationCount={unreadCount}
       />
 
       <ScrollView

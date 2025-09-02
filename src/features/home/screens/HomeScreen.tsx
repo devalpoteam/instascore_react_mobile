@@ -79,9 +79,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const handleNotificationPress = () => {
-    console.log('Notifications pressed');
-  };
 
   const getScrollViewPaddingBottom = () => {
     if (responsive.isTablet) return 40;
@@ -339,7 +336,7 @@ export default function HomeScreen() {
   if (loading && !refreshing) {
     return (
       <BaseLayout>
-        <Header showLogo={true} onNotificationPress={handleNotificationPress} />
+        <Header showLogo={true} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{
             fontSize: responsive.fontSize.lg,
@@ -356,7 +353,7 @@ export default function HomeScreen() {
   if (error && !refreshing) {
     return (
       <BaseLayout>
-        <Header showLogo={true} onNotificationPress={handleNotificationPress} />
+        <Header showLogo={true} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
           <Ionicons name="alert-circle-outline" size={64} color={getColor.error[500]} />
           <Text style={{
@@ -396,7 +393,6 @@ export default function HomeScreen() {
     <BaseLayout>
       <Header 
         showLogo={true}
-        onNotificationPress={handleNotificationPress}
       />
 
       <ScrollView

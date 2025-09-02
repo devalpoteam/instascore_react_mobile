@@ -15,9 +15,6 @@ import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileS
 import ProfileScreen from '@/features/profile/screens/ProfileScreen';
 import ConfiguracionesScreen from '@/features/profile/screens/ConfiguracionesScreen';
 
-// Importar pantallas de notificaciones
-import NotificationSettingsScreen from '@/features/settings/screens/NotificationSettingsScreen';
-import NotificationHistoryScreen from '@/features/settings/screens/NotificationHistoryScreen';
 
 // Tipos de navegación actualizados
 export type MainStackParamList = {
@@ -48,9 +45,6 @@ export type MainStackParamList = {
   ProfileSettings: undefined;
   ProfileFavorites: undefined;
   
-  // Rutas de notificaciones
-  NotificationSettings: undefined;
-  NotificationHistory: undefined;
 };
 
 // Tipos auxiliares para mejorar la navegación
@@ -181,22 +175,6 @@ export default function MainNavigator() {
         }}
       />
       
-      {/* Pantallas de notificaciones */}
-      <Stack.Screen 
-        name="NotificationSettings" 
-        component={NotificationSettingsScreen}
-        options={{
-          title: 'Configuración de Notificaciones',
-        }}
-      />
-      
-      <Stack.Screen 
-        name="NotificationHistory" 
-        component={NotificationHistoryScreen}
-        options={{
-          title: 'Historial de Notificaciones',
-        }}
-      />
     </Stack.Navigator>
   );
 }

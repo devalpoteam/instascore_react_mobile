@@ -14,7 +14,6 @@ export interface UserProfile {
 export interface FavoriteGimnasta extends GimnastaListItem {
   // Campos adicionales específicos para favoritos
   dateAdded?: string; // Cuándo se agregó a favoritos
-  notificationsEnabled?: boolean; // Si quiere notificaciones de este gimnasta
 }
 
 export interface ProfileHeaderProps {
@@ -41,7 +40,7 @@ export interface SettingsItemProps {
 }
 
 export interface SettingsSectionProps {
-  onNotificationSettings: () => void;
+  onNotificationSettings: () => void; // Now redirects to general settings instead of notifications
   onSubscriptionManage: () => void;
   onLogout: () => void;
   isPro: boolean;

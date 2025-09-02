@@ -15,7 +15,6 @@ import { userProfileService } from '@/services/api/users/userProfileService';
 import { passwordService } from '@/services/api/users/passwordService';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { useNotifications } from '@/shared/hooks/useNotifications';
 import { Ionicons } from '@expo/vector-icons';
 
 // Layout components
@@ -31,7 +30,6 @@ export default function ConfiguracionesScreen() {
   const navigation = useNavigation();
   const responsive = useResponsive();
   
-  const { unreadCount, handleNotificationPress } = useNotifications();
   const { user: authUser, userId } = useAppSelector(state => state.auth);
 
   // Estados para los formularios
@@ -448,8 +446,6 @@ export default function ConfiguracionesScreen() {
         showLogo={false}
         showBack={true}
         onBackPress={() => navigation.goBack()}
-        onNotificationPress={handleNotificationPress}
-        notificationCount={unreadCount}
       />
 
       <ScrollView
