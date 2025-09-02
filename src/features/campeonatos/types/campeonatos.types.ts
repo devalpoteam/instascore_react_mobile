@@ -1,7 +1,7 @@
 // src/features/campeonatos/types/campeonatos.types.ts
 // TIPOS ACTUALIZADOS CON LA NUEVA ESTRUCTURA JERÁRQUICA
 
-export type CampeonatoEstado = 'activo' | 'configuracion' | 'finalizado';
+import { CampeonatoEstado } from '@/core/types/competition.types';
 
 // ===== INTERFACE PRINCIPAL DE CAMPEONATO =====
 export interface Campeonato {

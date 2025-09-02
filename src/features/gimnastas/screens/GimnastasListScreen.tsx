@@ -156,8 +156,7 @@ export default function GimnastasListScreen() {
 
   const handlePremiumUpgrade = () => {
     setShowPremiumModal(false);
-    // TODO: Navigate to premium upgrade screen or handle upgrade logic
-    console.log('Navigate to premium upgrade');
+    // Funcionalidad de upgrade premium será implementada
   };
 
   const handleClosePremiumModal = () => {

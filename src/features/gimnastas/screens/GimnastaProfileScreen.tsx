@@ -75,7 +75,7 @@ export default function GimnastaProfileScreen() {
         await loadResultados(campeonatosData[0], 0);
       }
     } catch (err: any) {
-      console.error('Error al cargar campeonatos:', err.message);
+      // Error al cargar campeonatos - mostrar estado de error si es necesario
     } finally {
       setIsLoadingCampeonatos(false);
     }
@@ -102,7 +102,7 @@ export default function GimnastaProfileScreen() {
       setCampeonatoSeleccionado(index);
       setDatosActuales(perfilParticipacion);
     } catch (err: any) {
-      console.error('Error al cargar resultados:', err.message);
+      // Error al cargar resultados - mostrar estado vacío
       setResultados([]);
     } finally {
       setIsLoadingResultados(false);

@@ -5,10 +5,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 import { ProfileHeaderProps } from '../types/profile.types';
-import { getGenderDisplayName } from '../data/mockProfileData';
 
 export default function ProfileHeader({ user }: ProfileHeaderProps) {
   const responsive = useResponsive();
+
+  const getGenderDisplayName = (gender?: string): string => {
+    switch (gender) {
+      case "masculino":
+        return "Masculino";
+      case "femenino":
+        return "Femenino";
+      case "otro":
+        return "Otro";
+      default:
+        return "No especificado";
+    }
+  };
 
   const getInitials = (name: string) => {
     return name

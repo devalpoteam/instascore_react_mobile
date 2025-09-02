@@ -1,5 +1,5 @@
 // src/features/profile/types/profile.types.ts
-import { GimnastaListItem } from '@/features/gimnastas/types/gimnastasList.types';
+import { GimnastaListItem } from '@/services/api/gimnastas/gimnastasService';
 
 export interface UserProfile {
   id: string;

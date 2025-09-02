@@ -18,11 +18,4 @@ export type {
   ProfileScreenState,
 } from './types/profile.types';
 
-// Data and utilities
-export {
-  mockUserProfile,
-  mockUserProfileBasic,
-  mockFavoriteGimnastas,
-  getActiveFavorites,
-  getGenderDisplayName,
-} from './data/mockProfileData';
+// Data and utilities - ELIMINADO: usar servicios reales
