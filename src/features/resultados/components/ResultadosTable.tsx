@@ -4,16 +4,24 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { 
-  ResultadosCategoria, 
-  GimnastaResultado,
-  formatearPuntaje,
-  getAparatoDisplayNameResults
-} from '../data/mockLiveResultsData';
-import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
+import { ResultadoIndividual, ResultadoEquipo } from '@/services/api/resultados/resultadosService';
+
+// Helper functions locales
+const getAparatoDisplayNameResults = (aparato: string): string => {
+  const aparatosDisplay: Record<string, string> = {
+    salto: "Salto", asimetricas: "Asimétricas", viga: "Viga", suelo: "Suelo",
+    arzones: "Arzones", anillas: "Anillas", paralelas: "Paralelas", barra: "Barra",
+  };
+  return aparatosDisplay[aparato] || aparato;
+};
+
+const formatearPuntaje = (puntaje: number | null): string => {
+  if (puntaje === null) return "--";
+  return puntaje.toFixed(1);
+};
 
 interface ResultadosTableProps {
-  resultados: ResultadosCategoria;
+  resultados: ResultadoIndividual[];
   equipos?: ResultadoEquipo[];
   aparatoSeleccionado: string;
   vistaSeleccionada: 'aparatos' | 'allaround' | 'equipos';
@@ -21,29 +29,9 @@ interface ResultadosTableProps {
   onUpgrade: () => void;
 }
 
-// ✅ HELPER FUNCTION PARA CONSTRUIR DISPLAY DE CATEGORÍA
-const construirCategoriaDisplay = (gimnasta: GimnastaResultado): string => {
-  // Si el gimnasta tiene los campos actualizados, usarlos
-  if (gimnasta.competenciaDisplay) {
-    return gimnasta.competenciaDisplay;
-  }
-  
-  // Fallback para datos legacy - construir manualmente
-  const { categoria, nivel, franja } = gimnasta;
-  
-  // Si tiene nivel (Kinder, USAG)
-  if (nivel && (categoria === 'Kinder' || categoria === 'USAG')) {
-    const numeroNivel = nivel.replace('Nivel ', '');
-    return `${categoria} ${numeroNivel} ${franja}`;
-  }
-  
-  // Si no tiene nivel
-  return `${categoria} ${franja}`;
-};
-
-// ✅ HELPER FUNCTION PARA OBTENER GÉNERO
-const getGeneroFromTipo = (tipo: string): string => {
-  return tipo === 'GAF' ? 'F' : 'M';
+// Helper function para construir display de categoría usando ResultadoIndividual
+const construirCategoriaDisplay = (resultado: ResultadoIndividual): string => {
+  return `${resultado.categoria} ${resultado.nivel} ${resultado.franja}`;
 };
 
 export default function ResultadosTable({
@@ -285,26 +273,14 @@ export default function ResultadosTable({
     );
   }
 
-  // ✅ VISTA NORMAL - GIMNASTAS INDIVIDUALES
-  // Filtrar gimnastas según tipo de usuario
-  const gimnastasToShow = isPro ? resultados.gimnastas : resultados.gimnastas.slice(0, 3);
+  // ✅ VISTA NORMAL - RESULTADOS INDIVIDUALES
+  // Filtrar resultados según tipo de usuario
+  const resultadosToShow = isPro ? resultados : resultados.slice(0, 3);
 
-  // Ordenar gimnastas según vista seleccionada
-  const sortGimnastas = (gimnastas: GimnastaResultado[]) => {
-    if (vistaSeleccionada === 'aparatos') {
-      // Ordenar por puntaje del aparato seleccionado
-      return [...gimnastas].sort((a, b) => {
-        const puntajeA = a.puntajes[aparatoSeleccionado] || 0;
-        const puntajeB = b.puntajes[aparatoSeleccionado] || 0;
-        return puntajeB - puntajeA; // Descendente
-      });
-    } else {
-      // Ordenar por All Around
-      return [...gimnastas].sort((a, b) => b.allAround - a.allAround);
-    }
-  };
-
-  const gimnastasOrdenados = sortGimnastas(gimnastasToShow);
+  // Ordenar resultados según vista y aparato seleccionado
+  const resultadosOrdenados = [...resultadosToShow]
+    .filter(resultado => vistaSeleccionada === 'allaround' || resultado.aparato === aparatoSeleccionado)
+    .sort((a, b) => a.puesto - b.puesto); // Ordenar por puesto ascendente
 
   const renderTableHeader = () => (
     <View style={{
@@ -349,29 +325,18 @@ export default function ResultadosTable({
         fontFamily: 'Nunito',
         textAlign: 'center',
       }}>
-        {vistaSeleccionada === 'aparatos' 
-          ? getAparatoDisplayNameResults(aparatoSeleccionado).toUpperCase()
-          : 'TOTAL'
-        }
+        {getAparatoDisplayNameResults(aparatoSeleccionado).toUpperCase()}
       </Text>
     </View>
   );
 
-  const renderGimnastaRow = (gimnasta: GimnastaResultado, index: number) => {
+  const renderResultadoRow = (resultado: ResultadoIndividual, index: number) => {
     const isEven = index % 2 === 0;
-    const puntaje = vistaSeleccionada === 'aparatos' 
-      ? gimnasta.puntajes[aparatoSeleccionado] 
-      : gimnasta.allAround;
-
-    const isNewScore = gimnasta.puntajes[aparatoSeleccionado] !== null && 
-                      aparatoSeleccionado === resultados.aparatoActual;
-
-    // ✅ CONSTRUIR DISPLAY DE CATEGORÍA CORRECTAMENTE
-    const categoriaDisplay = construirCategoriaDisplay(gimnasta);
+    const categoriaDisplay = construirCategoriaDisplay(resultado);
 
     return (
       <View
-        key={gimnasta.id}
+        key={resultado.idParticipante}
         style={{
           backgroundColor: isEven ? getColor.gray[50] : getColor.background.primary,
           flexDirection: 'row',
@@ -395,7 +360,7 @@ export default function ResultadosTable({
             color: index < 3 ? getColor.secondary[600] : getColor.gray[700],
             fontFamily: 'Nunito',
           }}>
-            {index + 1}
+            {resultado.puesto}
           </Text>
           {index < 3 && (
             <Text style={{
@@ -417,16 +382,15 @@ export default function ResultadosTable({
             fontFamily: 'Nunito',
             marginBottom: 2,
           }}>
-            {gimnasta.nombre}
+            {resultado.gimnasta}
           </Text>
-          {/* ✅ INFORMACIÓN DE CATEGORÍA ACTUALIZADA */}
           <Text style={{
             fontSize: responsive.fontSize.xs,
             color: getColor.gray[500],
             fontFamily: 'Nunito',
           }}>
             {categoriaDisplay}
-            {gimnasta.subdivision && ` • Subdiv. ${gimnasta.subdivision}`}
+            {resultado.subdivision && ` • Subdiv. ${resultado.subdivision}`}
           </Text>
         </View>
 
@@ -438,7 +402,7 @@ export default function ResultadosTable({
             fontFamily: 'Nunito',
             lineHeight: responsive.fontSize.xs * 1.3,
           }}>
-            {gimnasta.club}
+            {resultado.delegacion}
           </Text>
         </View>
 
@@ -449,37 +413,20 @@ export default function ResultadosTable({
           justifyContent: 'center',
         }}>
           <View style={{
-            backgroundColor: isNewScore ? getColor.secondary[100] : 'transparent',
+            backgroundColor: 'transparent',
             borderRadius: 8,
             paddingHorizontal: 8,
             paddingVertical: 4,
-            borderWidth: isNewScore ? 1 : 0,
-            borderColor: getColor.secondary[300],
           }}>
             <Text style={{
               fontSize: responsive.fontSize.base,
               fontWeight: '700',
-              color: puntaje === null ? getColor.gray[400] : 
-                     isNewScore ? getColor.secondary[700] : getColor.gray[800],
+              color: getColor.gray[800],
               fontFamily: 'Nunito',
               textAlign: 'center',
             }}>
-              {vistaSeleccionada === 'aparatos' 
-                ? formatearPuntaje(puntaje as number | null)
-                : puntaje?.toFixed(1) || '--'
-              }
+              {formatearPuntaje(resultado.puntaje)}
             </Text>
-            {isNewScore && (
-              <Text style={{
-                fontSize: responsive.fontSize.xs,
-                color: getColor.secondary[600],
-                fontFamily: 'Nunito',
-                textAlign: 'center',
-                fontWeight: '500',
-              }}>
-                NUEVO
-              </Text>
-            )}
           </View>
         </View>
       </View>
@@ -487,9 +434,9 @@ export default function ResultadosTable({
   };
 
   const renderUpgradePrompt = () => {
-    if (isPro || resultados.gimnastas.length <= 3) return null;
+    if (isPro || resultados.length <= 3) return null;
 
-    const gimnastasRestantes = resultados.gimnastas.length - 3;
+    const resultadosRestantes = resultados.length - 3;
 
     return (
       <TouchableOpacity
@@ -520,7 +467,7 @@ export default function ResultadosTable({
           textAlign: 'center',
           marginBottom: 4,
         }}>
-          Ver {gimnastasRestantes} gimnastas más
+          Ver {resultadosRestantes} resultados más
         </Text>
         <Text style={{
           fontSize: responsive.fontSize.sm,
@@ -552,8 +499,8 @@ export default function ResultadosTable({
       {renderTableHeader()}
       
       <ScrollView style={{ maxHeight: 500 }}>
-        {gimnastasOrdenados.map((gimnasta, index) => 
-          renderGimnastaRow(gimnasta, index)
+        {resultadosOrdenados.map((resultado, index) => 
+          renderResultadoRow(resultado, index)
         )}
         {renderUpgradePrompt()}
       </ScrollView>
