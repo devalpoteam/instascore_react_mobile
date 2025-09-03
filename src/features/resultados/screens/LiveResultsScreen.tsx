@@ -513,7 +513,13 @@ export default function LiveResultsScreen() {
       >
         {!isPro && state.showUpgradeBanner && (
           <UpgradeBanner
-            onUpgrade={() => console.log("Navigate to upgrade")}
+            onUpgrade={() => 
+              Alert.alert(
+                "Instascore Pro",
+                "Para suscribirse a Instascore Pro, debe contactarse con un administrador.",
+                [{ text: "Entendido", style: "default" }]
+              )
+            }
             onDismiss={handleDismissBanner}
           />
         )}

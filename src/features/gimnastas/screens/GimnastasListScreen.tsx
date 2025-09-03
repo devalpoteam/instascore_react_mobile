@@ -1,6 +1,6 @@
 // src/features/gimnastas/screens/GimnastasListScreen.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
@@ -155,8 +155,11 @@ export default function GimnastasListScreen() {
   };
 
   const handlePremiumUpgrade = () => {
-    setShowPremiumModal(false);
-    // Funcionalidad de upgrade premium será implementada
+    Alert.alert(
+      "Instascore Pro",
+      "Para suscribirse a Instascore Pro, debe contactarse con un administrador.",
+      [{ text: "Entendido", style: "default", onPress: () => setShowPremiumModal(false) }]
+    );
   };
 
   const handleClosePremiumModal = () => {
