@@ -130,7 +130,7 @@ export default function ConfiguracionesScreen() {
         fullName: personalData.fullName || currentProfile.fullName,
         sexo: personalData.gender === 'masculino' ? 'Masculino' :
               personalData.gender === 'femenino' ? 'Femenino' : 
-              currentProfile.sexo,
+              (currentProfile?.sexo || 'Masculino'),
         edad: personalData.age || currentProfile.edad,
       };
 

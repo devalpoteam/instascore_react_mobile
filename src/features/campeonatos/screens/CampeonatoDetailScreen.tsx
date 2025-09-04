@@ -63,23 +63,19 @@ export default function CampeonatoDetailScreen() {
     
     console.log('Ver resultados de campeonato:', campeonato.nombre);
     
-    const mensaje = campeonato.estado === 'activo' 
-      ? `Ir a resultados en vivo de: ${campeonato.nombre}`
-      : `Ver resultados finales de: ${campeonato.nombre}`;
-      
-    Alert.alert(
-      'Resultados',
-      mensaje,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: campeonato.estado === 'activo' ? 'Ver En Vivo' : 'Ver Resultados', 
-          onPress: () => {
-            // TODO: navigation.navigate('Resultados', { campeonatoId: campeonato.id });
-          }
-        }
-      ]
-    );
+    if (campeonato.estado === 'activo') {
+      // Navegar a selector de categorías para resultados en vivo
+      navigation.navigate('CategorySelector', { 
+        campeonatoId: campeonato.id,
+        isFinished: false
+      });
+    } else if (campeonato.estado === 'finalizado') {
+      // Navegar a selector de categorías para resultados finales
+      navigation.navigate('CategorySelector', { 
+        campeonatoId: campeonato.id,
+        isFinished: true
+      });
+    }
   };
 
   const handleShare = () => {
@@ -562,80 +558,52 @@ export default function CampeonatoDetailScreen() {
         shadowRadius: 8,
         elevation: 10,
       }}>
-        <View style={{
-          flexDirection: 'row',
-          gap: responsive.spacing.md,
-        }}>
-          {/* Botón Compartir */}
-          <TouchableOpacity
-            style={{
-              flex: 0.3,
-              backgroundColor: getColor.background.primary,
-              borderWidth: 2,
-              borderColor: getColor.gray[300],
-              borderRadius: 16,
-              paddingVertical: responsive.spacing.md,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onPress={handleShare}
-            activeOpacity={0.8}
-          >
-            <Ionicons 
-              name="share-outline" 
-              size={22} 
-              color={getColor.gray[600]} 
-            />
-          </TouchableOpacity>
-
-          {/* Botón Principal */}
-          <TouchableOpacity
-            style={{
-              flex: 0.7,
-              backgroundColor: canViewResults 
-                ? (campeonato.estado === 'activo' ? getColor.secondary[500] : getColor.primary[500])
-                : getColor.gray[400],
-              borderRadius: 16,
-              paddingVertical: responsive.spacing.md,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              shadowColor: canViewResults 
-                ? (campeonato.estado === 'activo' ? getColor.secondary[500] : getColor.primary[500])
-                : 'transparent',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: canViewResults ? 0.3 : 0,
-              shadowRadius: 8,
-              elevation: canViewResults ? 6 : 0,
-            }}
-            onPress={canViewResults ? handleViewResults : undefined}
-            activeOpacity={canViewResults ? 0.8 : 1}
-            disabled={!canViewResults}
-          >
-            <Ionicons 
-              name={
-                campeonato.estado === 'activo' 
-                  ? 'play-circle' 
-                  : campeonato.estado === 'finalizado'
-                  ? 'bar-chart'
-                  : 'settings'
-              } 
-              size={22} 
-              color={getColor.background.primary} 
-              style={{ marginRight: responsive.spacing.sm }}
-            />
-            <Text style={{
-              fontSize: responsive.fontSize.lg,
-              fontWeight: '700',
-              color: getColor.background.primary,
-              fontFamily: 'Nunito',
-            }}>
-              {campeonato.estado === 'activo' && 'VER EN VIVO'}
-              {campeonato.estado === 'finalizado' && 'VER RESULTADOS'}
-              {campeonato.estado === 'configuracion' && 'EN CONFIGURACIÓN'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Botón Principal */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: canViewResults 
+              ? (campeonato.estado === 'activo' ? getColor.secondary[500] : getColor.primary[500])
+              : getColor.gray[400],
+            borderRadius: 16,
+            paddingVertical: responsive.spacing.md,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            shadowColor: canViewResults 
+              ? (campeonato.estado === 'activo' ? getColor.secondary[500] : getColor.primary[500])
+              : 'transparent',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: canViewResults ? 0.3 : 0,
+            shadowRadius: 8,
+            elevation: canViewResults ? 6 : 0,
+          }}
+          onPress={canViewResults ? handleViewResults : undefined}
+          activeOpacity={canViewResults ? 0.8 : 1}
+          disabled={!canViewResults}
+        >
+          <Ionicons 
+            name={
+              campeonato.estado === 'activo' 
+                ? 'play-circle' 
+                : campeonato.estado === 'finalizado'
+                ? 'bar-chart'
+                : 'settings'
+            } 
+            size={22} 
+            color={getColor.background.primary} 
+            style={{ marginRight: responsive.spacing.sm }}
+          />
+          <Text style={{
+            fontSize: responsive.fontSize.lg,
+            fontWeight: '700',
+            color: getColor.background.primary,
+            fontFamily: 'Nunito',
+          }}>
+            {campeonato.estado === 'activo' && 'VER EN VIVO'}
+            {campeonato.estado === 'finalizado' && 'VER RESULTADOS'}
+            {campeonato.estado === 'configuracion' && 'EN CONFIGURACIÓN'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </BaseLayout>
   );
