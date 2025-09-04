@@ -60,6 +60,20 @@ export default function ConfiguracionesScreen() {
     loadCurrentProfile();
   }, [userId]);
 
+  // Inicializar los campos con los datos actuales del perfil
+  useEffect(() => {
+    if (currentProfile) {
+      setPersonalData({
+        fullName: currentProfile.fullName || '',
+        email: currentProfile.email || '',
+        confirmEmail: currentProfile.email || '',
+        age: currentProfile.edad || '',
+        gender: currentProfile.sexo === 'Masculino' ? 'masculino' : 
+               currentProfile.sexo === 'Femenino' ? 'femenino' : '',
+      });
+    }
+  }, [currentProfile]);
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -217,7 +231,8 @@ export default function ConfiguracionesScreen() {
     placeholder?: string,
     secureTextEntry?: boolean,
     keyboardType?: 'default' | 'email-address' | 'numeric',
-    icon?: string
+    icon?: string,
+    maxLength?: number
   ) => (
     <View style={{ marginBottom: responsive.spacing.md }}>
       <Text style={{
@@ -232,8 +247,9 @@ export default function ConfiguracionesScreen() {
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
-        height: 48,
+        minHeight: 48,
         paddingHorizontal: responsive.spacing.md,
+        paddingVertical: responsive.spacing.sm,
         borderRadius: 12,
         backgroundColor: getColor.gray[50],
         borderWidth: 1,
@@ -253,6 +269,12 @@ export default function ConfiguracionesScreen() {
             fontSize: responsive.fontSize.base,
             fontFamily: 'Nunito',
             color: getColor.gray[800],
+            paddingVertical: 12,
+            paddingHorizontal: 0,
+            margin: 0,
+            textAlignVertical: 'center',
+            includeFontPadding: false,
+            lineHeight: responsive.fontSize.base * 1.2,
           }}
           value={value}
           onChangeText={onChangeText}
@@ -262,6 +284,12 @@ export default function ConfiguracionesScreen() {
           keyboardType={keyboardType}
           autoCapitalize="none"
           autoCorrect={false}
+          scrollEnabled={true}
+          showSoftInputOnFocus={true}
+          returnKeyType="done"
+          ellipsizeMode="tail"
+          numberOfLines={1}
+          maxLength={maxLength}
         />
       </View>
     </View>
@@ -463,11 +491,16 @@ export default function ConfiguracionesScreen() {
             {renderInput(
               'Nombre completo',
               personalData.fullName,
-              (text) => setPersonalData({ ...personalData, fullName: text }),
+              (text) => {
+                if (text.length <= 30) {
+                  setPersonalData({ ...personalData, fullName: text });
+                }
+              },
               currentProfile?.fullName || 'Tu nombre completo',
               false,
               'default',
-              'person-outline'
+              'person-outline',
+              30
             )}
 
             {renderInput(
