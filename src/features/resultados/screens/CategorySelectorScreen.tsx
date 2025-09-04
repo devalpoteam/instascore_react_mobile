@@ -463,37 +463,15 @@ export default function CategorySelectorScreen() {
                 alignItems: 'center',
               }}>
                 <View style={{ flex: 1 }}>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                  <Text style={{
+                    fontSize: responsive.fontSize.lg,
+                    fontWeight: '700',
+                    color: getColor.primary[600],
+                    fontFamily: 'Nunito',
                     marginBottom: 2,
                   }}>
-                    <Text style={{
-                      fontSize: responsive.fontSize.lg,
-                      fontWeight: '700',
-                      color: getColor.primary[600],
-                      fontFamily: 'Nunito',
-                      marginRight: responsive.spacing.sm,
-                    }}>
-                      {construirNombreCategoria(categoria)}
-                    </Text>
-                    
-                    <View style={{
-                      backgroundColor: displayTexts.categoryBadgeColor,
-                      borderRadius: 4,
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                    }}>
-                      <Text style={{
-                        fontSize: responsive.fontSize.xs,
-                        fontWeight: '600',
-                        color: getColor.background.primary,
-                        fontFamily: 'Nunito',
-                      }}>
-                        {displayTexts.categoryBadge}
-                      </Text>
-                    </View>
-                  </View>
+                    {construirNombreCategoria(categoria)}
+                  </Text>
                   
                   <Text style={{
                     fontSize: responsive.fontSize.sm,
@@ -518,6 +496,23 @@ export default function CategorySelectorScreen() {
                       {categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
                     </Text>
                   </View>
+                </View>
+                
+                <View style={{
+                  backgroundColor: displayTexts.categoryBadgeColor,
+                  borderRadius: 4,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  marginRight: responsive.spacing.sm,
+                }}>
+                  <Text style={{
+                    fontSize: responsive.fontSize.xs,
+                    fontWeight: '600',
+                    color: getColor.background.primary,
+                    fontFamily: 'Nunito',
+                  }}>
+                    {displayTexts.categoryBadge}
+                  </Text>
                 </View>
                 
                 <View style={{
