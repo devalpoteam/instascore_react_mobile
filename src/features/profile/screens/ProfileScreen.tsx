@@ -225,6 +225,25 @@ export default function ProfileScreen() {
     );
   }
 
+  // Ensure user is loaded before rendering main content
+  if (!state.user) {
+    return (
+      <BaseLayout>
+        <Header title="Perfil" subtitle="Cargando..." showLogo={false} />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: responsive.spacing.xl,
+          }}
+        >
+          <ActivityIndicator size="large" color={getColor.primary[500]} />
+        </View>
+      </BaseLayout>
+    );
+  }
+
   return (
     <BaseLayout>
       <Header title="Perfil" subtitle={state.user.name} showLogo={false} />

@@ -89,11 +89,12 @@ export default function SmartSearchBar({
         <TextInput
           style={{
             flex: 1,
-            paddingVertical: responsive.spacing.sm,
+            paddingVertical: 0,
             fontSize: responsive.fontSize.base,
             fontFamily: 'Nunito',
             color: getColor.gray[800],
             textAlignVertical: 'center',
+            includeFontPadding: false,
             lineHeight: responsive.fontSize.base * 1.2,
           }}
           value={value}

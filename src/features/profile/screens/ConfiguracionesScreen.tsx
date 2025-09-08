@@ -287,7 +287,6 @@ export default function ConfiguracionesScreen() {
           scrollEnabled={true}
           showSoftInputOnFocus={true}
           returnKeyType="done"
-          ellipsizeMode="tail"
           numberOfLines={1}
           maxLength={maxLength}
         />
