@@ -118,19 +118,23 @@ export default function ProfileScreen() {
 
   const handleSubscriptionManage = () => {
     const message = isPro
-      ? "Gestionar tu suscripción Pro:\n\n• Ver estado actual\n• Cambiar plan\n• Cancelar suscripción"
+      ? "Para gestionar tu suscripción, debe contactarse con un administrador."
       : "Actualizar a Pro para:\n\n• Ver todos los resultados\n• Ver perfil e historial de gimnasta\n\nPara actualizar a Pro, comunícate con un administrador.";
 
-    Alert.alert(isPro ? "Gestionar Suscripción" : "Actualizar a Pro", message, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: isPro ? "Gestionar" : "Actualizar",
-        onPress: () => {
-          // TODO: Navegar a pantalla de suscripción
-          console.log("Navegar a suscripción");
-        },
-      },
-    ]);
+    const buttons = isPro
+      ? [{ text: "Aceptar", style: "default" as const }]
+      : [
+          { text: "Cancelar", style: "cancel" as const },
+          {
+            text: "Actualizar",
+            onPress: () => {
+              // TODO: Navegar a pantalla de suscripción
+              console.log("Navegar a suscripción");
+            },
+          },
+        ];
+
+    Alert.alert(isPro ? "Gestionar Suscripción" : "Actualizar a Pro", message, buttons);
   };
 
   const handleLogout = () => {

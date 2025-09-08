@@ -28,7 +28,7 @@ export default function TeamResultsView({
   const [vistaDetallada, setVistaDetallada] = useState(false);
   const [equipoExpandido, setEquipoExpandido] = useState<string | null>(null);
 
-  const equiposToShow = isPro ? equipos : equipos.slice(0, 3);
+  const equiposToShow = isPro ? equipos : equipos.slice(0, 1);
 
   const renderTeamCard = (equipo: ResultadoEquipo, index: number) => {
     const isExpanded = equipoExpandido === equipo.id;
@@ -183,9 +183,9 @@ export default function TeamResultsView({
   };
 
   const renderUpgradePrompt = () => {
-    if (isPro || equipos.length <= 3) return null;
+    if (isPro || equipos.length <= 1) return null;
 
-    const equiposRestantes = equipos.length - 3;
+    const equiposRestantes = equipos.length - 1;
 
     return (
       <TouchableOpacity

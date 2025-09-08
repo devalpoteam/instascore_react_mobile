@@ -201,8 +201,12 @@ export default function LiveResultsScreen() {
     ? gimnastasAllAround 
     : gimnastasDelAparato;
 
-  const gimnastasToShow = isPro ? gimnastasActuales : gimnastasActuales.slice(0, 3);
-  const equiposToShow = isPro ? state.equipos : state.equipos.slice(0, 3);
+  // Apply different limits based on view type
+  const gimnastasLimit = state.vistaSeleccionada === 'allaround' ? 3 : 1;
+  const equiposLimit = 1;
+  
+  const gimnastasToShow = isPro ? gimnastasActuales : gimnastasActuales.slice(0, gimnastasLimit);
+  const equiposToShow = isPro ? state.equipos : state.equipos.slice(0, equiposLimit);
 
   const getDisplayTexts = () => {
     if (isFinished) {
@@ -535,7 +539,7 @@ export default function LiveResultsScreen() {
                     position={index + 1}
                   />
                 ))}
-                {!isPro && state.equipos.length > 3 && (
+                {!isPro && state.equipos.length > 1 && (
                   <TouchableOpacity
                     style={{
                       backgroundColor: getColor.gray[50],
@@ -557,7 +561,7 @@ export default function LiveResultsScreen() {
                       marginTop: responsive.spacing.xs,
                       fontFamily: "Nunito",
                     }}>
-                      +{state.equipos.length - 3} equipos más en Premium
+                      +{state.equipos.length - 1} equipos más en Premium
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -603,7 +607,7 @@ export default function LiveResultsScreen() {
                 />
               ))}
 
-              {!isPro && gimnastasActuales.length > 3 && (
+              {!isPro && gimnastasActuales.length > gimnastasLimit && (
                 <TouchableOpacity
                   style={{
                     backgroundColor: getColor.gray[50],
@@ -625,7 +629,7 @@ export default function LiveResultsScreen() {
                     marginTop: responsive.spacing.xs,
                     fontFamily: "Nunito",
                   }}>
-                    +{gimnastasActuales.length - 3} resultados más en Premium
+                    +{gimnastasActuales.length - gimnastasLimit} resultados más en Premium
                   </Text>
                 </TouchableOpacity>
               )}

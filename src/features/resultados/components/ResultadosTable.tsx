@@ -51,7 +51,7 @@ export default function ResultadosTable({
   // ✅ VISTA DE EQUIPOS CON TABLA REAL
   if (vistaSeleccionada === 'equipos') {
     // Filtrar equipos según tipo de usuario
-    const equiposToShow = isPro ? equipos : equipos.slice(0, 3);
+    const equiposToShow = isPro ? equipos : equipos.slice(0, 1);
 
     const renderTableHeaderEquipos = () => (
       <View style={{
@@ -203,9 +203,9 @@ export default function ResultadosTable({
     };
 
     const renderUpgradePromptEquipos = () => {
-      if (isPro || equipos.length <= 3) return null;
+      if (isPro || equipos.length <= 1) return null;
 
-      const equiposRestantes = equipos.length - 3;
+      const equiposRestantes = equipos.length - 1;
 
       return (
         <TouchableOpacity
@@ -279,7 +279,9 @@ export default function ResultadosTable({
 
   // ✅ VISTA NORMAL - RESULTADOS INDIVIDUALES
   // Filtrar resultados según tipo de usuario
-  const resultadosToShow = isPro ? resultados : resultados.slice(0, 3);
+  // Apply different limits based on view type for individual results
+  const resultadosLimit = vistaSeleccionada === 'allaround' ? 3 : 1;
+  const resultadosToShow = isPro ? resultados : resultados.slice(0, resultadosLimit);
 
   // Ordenar resultados según vista y aparato seleccionado
   const resultadosOrdenados = [...resultadosToShow]
@@ -438,9 +440,10 @@ export default function ResultadosTable({
   };
 
   const renderUpgradePrompt = () => {
-    if (isPro || resultados.length <= 3) return null;
+    const limit = vistaSeleccionada === 'allaround' ? 3 : 1;
+    if (isPro || resultados.length <= limit) return null;
 
-    const resultadosRestantes = resultados.length - 3;
+    const resultadosRestantes = resultados.length - limit;
 
     return (
       <TouchableOpacity
