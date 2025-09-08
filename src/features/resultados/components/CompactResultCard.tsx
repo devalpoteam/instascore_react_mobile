@@ -50,7 +50,9 @@ export default function CompactResultCard({
   };
 
   const construirNombreCategoria = () => {
-    return `${resultado.nivel} ${resultado.franja}`;
+    const nivel = resultado.nivel || "Sin nivel";
+    const franja = resultado.franja || "";
+    return franja ? `${nivel} - ${franja}` : nivel;
   };
 
   return (

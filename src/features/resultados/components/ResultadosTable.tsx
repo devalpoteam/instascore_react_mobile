@@ -31,7 +31,11 @@ interface ResultadosTableProps {
 
 // Helper function para construir display de categoría usando ResultadoIndividual
 const construirCategoriaDisplay = (resultado: ResultadoIndividual): string => {
-  return `${resultado.categoria} ${resultado.nivel} ${resultado.franja}`;
+  const categoria = resultado.categoria || "Sin categoría";
+  const nivel = resultado.nivel || "Sin nivel";
+  const franja = resultado.franja || "";
+  
+  return franja ? `${categoria} - ${nivel} - ${franja}` : `${categoria} - ${nivel}`;
 };
 
 export default function ResultadosTable({

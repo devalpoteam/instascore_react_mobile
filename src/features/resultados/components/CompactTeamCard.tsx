@@ -41,7 +41,9 @@ export default function CompactTeamCard({
   };
 
   const construirNombreCategoria = () => {
-    return `${equipo.categoria} ${equipo.nivel}`;
+    const categoria = equipo.categoria || "Sin categoría";
+    const nivel = equipo.nivel || "Sin nivel";
+    return `${categoria} - ${nivel}`;
   };
 
   return (
