@@ -76,7 +76,8 @@ export default function BottomNavigation() {
   const getBottomPadding = () => {
     if (responsive.isTablet) return 12;
     if (responsive.isIOS) return responsive.insets.bottom > 0 ? responsive.insets.bottom : 8;
-    return 12;
+    // Para Android, también usar insets.bottom para evitar solapamiento con barra de navegación
+    return Math.max(responsive.insets.bottom, 12);
   };
 
   const getFontSize = () => {
