@@ -69,6 +69,26 @@ interface GetResultadosParams {
   modalidad?: 'aparato' | 'all around';
 }
 
+interface RankingCompletoAPI {
+  idParticipante: string;
+  nombre: string;
+  delegacion: string;
+  categoria: string;
+  nivel: string;
+  franja: string;
+  aparato: string;
+  puntaje: number;
+  puesto: number;
+  subdivision: string;
+  campeonatoId: string;
+  nombreCampeonato: string;
+}
+
+interface GetRankingParams {
+  campeonatoId: string;
+  participanteId: string;
+}
+
 export const resultadosService = {
   async getResultadosIndividuales({
     campeonatoId, categoriaId, nivelId, franjaId, participanteId, modalidad = 'aparato'
@@ -146,7 +166,47 @@ export const resultadosService = {
       }
       throw new Error('Error al cargar resultados de equipos');
     }
+  },
+
+  async getRankingCompleto({ campeonatoId, participanteId }: GetRankingParams): Promise<ResultadoIndividual[]> {
+    try {
+      const queryParams = new URLSearchParams({
+        campeonatoId,
+        participanteId
+      });
+
+      const url = `${API_CONFIG.ENDPOINTS.RESULTADOS.RANKING_COMPLETO}?${queryParams.toString()}`;
+      console.log('Making request to:', url);
+
+      const response = await apiClient.get<RankingCompletoAPI[]>(url);
+      
+      console.log('Raw API response:', response.data);
+
+      return response.data.map(resultado => ({
+        aparato: resultado.aparato,
+        gimnasta: resultado.nombre,
+        delegacion: resultado.delegacion,
+        categoria: resultado.categoria,
+        nivel: resultado.nivel,
+        franja: resultado.franja,
+        subdivision: resultado.subdivision,
+        puntaje: resultado.puntaje,
+        puesto: resultado.puesto,
+        idCampeonato: resultado.campeonatoId,
+        idCategoria: '',
+        idNivel: '',
+        idFranja: '',
+        nombreCampeonato: resultado.nombreCampeonato,
+        idParticipante: resultado.idParticipante
+      }));
+    } catch (error: any) {
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage) {
+        throw new Error(serverMessage);
+      }
+      throw new Error('Error al cargar ranking completo');
+    }
   }
 };
 
-export type { ResultadoIndividual, ResultadoEquipo, GetResultadosParams };
+export type { ResultadoIndividual, ResultadoEquipo, GetResultadosParams, GetRankingParams };

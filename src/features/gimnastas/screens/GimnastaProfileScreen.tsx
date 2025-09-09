@@ -1,6 +1,6 @@
 // src/features/gimnastas/screens/GimnastaProfileScreen.tsx
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useRoute,
@@ -40,6 +40,7 @@ export default function GimnastaProfileScreen() {
   const [isLoadingCampeonatos, setIsLoadingCampeonatos] = useState(false);
   const [isLoadingResultados, setIsLoadingResultados] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const loadGimnastaPerfil = async () => {
@@ -72,37 +73,43 @@ export default function GimnastaProfileScreen() {
       setCampeonatos(campeonatosData);
       
       if (campeonatosData.length > 0) {
+        console.log('Auto-loading first championship:', campeonatosData[0]);
         await loadResultados(campeonatosData[0], 0);
       }
     } catch (err: any) {
-      // Error al cargar campeonatos - mostrar estado de error si es necesario
+      console.error('Error loading campeonatos:', err);
     } finally {
       setIsLoadingCampeonatos(false);
     }
   };
 
   const loadResultados = async (campeonato: CampeonatoParticipacion, index: number) => {
-    if (!gimnasta) return;
+    console.log('loadResultados called with:', { campeonato, index, gimnastaExists: !!gimnasta });
 
     try {
       setIsLoadingResultados(true);
       
+      console.log('Loading resultados for:', {
+        campeonatoId: campeonato.campeonatoId,
+        gimnastaId: gimnastaId,
+        campeonatoParticipanteId: campeonato.participante.idParticipante
+      });
+      
       // Obtener el perfil específico de esta participación para obtener los IDs correctos
       const perfilParticipacion = await gimnastaProfileService.getGimnastaPerfil(campeonato.participante.idParticipante);
       
-      const resultadosData = await resultadosService.getResultadosIndividuales({
+      const resultadosData = await resultadosService.getRankingCompleto({
         campeonatoId: campeonato.campeonatoId,
-        categoriaId: perfilParticipacion.ultimoCampeonato.categoriaId,
-        nivelId: perfilParticipacion.ultimoCampeonato.nivelId,
-        franjaId: perfilParticipacion.ultimoCampeonato.franjaId,
         participanteId: campeonato.participante.idParticipante
       });
+      
+      console.log('Resultados data received:', resultadosData);
       
       setResultados(resultadosData);
       setCampeonatoSeleccionado(index);
       setDatosActuales(perfilParticipacion);
     } catch (err: any) {
-      // Error al cargar resultados - mostrar estado vacío
+      console.error('Error loading resultados:', err);
       setResultados([]);
     } finally {
       setIsLoadingResultados(false);
@@ -112,6 +119,33 @@ export default function GimnastaProfileScreen() {
   const handleCampeonatoChange = async (index: number) => {
     setDropdownVisible(false);
     await loadResultados(campeonatos[index], index);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    
+    try {
+      const perfilData = await gimnastaProfileService.getGimnastaPerfil(gimnastaId);
+      setGimnasta(perfilData);
+      setDatosActuales(perfilData);
+
+      if (perfilData.rut) {
+        const campeonatosData = await puntajesRutService.getCampeonatosPorRut(perfilData.rut);
+        setCampeonatos(campeonatosData);
+        
+        if (campeonatosData.length > 0) {
+          await loadResultados(campeonatosData[0], 0);
+        } else {
+          setResultados([]);
+          setCampeonatoSeleccionado(0);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al actualizar perfil del gimnasta');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const getInitials = (nombre: string) => {
@@ -226,6 +260,14 @@ export default function GimnastaProfileScreen() {
         contentContainerStyle={{
           paddingBottom: responsive.spacing["3xl"],
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[getColor.primary[500]]}
+            tintColor={getColor.primary[500]}
+          />
+        }
       >
         {campeonatos.length > 1 && (
           <View style={{

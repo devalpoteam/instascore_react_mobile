@@ -21,7 +21,8 @@ const API_CONFIG = {
     },
     RESULTADOS: {
       INDIVIDUALES: '/api/PremiacionesResultados/individuales',
-      EQUIPOS: '/api/PremiacionesResultados/equipos'
+      EQUIPOS: '/api/PremiacionesResultados/equipos',
+      RANKING_COMPLETO: '/api/PremiacionesResultados/RankingCompleto'
     },
     GIMNASTAS: {
       TODOS: '/api/PuntajesAparato/por-campeonato',
