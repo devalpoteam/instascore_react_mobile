@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
 import { store, persistor } from '@/store';
 import RootNavigator from '@/navigation/RootNavigator';
+import { SplashScreen } from '@/shared/components/common';
 
 function AppContent() {
   useEffect(() => {
@@ -49,6 +50,12 @@ function AppContent() {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onAnimationFinish={() => setShowSplash(false)} />;
+  }
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
