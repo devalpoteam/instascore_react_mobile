@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
+      "navigationBarVisibility": "visible",
       "package": "com.egav.instascore"
     },
     "scheme": "instascore",

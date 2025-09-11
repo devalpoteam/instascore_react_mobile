@@ -1,8 +1,9 @@
 // src/shared/components/layout/BottomNavigation.tsx
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
 
@@ -48,6 +49,7 @@ const tabItems: TabItem[] = [
 export default function BottomNavigation() {
   const navigation = useNavigation();
   const responsive = useResponsive();
+  const insets = useSafeAreaInsets();
   const currentRoute = useNavigationState(state => {
     if (!state || !state.routes || state.index === undefined) return null;
     return state.routes[state.index]?.name;
@@ -68,16 +70,23 @@ export default function BottomNavigation() {
   };
 
   const getTabBarHeight = () => {
-    if (responsive.isTablet) return 90;
-    if (responsive.isIOS) return responsive.insets.bottom > 0 ? 85 : 75;
-    return 70;
+    const baseHeight = responsive.isTablet ? 70 : 60;
+    const bottomPadding = getBottomPadding();
+    return baseHeight + bottomPadding;
   };
 
   const getBottomPadding = () => {
-    if (responsive.isTablet) return 12;
-    if (responsive.isIOS) return responsive.insets.bottom > 0 ? responsive.insets.bottom : 8;
-    // Para Android, también usar insets.bottom para evitar solapamiento con barra de navegación
-    return Math.max(responsive.insets.bottom, 12);
+    if (responsive.isTablet) {
+      return Math.max(insets.bottom, 12);
+    }
+    
+    if (Platform.OS === 'ios') {
+      return insets.bottom > 0 ? insets.bottom : 8;
+    }
+    
+    // Android: Usar insets.bottom más un padding mínimo para evitar solapamiento
+    // Si hay barra de navegación (insets.bottom > 0), usarlo, sino usar padding mínimo
+    return Math.max(insets.bottom + 4, 16);
   };
 
   const getFontSize = () => {

@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useEffect } from "react";
+import { View, Image, StyleSheet } from "react-native";
 
 interface SplashScreenProps {
   onAnimationFinish?: () => void;
   duration?: number;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ 
-  onAnimationFinish, 
-  duration = 4000 
+const SplashScreen: React.FC<SplashScreenProps> = ({
+  onAnimationFinish,
+  duration = 4000,
 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -20,8 +20,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <Image 
-        source={require('../../../../assets/images/logo.png')} 
+      <Image
+        source={require("../../../../assets/images/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -32,9 +32,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
   },
   logo: {
     width: 300,
