@@ -30,11 +30,31 @@ export const loginService = {
       const response = await apiClient.post<LoginResponse>('/api/Auth/login', credentials);
       return response.data;
     } catch (error: any) {
-      const serverMessage = error.response?.data?.message;
-      if (serverMessage) {
-        throw new Error(serverMessage);
+      if (error.response) {
+        const status = error.response.status;
+        const serverMessage = error.response?.data?.message;
+        
+        // Si es un error 500 o "Internal Server Error", probablemente son credenciales incorrectas
+        if (status === 500 || serverMessage === 'Internal Server Error') {
+          throw new Error('Usuario o contraseña incorrectos');
+        }
+        
+        switch (status) {
+          case 401:
+            throw new Error('Usuario o contraseña incorrectos');
+          case 404:
+            throw new Error('Usuario no encontrado');
+          case 400:
+            throw new Error('Datos de inicio de sesión inválidos');
+          default:
+            if (serverMessage && serverMessage !== 'Internal Server Error') {
+              throw new Error(serverMessage);
+            }
+            // Por defecto, asumimos que son credenciales incorrectas
+            throw new Error('Usuario o contraseña incorrectos');
+        }
       }
-      throw new Error('Error de conexión');
+      throw new Error('Verifica tu conexión a internet');
     }
   },
 
