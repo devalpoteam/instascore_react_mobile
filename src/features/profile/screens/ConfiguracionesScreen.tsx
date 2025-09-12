@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '@/store/hooks';
 import { userProfileService } from '@/services/api/users/userProfileService';
@@ -197,10 +198,16 @@ export default function ConfiguracionesScreen() {
     try {
       setIsLoading(true);
 
-      await passwordService.resetPassword({
-        email: authUser.email,
-        token: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'No se encontró el token de autenticación');
+        return;
+      }
+
+      await passwordService.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        token: token
       });
 
       Alert.alert(

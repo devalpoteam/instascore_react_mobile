@@ -95,8 +95,26 @@ export const registerAsync = createAsyncThunk(
 
 export const logoutAsync = createAsyncThunk(
   'auth/logoutAsync',
-  async () => {
-    await AsyncStorage.removeItem('token');
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const user = state.auth.user;
+      
+      if (user?.email) {
+        // Call server logout endpoint
+        await loginService.logout({
+          email: user.email,
+          password: '' // Server might not need password for logout
+        });
+      }
+      
+      // Remove token from storage
+      await AsyncStorage.removeItem('token');
+    } catch (error: any) {
+      // Even if server logout fails, still remove token locally
+      await AsyncStorage.removeItem('token');
+      console.warn('Server logout failed, but local logout completed:', error.message);
+    }
   }
 );
 

@@ -14,6 +14,16 @@ interface LoginResponse {
   premium: boolean;
 }
 
+interface LogoutRequest {
+  email: string;
+  password: string;
+}
+
+interface LogoutResponse {
+  message: string;
+  success: boolean;
+}
+
 export const loginService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     try {
@@ -25,6 +35,21 @@ export const loginService = {
         throw new Error(serverMessage);
       }
       throw new Error('Error de conexión');
+    }
+  },
+
+  logout: async (credentials: LogoutRequest): Promise<LogoutResponse> => {
+    try {
+      const response = await apiClient.get<LogoutResponse>('/api/Auth/logout', {
+        params: credentials
+      });
+      return response.data;
+    } catch (error: any) {
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage) {
+        throw new Error(serverMessage);
+      }
+      throw new Error('Error al cerrar sesión');
     }
   }
 };

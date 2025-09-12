@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { logout } from "@/features/auth/store/authSlice";
+import { logout, logoutAsync } from "@/features/auth/store/authSlice";
 import {
   userProfileService,
   UserProfile as ApiUserProfile,
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
           text: "Cerrar Sesión",
           style: "destructive",
           onPress: () => {
-            dispatch(logout());
+            dispatch(logoutAsync());
           },
         },
       ]
