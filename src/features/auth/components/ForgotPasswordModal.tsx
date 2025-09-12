@@ -15,7 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
 import { useResponsive } from '@/shared/hooks/useResponsive';
-import { useNavigation } from '@react-navigation/native'; // ✅ IMPORTAR NAVEGACIÓN
+import { useNavigation } from '@react-navigation/native';
+import { passwordService } from '@/services/api/users/passwordService';
 
 interface ForgotPasswordModalProps {
   visible: boolean;
@@ -94,7 +95,6 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
     return true;
   };
 
-  // 📧 HANDLE ENVIAR EMAIL - ✅ MODIFICADO PARA NAVEGAR
   const handleSendEmail = async () => {
     console.log('📧 Sending forgot password email for:', email);
     
@@ -103,20 +103,15 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
     setIsLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await passwordService.forgotPassword({ email });
       
-      if (email === 'error@test.com') {
-        throw new Error('Este correo no está registrado en el sistema');
-      }
-      
-      console.log('✅ Email sent successfully');
+      console.log('✅ Email sent successfully:', response.message);
       setStep('success');
       
-      // ✅ MODIFICACIÓN: Navegar después del éxito
       setTimeout(() => {
-        onClose(); // Cerrar modal primero
-        navigation.navigate('ResetPassword' as never); // Navegar a reset screen
-      }, 2000); // ✅ Reducido a 2 segundos para mejor UX
+        onClose();
+        navigation.navigate('ResetPassword' as never);
+      }, 2000);
       
     } catch (err: any) {
       console.error('❌ Send email error:', err);

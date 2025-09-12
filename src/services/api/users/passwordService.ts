@@ -23,7 +23,30 @@ interface ChangePasswordResponse {
   success: boolean;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+interface ForgotPasswordResponse {
+  message: string;
+  success: boolean;
+}
+
 export const passwordService = {
+  forgotPassword: async (request: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+    try {
+      const response = await apiClient.post<ForgotPasswordResponse>('/api/Users/forgot-password', request);
+      return response.data;
+    } catch (error: any) {
+      console.error('Forgot password error:', error.response?.data || error.message);
+      const serverMessage = error.response?.data?.message || error.response?.data?.error;
+      if (serverMessage) {
+        throw new Error(serverMessage);
+      }
+      throw new Error('Error al enviar el correo. Intenta de nuevo.');
+    }
+  },
+
   resetPassword: async (request: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
     try {
       const response = await apiClient.post<ResetPasswordResponse>('/api/Users/reset-password', request);
