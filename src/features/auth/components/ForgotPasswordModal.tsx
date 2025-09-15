@@ -108,11 +108,6 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
       console.log('✅ Email sent successfully:', response.message);
       setStep('success');
       
-      setTimeout(() => {
-        onClose();
-        navigation.navigate('ResetPassword' as never);
-      }, 2000);
-      
     } catch (err: any) {
       console.error('❌ Send email error:', err);
       setEmailError(err.message || 'Error al enviar el correo');
@@ -298,7 +293,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                           paddingHorizontal: 8,
                         }}
                       >
-                        Ingresa tu correo y te enviaremos las instrucciones para crear una nueva contraseña
+                        Ingresa tu correo y te enviaremos una contraseña temporal para que puedas acceder
                       </Text>
                     </>
                   ) : (
@@ -338,7 +333,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                           fontFamily: 'Montserrat',
                         }}
                       >
-                        ¡Correo Enviado!
+                        ¡Contraseña Enviada!
                       </Text>
                       
                       <Text
@@ -350,7 +345,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                           fontFamily: 'Nunito',
                         }}
                       >
-                        Revisa tu bandeja de entrada
+                        Revisa tu bandeja de entrada y carpeta de spam
                       </Text>
                     </>
                   )}
@@ -503,7 +498,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                                 fontFamily: 'Nunito',
                               }}
                             >
-                              {isLoading ? 'Enviando...' : 'Enviar Instrucciones'}
+                              {isLoading ? 'Enviando...' : 'Enviar Contraseña Temporal'}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -536,7 +531,6 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                       </View>
                     </>
                   ) : (
-                    // ✅ SUCCESS CONTENT - MODIFICADO EL MENSAJE
                     <View style={{ alignItems: 'center', paddingVertical: 12 }}>
                       <Text
                         style={{
@@ -548,7 +542,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                           fontFamily: 'Nunito',
                         }}
                       >
-                        Hemos enviado las instrucciones a:
+                        Hemos enviado una contraseña temporal a:
                       </Text>
 
                       <View
@@ -573,18 +567,72 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                         </Text>
                       </View>
 
-                      <Text
+                      <View
                         style={{
-                          fontSize: 14,
-                          color: getColor.gray[500],
-                          textAlign: 'center',
-                          fontStyle: 'italic',
-                          fontFamily: 'Nunito',
+                          backgroundColor: getColor.warning[100],
+                          borderRadius: 12,
+                          padding: 16,
+                          marginBottom: 24,
                         }}
                       >
-                        {/* ✅ MENSAJE ACTUALIZADO */}
-                        Redirigiendo a la pantalla de cambio de contraseña...
-                      </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                          <Ionicons
+                            name="shield-checkmark"
+                            size={20}
+                            color={getColor.warning[600]}
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontWeight: '600',
+                              color: getColor.warning[700],
+                              fontFamily: 'Nunito',
+                            }}
+                          >
+                            Importante
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: getColor.warning[700],
+                            textAlign: 'center',
+                            lineHeight: 20,
+                            fontFamily: 'Nunito',
+                          }}
+                        >
+                          Por tu seguridad, te recomendamos cambiar esta contraseña temporal por una de tu preferencia en las configuraciones de tu perfil.
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: getColor.success[500],
+                          borderRadius: 16,
+                          paddingVertical: 18,
+                          paddingHorizontal: 32,
+                          alignItems: 'center',
+                          shadowColor: getColor.success[500],
+                          shadowOffset: { width: 0, height: 6 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 10,
+                          elevation: 4,
+                        }}
+                        onPress={handleClose}
+                        activeOpacity={0.9}
+                      >
+                        <Text
+                          style={{
+                            color: getColor.background.primary,
+                            fontSize: 16,
+                            fontWeight: '600',
+                            fontFamily: 'Nunito',
+                          }}
+                        >
+                          Entendido
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   )}
                 </View>
