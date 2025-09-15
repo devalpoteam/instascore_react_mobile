@@ -20,10 +20,11 @@ interface CampeonatoHome {
 }
 
 const carouselImages = [
-  require('../../../../assets/images/carousel/gimnasta1.png'),
-  require('../../../../assets/images/carousel/gimnasta2.png'),
-  require('../../../../assets/images/carousel/gimnasta3.png'),
-  require('../../../../assets/images/carousel/gimnasta4.png'),
+  require('../../../../assets/images/carousel/gimnasta1.jpg'),
+  require('../../../../assets/images/carousel/gimnasta2.jpg'),
+  require('../../../../assets/images/carousel/gimnasta3.jpg'),
+  require('../../../../assets/images/carousel/gimnasta4.jpg'),
+  require('../../../../assets/images/carousel/gimnasta5.jpg'),
 ];
 
 export default function HomeScreen() {
