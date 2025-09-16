@@ -71,22 +71,27 @@ export default function BottomNavigation() {
 
   const getTabBarHeight = () => {
     const baseHeight = responsive.isTablet ? 70 : 60;
-    const bottomPadding = getBottomPadding();
-    return baseHeight + bottomPadding;
+    return baseHeight + getBottomPadding();
   };
 
   const getBottomPadding = () => {
+    const safeInset = Math.max(insets.bottom, 0);
+
     if (responsive.isTablet) {
-      return Math.max(insets.bottom, 12);
+      return Math.max(safeInset, 12);
     }
-    
+
     if (Platform.OS === 'ios') {
-      return insets.bottom > 0 ? insets.bottom : 8;
+      return safeInset > 0 ? safeInset : 8;
     }
-    
-    // Android: Usar insets.bottom más un padding mínimo para evitar solapamiento
-    // Si hay barra de navegación (insets.bottom > 0), usarlo, sino usar padding mínimo
-    return Math.max(insets.bottom + 4, 16);
+
+    if (safeInset === 0) {
+      // edgeToEdgeEnabled desactivado: mantenemos el padding histórico
+      return 12;
+    }
+
+    // edgeToEdgeEnabled activado: añadimos un margen ligero para despegar de la barra de gestos
+    return safeInset + 4;
   };
 
   const getFontSize = () => {
