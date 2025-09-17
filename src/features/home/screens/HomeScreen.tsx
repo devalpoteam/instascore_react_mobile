@@ -25,6 +25,12 @@ const carouselImages = [
   require('../../../../assets/images/carousel/gimnasta3.jpg'),
   require('../../../../assets/images/carousel/gimnasta4.jpg'),
   require('../../../../assets/images/carousel/gimnasta5.jpg'),
+  require('../../../../assets/images/carousel/gimnasta6.jpg'),
+  require('../../../../assets/images/carousel/gimnasta7.jpg'),
+  require('../../../../assets/images/carousel/gimnasta8.jpg'),
+  require('../../../../assets/images/carousel/gimnasta9.jpg'),
+  require('../../../../assets/images/carousel/gimnasta10.jpg'),
+  require('../../../../assets/images/carousel/gimnasta11.jpg'),
 ];
 
 export default function HomeScreen() {
