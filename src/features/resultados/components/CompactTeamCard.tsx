@@ -159,7 +159,7 @@ export default function CompactTeamCard({
                 fontFamily: "Nunito",
               }}
             >
-              {equipo.puntajeEquipo.toFixed(1)}
+              {equipo.puntajeEquipo.toString()}
             </Text>
           </View>
 

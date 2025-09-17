@@ -177,7 +177,7 @@ export default function GimnastaProfileScreen() {
   const calculateAllAround = () => {
     if (resultados.length === 0) return 0;
     const totalPuntaje = resultados.reduce((sum, resultado) => sum + resultado.puntaje, 0);
-    return Math.round(totalPuntaje * 10) / 10;
+    return totalPuntaje;
   };
 
   if (error || (!isLoadingProfile && !gimnasta)) {
@@ -635,7 +635,7 @@ export default function GimnastaProfileScreen() {
               color: getColor.background.primary,
               fontFamily: "Nunito",
             }}>
-              {calculateAllAround().toFixed(1)}
+              {calculateAllAround().toString()}
             </Text>
           )}
           </View>
@@ -758,7 +758,7 @@ export default function GimnastaProfileScreen() {
                         color: getColor.gray[800],
                         fontFamily: "Nunito",
                       }}>
-                        {resultado.puntaje.toFixed(1)}
+                        {resultado.puntaje.toString()}
                       </Text>
                       <View style={{
                         backgroundColor: getPositionColor(resultado.puesto),

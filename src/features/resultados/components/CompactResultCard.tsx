@@ -32,7 +32,7 @@ export default function CompactResultCard({
 
   const formatearPuntaje = (puntaje: number | null): string => {
     if (puntaje === null) return "--";
-    return puntaje.toFixed(1);
+    return puntaje.toString();
   };
 
   const getPositionColor = () => {

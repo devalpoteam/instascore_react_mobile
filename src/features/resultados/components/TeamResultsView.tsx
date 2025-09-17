@@ -8,7 +8,7 @@ import { ResultadoEquipo } from '@/services/api/resultados/resultadosService';
 
 // Helper function para formatear puntajes de equipo
 const formatearPuntajeEquipo = (puntaje: number): string => {
-  return puntaje.toFixed(1);
+  return puntaje.toString();
 };
 
 interface TeamResultsViewProps {

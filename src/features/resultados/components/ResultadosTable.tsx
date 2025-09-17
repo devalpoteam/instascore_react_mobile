@@ -17,7 +17,7 @@ const getAparatoDisplayNameResults = (aparato: string): string => {
 
 const formatearPuntaje = (puntaje: number | null): string => {
   if (puntaje === null) return "--";
-  return puntaje.toFixed(1);
+  return puntaje.toString();
 };
 
 interface ResultadosTableProps {
@@ -194,7 +194,7 @@ export default function ResultadosTable({
                 fontFamily: 'Nunito',
                 textAlign: 'center',
               }}>
-                {equipo.puntajeEquipo.toFixed(1)}
+                {equipo.puntajeEquipo.toString()}
               </Text>
             </View>
           </View>
