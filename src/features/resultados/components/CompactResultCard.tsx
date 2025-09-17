@@ -13,6 +13,7 @@ interface CompactResultCardProps {
     franja: string;
     subdivision: string;
     puntaje: number;
+    allaround: number;
     puesto: number;
   };
   position: number;

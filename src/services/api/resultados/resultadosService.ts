@@ -11,6 +11,7 @@ interface ResultadoIndividualAPI {
   franja: string;
   subdivision: string;
   puntaje: number;
+  allaround: number;
   puesto: number;
   IdCampeonato: string;
   IdCategoria: string;
@@ -40,6 +41,7 @@ interface ResultadoIndividual {
   franja: string;
   subdivision: string;
   puntaje: number;
+  allaround: number;
   puesto: number;
   idCampeonato: string;
   idCategoria: string;
@@ -119,6 +121,7 @@ export const resultadosService = {
         franja: resultado.franja,
         subdivision: resultado.subdivision,
         puntaje: resultado.puntaje,
+        allaround: resultado.allaround,
         puesto: resultado.puesto,
         idCampeonato: resultado.IdCampeonato,
         idCategoria: resultado.IdCategoria,
