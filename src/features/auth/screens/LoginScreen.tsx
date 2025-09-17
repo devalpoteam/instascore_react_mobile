@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   StatusBar,
-  Alert,
   Text,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,7 +15,6 @@ import { loginAsync } from "@/features/auth/store/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { useResponsive } from "@/shared/hooks/useResponsive";
 import ForgotPasswordModal from "@/features/auth/components/ForgotPasswordModal";
-import GoogleLoginWebView from "@/features/auth/components/GoogleLoginWebView";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -30,7 +28,6 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   const responsive = useResponsive();
 
@@ -76,10 +73,6 @@ export default function LoginScreen() {
       await dispatch(loginAsync({ email, password })).unwrap();
     } catch (error) {
     }
-  };
-
-  const handleGoogleLogin = async () => {
-    setShowGoogleModal(true);
   };
 
   const navigateToRegister = () => {
@@ -377,44 +370,6 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* BOTÓN GOOGLE */}
-          <TouchableOpacity
-            style={{
-              width: "100%",
-              backgroundColor: getColor.background.primary,
-              borderWidth: 1,
-              borderColor: getColor.gray[300],
-              borderRadius: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 20,
-            }}
-            onPress={handleGoogleLogin}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <Image
-              source={{
-                uri: "https://developers.google.com/identity/images/g-logo.png",
-              }}
-              style={{ width: 20, height: 20, marginRight: 8 }}
-              resizeMode="contain"
-            />
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: "500",
-                color: getColor.gray[700],
-                fontFamily: "Nunito",
-              }}
-            >
-              {isLoading ? "Conectando..." : "Continuar con Google"}
-            </Text>
-          </TouchableOpacity>
-
           {/* SEPARADOR */}
           <View
             style={{
@@ -474,18 +429,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-
       {/* FORGOT PASSWORD MODAL */}
       <ForgotPasswordModal
         visible={showForgotPasswordModal}
         onClose={handleCloseForgotPasswordModal}
-      />
-
-      {/* GOOGLE LOGIN MODAL */}
-      <GoogleLoginWebView 
-        visible={showGoogleModal}
-        onClose={() => setShowGoogleModal(false)}
       />
     </>
   );
