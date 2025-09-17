@@ -170,8 +170,49 @@ export default function GimnastaProfileScreen() {
       "Asimetricas": "Asimétricas", 
       "Viga": "Viga",
       "Suelo": "Suelo",
+      "Arzones": "Arzones",
+      "Anillas": "Anillas",
+      "Paralelas": "Paralelas",
+      "Barra": "Barra",
     };
     return names[aparato] || aparato;
+  };
+
+  const ordenarAparatos = (resultados: ResultadoIndividual[]): ResultadoIndividual[] => {
+    if (!datosActuales) return resultados;
+    
+    // Determinar si es GAF o GAM basado en la franja
+    const esGAF = datosActuales.franja.startsWith('F');
+    const esGAM = datosActuales.franja.startsWith('M');
+    
+    // Orden para GAF: Salto, Asimétricas, Viga, Suelo
+    const ordenGAF = ["Salto", "Asimetricas", "Viga", "Suelo"];
+    
+    // Orden para GAM: Suelo, Arzones, Anillas, Salto, Paralelas, Barra
+    const ordenGAM = ["Suelo", "Arzones", "Anillas", "Salto", "Paralelas", "Barra"];
+    
+    let ordenAparatos: string[] = [];
+    if (esGAF) {
+      ordenAparatos = ordenGAF;
+    } else if (esGAM) {
+      ordenAparatos = ordenGAM;
+    }
+    
+    if (ordenAparatos.length === 0) return resultados;
+    
+    return [...resultados].sort((a, b) => {
+      const indexA = ordenAparatos.indexOf(a.aparato);
+      const indexB = ordenAparatos.indexOf(b.aparato);
+      
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+      
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      
+      return a.aparato.localeCompare(b.aparato);
+    });
   };
 
   const calculateAllAround = () => {
@@ -712,7 +753,7 @@ export default function GimnastaProfileScreen() {
               </Text>
             </View>
           ) : (
-            resultados.map((resultado) => {
+            ordenarAparatos(resultados).map((resultado) => {
               const porcentaje = (resultado.puntaje / 10) * 100;
 
               return (
