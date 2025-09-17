@@ -18,6 +18,7 @@ interface CompactResultCardProps {
   position: number;
   aparatoActual: string;
   vistaSeleccionada: "aparatos" | "allaround" | "equipos";
+  allAroundScore?: number;
   isHighlighted?: boolean;
 }
 
@@ -26,6 +27,7 @@ export default function CompactResultCard({
   position,
   aparatoActual,
   vistaSeleccionada,
+  allAroundScore,
   isHighlighted = false,
 }: CompactResultCardProps) {
   const responsive = useResponsive();
@@ -170,6 +172,21 @@ export default function CompactResultCard({
               {formatearPuntaje(resultado.puntaje)}
             </Text>
           </View>
+
+          {vistaSeleccionada === "aparatos" && allAroundScore && (
+            <Text
+              style={{
+                fontSize: responsive.fontSize.xs,
+                color: getColor.gray[500],
+                fontFamily: "Nunito",
+                fontWeight: "700",
+                marginTop: 2,
+                textAlign: "center",
+              }}
+            >
+              AA: {allAroundScore.toString()}
+            </Text>
+          )}
 
           <Text
             style={{

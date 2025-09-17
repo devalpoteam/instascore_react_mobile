@@ -596,16 +596,25 @@ export default function LiveResultsScreen() {
             )
           ) : gimnastasActuales.length > 0 ? (
             <>
-              {gimnastasToShow.map((resultado, index) => (
-                <CompactResultCard
-                  key={`${resultado.gimnasta}_${resultado.delegacion}_${resultado.aparato}_${resultado.puesto}_${resultado.puntaje}`}
-                  resultado={resultado}
-                  position={resultado.puesto}
-                  aparatoActual={state.aparatoSeleccionado}
-                  vistaSeleccionada={state.vistaSeleccionada}
-                  isHighlighted={index === 0}
-                />
-              ))}
+              {gimnastasToShow.map((resultado, index) => {
+                // Buscar el puntaje all-around del mismo gimnasta
+                const allAroundData = state.resultadosAllAround.find(
+                  (allAround) => allAround.gimnasta === resultado.gimnasta && 
+                                allAround.delegacion === resultado.delegacion
+                );
+                
+                return (
+                  <CompactResultCard
+                    key={`${resultado.gimnasta}_${resultado.delegacion}_${resultado.aparato}_${resultado.puesto}_${resultado.puntaje}`}
+                    resultado={resultado}
+                    position={resultado.puesto}
+                    aparatoActual={state.aparatoSeleccionado}
+                    vistaSeleccionada={state.vistaSeleccionada}
+                    allAroundScore={allAroundData?.puntaje}
+                    isHighlighted={index === 0}
+                  />
+                );
+              })}
 
               {!isPro && gimnastasActuales.length > gimnastasLimit && (
                 <TouchableOpacity
