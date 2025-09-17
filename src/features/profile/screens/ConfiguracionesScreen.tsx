@@ -185,8 +185,8 @@ export default function ConfiguracionesScreen() {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
-    if (passwordData.newPassword.length < 6) {
-      Alert.alert('Error', 'La nueva contraseña debe tener al menos 6 caracteres');
+    if (passwordData.newPassword.length < 8) {
+      Alert.alert('Error', 'La nueva contraseña debe tener al menos 8 caracteres');
       return;
     }
 
@@ -572,7 +572,7 @@ export default function ConfiguracionesScreen() {
               'Nueva contraseña',
               passwordData.newPassword,
               (text) => setPasswordData({ ...passwordData, newPassword: text }),
-              'Mínimo 6 caracteres',
+              'Mínimo 8 caracteres',
               true,
               'default',
               'key-outline'

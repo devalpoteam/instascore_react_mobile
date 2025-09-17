@@ -88,8 +88,8 @@ export default function RegisterScreen() {
       setPasswordError("La contraseña es requerida");
       return false;
     }
-    if (password.length < 6) {
-      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+    if (password.length < 8) {
+      setPasswordError("La contraseña debe tener al menos 8 caracteres");
       return false;
     }
     setPasswordError("");
@@ -536,7 +536,7 @@ export default function RegisterScreen() {
                 style={{ marginRight: 12 }}
               />
               <TextInput
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 value={password}
                 onChangeText={handlePasswordChange}
                 secureTextEntry={!showPassword}
@@ -583,7 +583,7 @@ export default function RegisterScreen() {
                 fontFamily: "Nunito",
               }}
             >
-              Debe contener al menos 6 caracteres
+              Debe contener al menos 8 caracteres
             </Text>
 
             <TouchableOpacity

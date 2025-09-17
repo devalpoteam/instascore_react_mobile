@@ -50,8 +50,8 @@ export default function LoginScreen() {
       setPasswordError("La contraseña es requerida");
       return false;
     }
-    if (password.length < 6) {
-      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+    if (password.length < 8) {
+      setPasswordError("La contraseña debe tener al menos 8 caracteres");
       return false;
     }
     setPasswordError("");

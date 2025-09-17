@@ -31,8 +31,8 @@ export default function ResetPasswordScreen() {
       setNewPasswordError('La nueva contraseña es requerida');
       return false;
     }
-    if (password.length < 6) {
-      setNewPasswordError('La contraseña debe tener al menos 6 caracteres');
+    if (password.length < 8) {
+      setNewPasswordError('La contraseña debe tener al menos 8 caracteres');
       return false;
     }
     setNewPasswordError('');
@@ -267,7 +267,7 @@ export default function ResetPasswordScreen() {
                 style={{ marginRight: 12 }}
               />
               <TextInput
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 value={newPassword}
                 onChangeText={handleNewPasswordChange}
                 secureTextEntry={!showNewPassword}
@@ -386,7 +386,7 @@ export default function ResetPasswordScreen() {
             )}
 
             {/* SUCCESS MESSAGE */}
-            {confirmPassword && confirmPassword === newPassword && newPassword.length >= 6 && (
+            {confirmPassword && confirmPassword === newPassword && newPassword.length >= 8 && (
               <Text style={{
                 fontSize: 12,
                 color: getColor.success[500],
@@ -405,7 +405,7 @@ export default function ResetPasswordScreen() {
                 marginBottom: 24,
                 fontFamily: 'Nunito'
               }}>
-                La contraseña debe tener al menos 6 caracteres
+                La contraseña debe tener al menos 8 caracteres
               </Text>
             ) : null}
 
