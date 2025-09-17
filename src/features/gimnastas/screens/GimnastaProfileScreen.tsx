@@ -167,7 +167,7 @@ export default function GimnastaProfileScreen() {
   const getAparatoDisplayName = (aparato: string) => {
     const names: Record<string, string> = {
       "Salto": "Salto",
-      "Asimetricas": "Asimétricas", 
+      "Asimetricas": "Asimétricas",
       "Viga": "Viga",
       "Suelo": "Suelo",
       "Arzones": "Arzones",
@@ -178,39 +178,55 @@ export default function GimnastaProfileScreen() {
     return names[aparato] || aparato;
   };
 
-  const ordenarAparatos = (resultados: ResultadoIndividual[]): ResultadoIndividual[] => {
-    if (!datosActuales) return resultados;
-    
-    // Determinar si es GAF o GAM basado en la franja
-    const esGAF = datosActuales.franja.startsWith('F');
-    const esGAM = datosActuales.franja.startsWith('M');
-    
-    // Orden para GAF: Salto, Asimétricas, Viga, Suelo
-    const ordenGAF = ["Salto", "Asimetricas", "Viga", "Suelo"];
-    
-    // Orden para GAM: Suelo, Arzones, Anillas, Salto, Paralelas, Barra
-    const ordenGAM = ["Suelo", "Arzones", "Anillas", "Salto", "Paralelas", "Barra"];
-    
-    let ordenAparatos: string[] = [];
-    if (esGAF) {
-      ordenAparatos = ordenGAF;
-    } else if (esGAM) {
-      ordenAparatos = ordenGAM;
+  const detectarModalidad = (franja?: string, aparatos: string[] = []): "GAF" | "GAM" | null => {
+    const franjaNormalizada = (franja || "").trim().toUpperCase();
+
+    if (franjaNormalizada.includes("GAF") || franjaNormalizada.startsWith("FEM")) {
+      return "GAF";
     }
-    
-    if (ordenAparatos.length === 0) return resultados;
-    
+
+    if (franjaNormalizada.includes("GAM") || franjaNormalizada.startsWith("MAS")) {
+      return "GAM";
+    }
+
+    const aparatosSet = new Set(aparatos);
+    const aparatosGAM = ["Arzones", "Anillas", "Paralelas", "Barra"];
+    const aparatosGAF = ["Asimetricas", "Viga"];
+
+    if (aparatosGAM.some((aparato) => aparatosSet.has(aparato))) {
+      return "GAM";
+    }
+
+    if (aparatosGAF.some((aparato) => aparatosSet.has(aparato))) {
+      return "GAF";
+    }
+
+    return null;
+  };
+
+  const ordenarAparatos = (resultados: ResultadoIndividual[]): ResultadoIndividual[] => {
+    const modalidad = detectarModalidad(datosActuales?.franja, resultados.map((resultado) => resultado.aparato));
+
+    const ordenGAF = ["Salto", "Asimetricas", "Viga", "Suelo"];
+    const ordenGAM = ["Suelo", "Arzones", "Anillas", "Salto", "Paralelas", "Barra"];
+
+    const ordenAparatos = modalidad === "GAF" ? ordenGAF : modalidad === "GAM" ? ordenGAM : [];
+
+    if (ordenAparatos.length === 0) {
+      return resultados;
+    }
+
     return [...resultados].sort((a, b) => {
       const indexA = ordenAparatos.indexOf(a.aparato);
       const indexB = ordenAparatos.indexOf(b.aparato);
-      
+
       if (indexA !== -1 && indexB !== -1) {
         return indexA - indexB;
       }
-      
+
       if (indexA !== -1) return -1;
       if (indexB !== -1) return 1;
-      
+
       return a.aparato.localeCompare(b.aparato);
     });
   };
