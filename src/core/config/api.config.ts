@@ -1,7 +1,7 @@
 // src/core/config/api.config.ts
 const API_CONFIG = {
   SERVICES: {
-    AUTH: 'https://agymobileinstascore-develop.up.railway.app',
+    AUTH: 'https://agy-mobile-instascore-uat.up.railway.app',
   },
   
   ENDPOINTS: {

@@ -1,7 +1,7 @@
 // src/core/constants/index.ts
 export const APP_CONFIG = {
   NAME: 'InstaScore',
-  VERSION: '1.0.0',
+  VERSION: '1.1.3',
   API_TIMEOUT: 10000,
 };
 
