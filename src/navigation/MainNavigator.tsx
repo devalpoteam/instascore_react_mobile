@@ -1,96 +1,180 @@
 // src/navigation/MainNavigator.tsx
-import React from 'react'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { View, Text, TouchableOpacity } from 'react-native'
-import { useAppDispatch } from '@/store/hooks'
-import { logout } from '@/features/auth/store/authSlice'
-import { getColor } from '@/design/colorHelper' // ✅ Importar colorHelper en lugar de colors
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { getColor } from '@/design/colorHelper';
 
-const Tab = createBottomTabNavigator()
+// Screens importadas
+import HomeScreen from '@/features/home/screens/HomeScreen';
+import CampeonatosScreen from '@/features/campeonatos/screens/CampeonatosScreen';
+import CampeonatoDetailScreen from '@/features/campeonatos/screens/CampeonatoDetailScreen';
+import ResultadosScreen from '@/features/resultados/screens/ResultadosScreen';
+import CategorySelectorScreen from '@/features/resultados/screens/CategorySelectorScreen';
+import LiveResultsScreen from '@/features/resultados/screens/LiveResultsScreen';
+import GimnastasListScreen from '@/features/gimnastas/screens/GimnastasListScreen';
+import GimnastaProfileScreen from '@/features/gimnastas/screens/GimnastaProfileScreen';
+import ProfileScreen from '@/features/profile/screens/ProfileScreen';
+import ConfiguracionesScreen from '@/features/profile/screens/ConfiguracionesScreen';
 
-// Pantalla temporal de Campeonatos con botón de logout
-const CampeonatosScreen = () => {
-  const dispatch = useAppDispatch()
-  const handleLogout = () => {
-    dispatch(logout())
-  }
+
+// Tipos de navegación actualizados
+export type MainStackParamList = {
+  Home: undefined;
+  Resultados: undefined;
+  Campeonatos: undefined;
+  CampeonatoDetail: { campeonatoId: string };
   
-  return (
-    <View style={{
-      flex: 1, 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      padding: 20,
-      backgroundColor: getColor.background.brand // ✅ Fondo InstaScore
-    }}>
-      <Text style={{
-        fontSize: 18, 
-        marginBottom: 20,
-        color: getColor.primary[500] // ✅ Color InstaScore
-      }}>
-        Pantalla de Campeonatos
-      </Text>
-      <Text style={{
-        textAlign: 'center', 
-        marginBottom: 30,
-        color: getColor.gray[600] // ✅ Color InstaScore
-      }}>
-        Esta es una pantalla temporal para pruebas. Cuando hayas implementado la funcionalidad completa,
-        esta pantalla será reemplazada por la verdadera lista de campeonatos.
-      </Text>
-     
-      {/* Botón de Logout con colores InstaScore */}
-      <TouchableOpacity
-        onPress={handleLogout}
-        style={{
-          backgroundColor: getColor.secondary[500], // ✅ Naranja InstaScore
-          paddingVertical: 12,
-          paddingHorizontal: 20,
-          borderRadius: 8,
-          alignItems: 'center',
-          width: '80%',
-          marginTop: 20
-        }}
-      >
-        <Text style={{color: getColor.white, fontWeight: 'bold'}}>CERRAR SESIÓN</Text>
-      </TouchableOpacity>
-    </View>
-  )
-}
+  // Rutas actualizadas para soportar campeonatos finalizados
+  CategorySelector: { 
+    campeonatoId: string;
+    isFinished?: boolean;
+  };
+  LiveResults: { 
+    campeonatoId: string; 
+    categoriaId: string; 
+    categoriaNombre: string;
+    isFinished?: boolean;
+  };
+  
+  // Rutas de gimnastas
+  GimnastasList: undefined;
+  GimnastaProfile: { gimnastaId: string };
+  
+  // Rutas de perfil
+  Perfil: undefined;
+  Configuraciones: undefined;
+  ProfileSettings: undefined;
+  ProfileFavorites: undefined;
+  
+};
 
-// Pantalla temporal de Resultados
-const ResultadosScreen = () => (
-  <View style={{
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    backgroundColor: getColor.background.brand // ✅ Fondo InstaScore
-  }}>
-    <Text style={{
-      fontSize: 18,
-      color: getColor.primary[500] // ✅ Color InstaScore
-    }}>
-      Resultados
-    </Text>
-  </View>
-)
+// Tipos auxiliares para mejorar la navegación
+export type CampeonatoResultsMode = 'live' | 'finished';
+
+// Helper functions para navegación tipada
+export const NavigationHelpers = {
+  // Para navegar a selector de categorías
+  toCategorySelector: (campeonatoId: string, isFinished: boolean = false) => ({
+    screen: 'CategorySelector' as const,
+    params: { campeonatoId, isFinished }
+  }),
+  
+  // Para navegar a resultados
+  toLiveResults: (
+    campeonatoId: string, 
+    categoriaId: string, 
+    categoriaNombre: string,
+    isFinished: boolean = false
+  ) => ({
+    screen: 'LiveResults' as const,
+    params: { campeonatoId, categoriaId, categoriaNombre, isFinished }
+  })
+};
+
+const Stack = createStackNavigator<MainStackParamList>();
 
 export default function MainNavigator() {
   return (
-    <Tab.Navigator
+    <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: getColor.primary[500], // ✅ Azul InstaScore
-        tabBarInactiveTintColor: getColor.gray[400], // ✅ Gris InstaScore
-        tabBarStyle: {
-          backgroundColor: getColor.background.primary, // ✅ Blanco
-          borderTopWidth: 1,
-          borderTopColor: getColor.gray[200], // ✅ Gris claro InstaScore
+        cardStyle: { backgroundColor: getColor.background.lighter },
+        transitionSpec: {
+          open: {
+            animation: 'timing',
+            config: {
+              duration: 250,
+            },
+          },
+          close: {
+            animation: 'timing',
+            config: {
+              duration: 200,
+            },
+          },
+        },
+        cardStyleInterpolator: ({ current, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          };
         },
       }}
+      initialRouteName="Home"
     >
-      <Tab.Screen name="Campeonatos" component={CampeonatosScreen} />
-      <Tab.Screen name="Resultados" component={ResultadosScreen} />
-    </Tab.Navigator>
-  )
+      <Stack.Screen 
+        name="Home" 
+        component={HomeScreen}
+      />
+      
+      <Stack.Screen 
+        name="Resultados" 
+        component={ResultadosScreen}
+      />
+      
+      <Stack.Screen 
+        name="Campeonatos" 
+        component={CampeonatosScreen}
+      />
+      
+      <Stack.Screen 
+        name="CampeonatoDetail" 
+        component={CampeonatoDetailScreen}
+      />
+      
+      {/* Pantallas actualizadas - ahora soportan campeonatos finalizados */}
+      <Stack.Screen 
+        name="CategorySelector" 
+        component={CategorySelectorScreen}
+      />
+      
+      <Stack.Screen 
+        name="LiveResults" 
+        component={LiveResultsScreen}
+      />
+      
+      {/* Pantallas de gimnastas */}
+      <Stack.Screen 
+        name="GimnastasList" 
+        component={GimnastasListScreen}
+        options={{
+          title: 'Lista de Gimnastas',
+        }}
+      />
+      
+      <Stack.Screen 
+        name="GimnastaProfile" 
+        component={GimnastaProfileScreen}
+        options={{
+          title: 'Perfil del Gimnasta',
+        }}
+      />
+      
+      {/* Pantallas de perfil */}
+      <Stack.Screen 
+        name="Perfil" 
+        component={ProfileScreen}
+        options={{
+          title: 'Mi Perfil',
+        }}
+      />
+      
+      {/* Nueva pantalla de configuraciones */}
+      <Stack.Screen 
+        name="Configuraciones" 
+        component={ConfiguracionesScreen}
+        options={{
+          title: 'Configuraciones',
+        }}
+      />
+      
+    </Stack.Navigator>
+  );
 }

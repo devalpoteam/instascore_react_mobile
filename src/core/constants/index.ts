@@ -5,15 +5,6 @@ export const APP_CONFIG = {
   API_TIMEOUT: 10000,
 };
 
-export const COLORS = {
-  primary: '#007AFF',
-  secondary: '#5856D6',
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  background: '#F2F2F7',
-};
-
 export const ENDPOINTS = {
   BASE_URL: __DEV__ 
     ? 'http://localhost:3000/api' 
