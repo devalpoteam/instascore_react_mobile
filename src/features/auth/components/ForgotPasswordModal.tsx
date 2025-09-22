@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
+  ScrollView,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getColor } from '@/design/colorHelper';
@@ -170,38 +172,53 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* 🌫️ BACKDROP CON GRADIENTE SUTIL */}
         <TouchableWithoutFeedback onPress={handleBackdropPress}>
-          <Animated.View
-            style={{
-              flex: 1,
-              backgroundColor: 'rgba(17, 5, 173, 0.25)', // ✅ Tinte azul InstaScore
+          <ScrollView
+            contentContainerStyle={{ 
+              flexGrow: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              opacity: opacityAnim,
+              paddingVertical: 40,
             }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            {/* 📱 CONTENEDOR PRINCIPAL */}
-            <TouchableWithoutFeedback>
+            <Animated.View
+              style={{
+                backgroundColor: 'rgba(17, 5, 173, 0.25)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                opacity: opacityAnim,
+                width: '100%',
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+              }}
+            />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <Animated.View
-                style={[
-                  {
-                    width: modalWidth,
-                    maxWidth: modalMaxWidth,
-                    backgroundColor: getColor.background.primary,
-                    borderRadius: 24,
-                    margin: 20,
-                    overflow: 'hidden', // ✅ Para efectos internos
-                    shadowColor: getColor.primary[500],
-                    shadowOffset: { width: 0, height: 20 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 25,
-                    elevation: 15,
-                  },
-                  modalTransform,
-                ]}
-              >
+                  style={[
+                    {
+                      width: modalWidth,
+                      maxWidth: modalMaxWidth,
+                      backgroundColor: getColor.background.primary,
+                      borderRadius: 24,
+                      margin: 20,
+                      overflow: 'hidden', // ✅ Para efectos internos
+                      shadowColor: getColor.primary[500],
+                      shadowOffset: { width: 0, height: 20 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 25,
+                      elevation: 15,
+                    },
+                    modalTransform,
+                  ]}
+                >
                 {/* 🎨 HEADER CON FONDO DEGRADADO */}
                 <View
                   style={{
@@ -638,7 +655,7 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
                 </View>
               </Animated.View>
             </TouchableWithoutFeedback>
-          </Animated.View>
+          </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>

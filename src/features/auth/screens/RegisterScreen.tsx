@@ -1,6 +1,6 @@
 // src/features/auth/screens/RegisterScreen.tsx
 import React, { useState } from "react";
-import {View, Text, TextInput, KeyboardAvoidingView, Platform, Image, TouchableOpacity, ScrollView, StatusBar } from "react-native";
+import {View, Text, TextInput, KeyboardAvoidingView, Platform, Image, TouchableOpacity, ScrollView, StatusBar, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getColor } from "@/design/colorHelper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -158,6 +158,7 @@ export default function RegisterScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, backgroundColor: getColor.background.lighter }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           style={{ flex: 1 }}
@@ -169,7 +170,10 @@ export default function RegisterScreen() {
           }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
 
           <View
             style={{
@@ -641,6 +645,8 @@ export default function RegisterScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+            </View>
+          </TouchableWithoutFeedback>
         </ScrollView>
       </KeyboardAvoidingView>
     </>

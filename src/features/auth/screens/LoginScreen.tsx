@@ -7,6 +7,11 @@ import {
   TextInput,
   StatusBar,
   Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getColor } from "@/design/colorHelper";
@@ -106,16 +111,25 @@ export default function LoginScreen() {
         translucent={false}
       />
 
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: getColor.background.lighter,
-          padding: 20,
-          justifyContent: "center",
-        }}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
+        <ScrollView
+          style={{ flex: 1, backgroundColor: getColor.background.lighter }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 20,
+            justifyContent: "center",
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
 
-        {/* LOGO */}
         <View style={{ alignItems: "center", marginBottom: 40 }}>
           <Image
             source={require("../../../../assets/images/logo.png")}
@@ -428,7 +442,10 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
       {/* FORGOT PASSWORD MODAL */}
       <ForgotPasswordModal
         visible={showForgotPasswordModal}
