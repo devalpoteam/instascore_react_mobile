@@ -7,7 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["assets/**/*"],
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
@@ -23,7 +25,6 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": false,
-      "navigationBarVisibility": "visible",
       "package": "com.egav.instascore"
     },
     "scheme": "instascore",
