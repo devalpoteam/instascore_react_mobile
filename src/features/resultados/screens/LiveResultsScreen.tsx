@@ -51,6 +51,7 @@ interface LiveResultsState {
   showAparatoDropdown: boolean;
   campeonatoNombre: string;
   categoriaNombre: string;
+  categoriaDetalle?: any;
 }
 
 export default function LiveResultsScreen() {
@@ -87,6 +88,7 @@ export default function LiveResultsScreen() {
     showAparatoDropdown: false,
     campeonatoNombre: "",
     categoriaNombre: "",
+    categoriaDetalle: undefined,
   });
 
   useEffect(() => {
@@ -97,6 +99,32 @@ export default function LiveResultsScreen() {
     };
     loadInitialData();
   }, [campeonatoId, categoriaId, nivelId, franjaId]);
+
+  const orderAparatosPorDisciplina = (aparatos: string[], disciplina?: string): string[] => {
+    const aparatosGAF = ['Salto', 'Asimétricas', 'Viga', 'Suelo'];
+    const aparatosGAM = ['Suelo', 'Arzones', 'Anillas', 'Salto', 'Paralelas', 'Barra'];
+    
+    if (!disciplina) {
+      return aparatos.sort();
+    }
+    
+    const esGAF = disciplina === 'GAF' || disciplina.toLowerCase().includes('femenino');
+    const ordenReferencia = esGAF ? aparatosGAF : aparatosGAM;
+    
+    return aparatos.sort((a, b) => {
+      const indexA = ordenReferencia.indexOf(a);
+      const indexB = ordenReferencia.indexOf(b);
+      
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+      
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      
+      return a.localeCompare(b);
+    });
+  };
 
   const loadCampeonatoYCategoria = async () => {
     try {
@@ -118,7 +146,8 @@ export default function LiveResultsScreen() {
       setState(prev => ({
         ...prev,
         campeonatoNombre: campeonato.nombre,
-        categoriaNombre: categoriaNombre
+        categoriaNombre: categoriaNombre,
+        categoriaDetalle: categoriaEncontrada
       }));
     } catch (error) {
       console.error('Error loading campeonato y categoria:', error);
@@ -146,7 +175,10 @@ export default function LiveResultsScreen() {
       ]);
 
       const aparatosUnicos = modalidad === 'aparato' 
-        ? [...new Set(resultados.map(r => r.aparato))].sort()
+        ? orderAparatosPorDisciplina(
+            [...new Set(resultados.map(r => r.aparato))],
+            state.categoriaDetalle?.disciplina
+          )
         : [];
 
       setState((prev) => ({
@@ -385,7 +417,7 @@ export default function LiveResultsScreen() {
                       position: 'absolute',
                       top: '100%',
                       left: 0,
-                      right: 0,
+                      minWidth: 160,
                       backgroundColor: getColor.background.primary,
                       borderRadius: 8,
                       borderWidth: 1,
