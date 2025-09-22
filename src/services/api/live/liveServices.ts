@@ -106,6 +106,31 @@ export const liveService = {
     }
   },
 
+  getParticipantesPorSubdivision: async (idFranja: string): Promise<number> => {
+    try {
+      const response = await apiClient.get<Array<{
+        Nombrefranja: string;
+        Subdivision: string;
+        numeroParticipantes: number;
+      }>>(
+        `/api/Divisiones/ParticipantesPorSubdivision?idFranja=${idFranja}`
+      );
+      
+      // Sumar todos los participantes de todas las subdivisiones
+      const totalParticipantes = response.data?.reduce((total, subdivision) => {
+        return total + (subdivision.numeroParticipantes || 0);
+      }, 0) || 0;
+      
+      return totalParticipantes;
+    } catch (error: any) {
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage) {
+        throw new Error(serverMessage);
+      }
+      throw new Error('Error al cargar participantes por subdivisión');
+    }
+  },
+
   // ✅ MÉTODO ACTUALIZADO PARA MANEJAR LOS NUEVOS IDs
   getCategoriasAgrupadas: async (campeonatoId: string): Promise<CategoriaAgrupada[]> => {
     try {

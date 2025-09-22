@@ -347,7 +347,7 @@ export default function GimnastasListScreen() {
         onChangeText={handleSearchChange}
         onSuggestionSelect={handleSuggestionSelect}
         gimnastas={state.gimnastas}
-        placeholder="Buscar gimnasta, club, categoría o campeonato..."
+        placeholder="Buscar gimnasta, club..."
         isLoading={false}
       />
 

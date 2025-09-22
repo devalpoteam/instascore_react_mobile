@@ -56,6 +56,7 @@ export default function CategorySelectorScreen() {
   
   const [campeonato, setCampeonato] = useState<CampeonatoDetalle | null>(null);
   const [categorias, setCategorias] = useState<CategoriaAgrupada[]>([]);
+  const [participantesPorFranja, setParticipantesPorFranja] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,24 @@ export default function CategorySelectorScreen() {
       
       setCampeonato(campeonatoData);
       setCategorias(categoriasData);
+      
+      // Cargar participantes reales para cada franja
+      const participantesPromises = categoriasData.map(categoria => 
+        liveService.getParticipantesPorSubdivision(categoria.idFranja)
+          .then(count => ({ franjaId: categoria.idFranja, count }))
+          .catch(error => {
+            console.warn(`Error loading participants for franja ${categoria.idFranja}:`, error);
+            return { franjaId: categoria.idFranja, count: categoria.numeroParticipantes };
+          })
+      );
+      
+      const participantesResults = await Promise.all(participantesPromises);
+      const participantesMap = participantesResults.reduce((acc, { franjaId, count }) => {
+        acc[franjaId] = count;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      setParticipantesPorFranja(participantesMap);
       
     } catch (error: any) {
       console.error('Error loading data:', error);
@@ -493,7 +512,7 @@ export default function CategorySelectorScreen() {
                       fontFamily: 'Nunito',
                       marginLeft: 2,
                     }}>
-                      {categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
+                      {participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
                     </Text>
                   </View>
                 </View>
