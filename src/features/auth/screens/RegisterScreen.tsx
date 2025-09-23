@@ -1,6 +1,6 @@
 // src/features/auth/screens/RegisterScreen.tsx
-import React, { useState } from "react";
-import {View, Text, TextInput, KeyboardAvoidingView, Platform, Image, TouchableOpacity, ScrollView, StatusBar, TouchableWithoutFeedback, Keyboard } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {View, Text, TextInput, Platform, Image, TouchableOpacity, ScrollView, StatusBar, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getColor } from "@/design/colorHelper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -30,8 +30,34 @@ export default function RegisterScreen() {
   const [ageError, setAgeError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const responsive = useResponsive();
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (event) => {
+      setIsKeyboardVisible(true);
+      // Scroll automático para evitar que el teclado tape los inputs
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 150, animated: true });
+      }, 100);
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+      // Regresar scroll a posición inicial
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        Keyboard.dismiss();
+      }, 100);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
 
   const validateName = (name: string): boolean => {
     if (!name.trim()) {
@@ -155,23 +181,20 @@ export default function RegisterScreen() {
         translucent={false}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <ScrollView
+        ref={scrollViewRef}
         style={{ flex: 1, backgroundColor: getColor.background.lighter }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        contentContainerStyle={{
+          flexGrow: 1,
+          padding: 20,
+          paddingTop: responsive.isIOS ? 25 : 20,
+          paddingBottom: isKeyboardVisible ? 350 : 20,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+        automaticallyAdjustKeyboardInsets={false}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            padding: 20,
-            justifyContent: responsive.isIOS ? "flex-start" : "center",
-            paddingTop: responsive.isIOS ? 25 : 20,
-          }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
 
@@ -648,7 +671,6 @@ export default function RegisterScreen() {
             </View>
           </TouchableWithoutFeedback>
         </ScrollView>
-      </KeyboardAvoidingView>
     </>
   );
 }

@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   ScrollView,
@@ -31,7 +30,9 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
   const [emailError, setEmailError] = useState('');
   const [step, setStep] = useState<'input' | 'success'>('input');
   const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
-  
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const responsive = useResponsive();
   const navigation = useNavigation(); // ✅ HOOK DE NAVEGACIÓN
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -39,11 +40,36 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const inputRef = useRef<TextInput>(null);
 
+  // ✅ KEYBOARD LISTENERS
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (event) => {
+      setIsKeyboardVisible(true);
+      // Scroll automático para evitar que el teclado tape el input
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 100, animated: true });
+      }, 100);
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+      // Regresar scroll a posición inicial
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        Keyboard.dismiss();
+      }, 100);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+
   // ✅ ANIMACIONES MEJORADAS
   useEffect(() => {
     if (visible) {
       setShouldAutoFocus(false);
-      
+
       Animated.parallel([
         Animated.timing(opacityAnim, {
           toValue: 1,
@@ -169,23 +195,21 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
       statusBarTranslucent
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <TouchableWithoutFeedback onPress={handleBackdropPress}>
-          <ScrollView
-            contentContainerStyle={{ 
-              flexGrow: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              paddingVertical: 40,
-            }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-          >
+      <TouchableWithoutFeedback onPress={handleBackdropPress}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+            paddingBottom: isKeyboardVisible ? 300 : 40,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          automaticallyAdjustKeyboardInsets={false}
+        >
             <Animated.View
               style={{
                 backgroundColor: 'rgba(17, 5, 173, 0.25)',
@@ -657,7 +681,6 @@ export default function ForgotPasswordModal({ visible, onClose }: ForgotPassword
             </TouchableWithoutFeedback>
           </ScrollView>
         </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
     </Modal>
   );
 }
