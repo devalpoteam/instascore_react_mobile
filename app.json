@@ -24,8 +24,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": false,
-      "package": "com.egav.instascore"
+        "package": "com.egav.instascore"
     },
     "scheme": "instascore",
     "web": {

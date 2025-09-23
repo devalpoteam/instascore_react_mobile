@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+*.tgz
+.yarn-integrity
 
 # Expo
 .expo/
@@ -9,31 +11,84 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
-.kotlin/
-android/
-ios/
+# Native builds (specific build artifacts only)
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+ios/build/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/
+
+# Build artifacts
+*.apk
+*.ipa
+*.app
+*.dSYM.zip
+*.dSYM
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.keystore
 
 # Metro
 .metro-health-check*
+.metro-cache/
 
-# debug
+# Debug and logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+.flipper/
 
-# macOS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.pem
 
-# local env files
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env*.local
 
-# typescript
+# TypeScript
 *.tsbuildinfo
+*.d.ts.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache and temp files
+.cache/
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# React Native specific
+.react-native-cli-cache/
+.jest/
+coverage/
+
+# Android specific
+*.hprof
+.cxx/
+local.properties
