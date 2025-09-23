@@ -104,6 +104,12 @@ export default function LiveResultsScreen() {
     const aparatosGAF = ['Salto', 'Asimétricas', 'Viga', 'Suelo'];
     const aparatosGAM = ['Suelo', 'Arzones', 'Anillas', 'Salto', 'Paralelas', 'Barra'];
 
+    // DEBUG: Log para verificar el valor de disciplina
+    console.log('🔍 DEBUG - orderAparatosPorDisciplina:');
+    console.log('  disciplina recibida:', disciplina);
+    console.log('  aparatos originales:', aparatos);
+    console.log('  categoriaDetalle completo:', state.categoriaDetalle);
+
     // Mapeo para normalizar nombres de aparatos
     const normalizarAparato = (aparato: string): string => {
       const normalizaciones: { [key: string]: string } = {
@@ -130,14 +136,35 @@ export default function LiveResultsScreen() {
       return normalizaciones[aparato] || aparato;
     };
 
-    if (!disciplina) {
-      return aparatos.sort();
+    // Determinar disciplina: si no hay disciplina específica, intentar detectar por aparatos
+    let disciplinaFinal = disciplina;
+
+    if (!disciplinaFinal) {
+      // Intentar detectar disciplina por los aparatos presentes
+      const aparatosGAFPresentes = aparatos.filter(a => aparatosGAF.includes(normalizarAparato(a))).length;
+      const aparatosGAMPresentes = aparatos.filter(a => aparatosGAM.includes(normalizarAparato(a))).length;
+
+      if (aparatosGAFPresentes > aparatosGAMPresentes) {
+        disciplinaFinal = 'GAF';
+        console.log('🔍 Disciplina auto-detectada como GAF por aparatos presentes');
+      } else if (aparatosGAMPresentes > 0) {
+        disciplinaFinal = 'GAM';
+        console.log('🔍 Disciplina auto-detectada como GAM por aparatos presentes');
+      } else {
+        // Por defecto usar GAF si no se puede detectar
+        disciplinaFinal = 'GAF';
+        console.log('🔍 Usando GAF por defecto');
+      }
     }
 
-    const esGAF = disciplina === 'GAF' || disciplina.toLowerCase().includes('femenino');
+    const esGAF = disciplinaFinal === 'GAF' || disciplinaFinal.toLowerCase().includes('femenino');
     const ordenReferencia = esGAF ? aparatosGAF : aparatosGAM;
 
-    return aparatos.sort((a, b) => {
+    console.log('  disciplina final usada:', disciplinaFinal);
+    console.log('  es GAF?:', esGAF);
+    console.log('  orden de referencia:', ordenReferencia);
+
+    const resultado = aparatos.sort((a, b) => {
       const aparatoA = normalizarAparato(a);
       const aparatoB = normalizarAparato(b);
 
@@ -153,6 +180,9 @@ export default function LiveResultsScreen() {
 
       return a.localeCompare(b);
     });
+
+    console.log('  resultado final ordenado:', resultado);
+    return resultado;
   };
 
   const loadCampeonatoYCategoria = async () => {
@@ -203,12 +233,21 @@ export default function LiveResultsScreen() {
         })
       ]);
 
+      // DEBUG: Verificar los datos de resultados
+      console.log('🔍 Debug orden olímpico:', {
+        modalidad,
+        disciplina: state.categoriaDetalle?.disciplina,
+        aparatosSinOrden: [...new Set(resultados.map(r => r.aparato))]
+      });
+
       const aparatosUnicos = modalidad === 'aparato'
         ? orderAparatosPorDisciplina(
-            [...new Set(resultados.map(r => r.aparato))],
+            [...new Set(resultados.map(r => r.aparato).filter(a => a !== null && a !== undefined))],
             state.categoriaDetalle?.disciplina
           )
         : [];
+
+      console.log('🥇 Aparatos ordenados:', aparatosUnicos);
 
 
       setState((prev) => ({
