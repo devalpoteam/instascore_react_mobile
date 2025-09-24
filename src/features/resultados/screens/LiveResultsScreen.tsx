@@ -389,40 +389,27 @@ export default function LiveResultsScreen() {
         }}>
           {/* Card principal */}
           <View style={{
-            backgroundColor: getColor.warning[50],
-            borderRadius: 20,
+            backgroundColor: getColor.gray[50],
+            borderRadius: 12,
             padding: responsive.spacing.xl,
             alignItems: "center",
             marginBottom: responsive.spacing.xl,
-            borderWidth: 2,
-            borderColor: getColor.warning[200],
-            shadowColor: getColor.warning[300],
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.15,
-            shadowRadius: 16,
-            elevation: 8,
             width: '100%',
             maxWidth: 350,
           }}>
-            {/* Icono animado */}
-            <View style={{
-              backgroundColor: getColor.warning[100],
-              borderRadius: 50,
-              padding: responsive.spacing.lg,
-              marginBottom: responsive.spacing.lg,
-            }}>
-              <Ionicons
-                name="construct-outline"
-                size={56}
-                color={getColor.warning[600]}
-              />
-            </View>
+            {/* Icono */}
+            <Ionicons
+              name="construct-outline"
+              size={48}
+              color={getColor.gray[400]}
+              style={{ marginBottom: responsive.spacing.md }}
+            />
 
             {/* Título */}
             <Text style={{
-              fontSize: responsive.fontSize.xl,
-              fontWeight: "800",
-              color: getColor.warning[800],
+              fontSize: responsive.fontSize.base,
+              fontWeight: "600",
+              color: getColor.gray[600],
               fontFamily: "Nunito",
               textAlign: "center",
               marginBottom: responsive.spacing.md,
@@ -432,12 +419,11 @@ export default function LiveResultsScreen() {
 
             {/* Descripción */}
             <Text style={{
-              fontSize: responsive.fontSize.base,
-              color: getColor.warning[700],
+              fontSize: responsive.fontSize.sm,
+              color: getColor.gray[500],
               fontFamily: "Nunito",
               textAlign: "center",
-              lineHeight: 24,
-              marginBottom: responsive.spacing.lg,
+              lineHeight: 20,
             }}>
               Las bases del campeonato aún están en configuración.{'\n'}
               Por favor, espera a que el administrador complete la configuración.
@@ -450,49 +436,21 @@ export default function LiveResultsScreen() {
             onPress={() => loadResultados()}
             style={{
               backgroundColor: getColor.primary[500],
-              paddingHorizontal: responsive.spacing.xl,
+              paddingHorizontal: responsive.spacing.lg,
               paddingVertical: responsive.spacing.md,
-              borderRadius: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              shadowColor: getColor.primary[500],
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              elevation: 6,
+              borderRadius: 8,
+              marginTop: responsive.spacing.md,
             }}
           >
-            <Ionicons
-              name="refresh"
-              size={20}
-              color={getColor.background.primary}
-              style={{ marginRight: 10 }}
-            />
             <Text style={{
               color: getColor.background.primary,
               fontSize: responsive.fontSize.base,
-              fontWeight: "700",
+              fontWeight: "600",
               fontFamily: "Nunito",
             }}>
               Verificar Nuevamente
             </Text>
           </TouchableOpacity>
-
-          {/* Mensaje informativo inferior */}
-          <View style={{
-            marginTop: responsive.spacing.xl,
-            alignItems: "center",
-          }}>
-            <Text style={{
-              fontSize: responsive.fontSize.xs,
-              color: getColor.gray[500],
-              fontFamily: "Nunito",
-              textAlign: "center",
-            }}>
-              Los resultados aparecerán automáticamente{'\n'}
-              cuando la configuración esté completa
-            </Text>
-          </View>
         </View>
       </BaseLayout>
     );
