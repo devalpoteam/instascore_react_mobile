@@ -373,7 +373,7 @@ export default function LiveResultsScreen() {
   // Interfaz para configuración pendiente
   if (state.isConfiguracionPendiente) {
     return (
-      <BaseLayout>
+      <BaseLayout backgroundColor={getColor.background.lighter}>
         <Header
           title={state.categoriaNombre || "Configuración en Proceso"}
           subtitle={state.campeonatoNombre}
@@ -385,7 +385,6 @@ export default function LiveResultsScreen() {
           justifyContent: "center",
           alignItems: "center",
           padding: responsive.spacing.xl,
-          backgroundColor: getColor.background.primary,
         }}>
           {/* Card principal */}
           <View style={{
