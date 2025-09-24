@@ -47,6 +47,7 @@ interface LiveResultsState {
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
+  isConfiguracionPendiente: boolean;
   showUpgradeBanner: boolean;
   showAparatoDropdown: boolean;
   campeonatoNombre: string;
@@ -84,6 +85,7 @@ export default function LiveResultsScreen() {
     isLoading: true,
     isRefreshing: false,
     error: null,
+    isConfiguracionPendiente: false,
     showUpgradeBanner: !isPro,
     showAparatoDropdown: false,
     campeonatoNombre: "",
@@ -260,16 +262,20 @@ export default function LiveResultsScreen() {
         isLoading: false,
       }));
     } catch (error: any) {
+      const errorMessage = error.message || "Error al cargar los resultados";
+      const isConfigPendiente = errorMessage.includes('Las bases del campeonato aún están en configuración');
+
       setState((prev) => ({
         ...prev,
-        error: error.message || "Error al cargar los resultados",
+        error: isConfigPendiente ? null : errorMessage,
+        isConfiguracionPendiente: isConfigPendiente,
         isLoading: false,
       }));
     }
   };
 
   const handleRefresh = async () => {
-    setState((prev) => ({ ...prev, isRefreshing: true }));
+    setState((prev) => ({ ...prev, isRefreshing: true, error: null, isConfiguracionPendiente: false }));
     await loadCampeonatoYCategoria();
     await loadResultados('aparato');
     await loadResultados('all around');
@@ -359,6 +365,134 @@ export default function LiveResultsScreen() {
           }}>
             {displayTexts.loadingText}
           </Text>
+        </View>
+      </BaseLayout>
+    );
+  }
+
+  // Interfaz para configuración pendiente
+  if (state.isConfiguracionPendiente) {
+    return (
+      <BaseLayout>
+        <Header
+          title={state.categoriaNombre || "Configuración en Proceso"}
+          subtitle={state.campeonatoNombre}
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: responsive.spacing.xl,
+          backgroundColor: getColor.background.primary,
+        }}>
+          {/* Card principal */}
+          <View style={{
+            backgroundColor: getColor.warning[50],
+            borderRadius: 20,
+            padding: responsive.spacing.xl,
+            alignItems: "center",
+            marginBottom: responsive.spacing.xl,
+            borderWidth: 2,
+            borderColor: getColor.warning[200],
+            shadowColor: getColor.warning[300],
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.15,
+            shadowRadius: 16,
+            elevation: 8,
+            width: '100%',
+            maxWidth: 350,
+          }}>
+            {/* Icono animado */}
+            <View style={{
+              backgroundColor: getColor.warning[100],
+              borderRadius: 50,
+              padding: responsive.spacing.lg,
+              marginBottom: responsive.spacing.lg,
+            }}>
+              <Ionicons
+                name="construct-outline"
+                size={56}
+                color={getColor.warning[600]}
+              />
+            </View>
+
+            {/* Título */}
+            <Text style={{
+              fontSize: responsive.fontSize.xl,
+              fontWeight: "800",
+              color: getColor.warning[800],
+              fontFamily: "Nunito",
+              textAlign: "center",
+              marginBottom: responsive.spacing.md,
+            }}>
+              Configuración en Proceso
+            </Text>
+
+            {/* Descripción */}
+            <Text style={{
+              fontSize: responsive.fontSize.base,
+              color: getColor.warning[700],
+              fontFamily: "Nunito",
+              textAlign: "center",
+              lineHeight: 24,
+              marginBottom: responsive.spacing.lg,
+            }}>
+              Las bases del campeonato aún están en configuración.{'\n'}
+              Por favor, espera a que el administrador complete la configuración.
+            </Text>
+
+          </View>
+
+          {/* Botón de reintentar */}
+          <TouchableOpacity
+            onPress={() => loadResultados()}
+            style={{
+              backgroundColor: getColor.primary[500],
+              paddingHorizontal: responsive.spacing.xl,
+              paddingVertical: responsive.spacing.md,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              shadowColor: getColor.primary[500],
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              elevation: 6,
+            }}
+          >
+            <Ionicons
+              name="refresh"
+              size={20}
+              color={getColor.background.primary}
+              style={{ marginRight: 10 }}
+            />
+            <Text style={{
+              color: getColor.background.primary,
+              fontSize: responsive.fontSize.base,
+              fontWeight: "700",
+              fontFamily: "Nunito",
+            }}>
+              Verificar Nuevamente
+            </Text>
+          </TouchableOpacity>
+
+          {/* Mensaje informativo inferior */}
+          <View style={{
+            marginTop: responsive.spacing.xl,
+            alignItems: "center",
+          }}>
+            <Text style={{
+              fontSize: responsive.fontSize.xs,
+              color: getColor.gray[500],
+              fontFamily: "Nunito",
+              textAlign: "center",
+            }}>
+              Los resultados aparecerán automáticamente{'\n'}
+              cuando la configuración esté completa
+            </Text>
+          </View>
         </View>
       </BaseLayout>
     );

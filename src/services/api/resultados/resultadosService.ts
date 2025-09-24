@@ -131,6 +131,11 @@ export const resultadosService = {
         idParticipante: resultado.IdParticipante
       }));
     } catch (error: any) {
+      // Manejo específico para error 404 (bases no configuradas)
+      if (error.response?.status === 404) {
+        throw new Error('Las bases del campeonato aún están en configuración. Por favor, espera a que el administrador complete la configuración.');
+      }
+
       const serverMessage = error.response?.data?.message;
       if (serverMessage) {
         throw new Error(serverMessage);
@@ -163,10 +168,29 @@ export const resultadosService = {
         posicion: equipo.puesto
       }));
     } catch (error: any) {
+      console.log('🔥 ERROR EN getResultadosEquipos:', error);
+      console.log('🔥 Status code:', error.response?.status);
+
+      // Manejo específico para error 404 (bases no configuradas)
+      if (error.response?.status === 404) {
+        console.log('🔥 Detectado 404, lanzando mensaje personalizado');
+        throw new Error('Las bases del campeonato aún están en configuración. Por favor, espera a que el administrador complete la configuración.');
+      }
+
       const serverMessage = error.response?.data?.message;
+
+      // Verificar si el mensaje del servidor contiene referencia al 404
+      if (serverMessage && (serverMessage.includes('status code 404') || serverMessage.includes('Request failed with status code 404'))) {
+        console.log('🔥 Mensaje del servidor contiene 404, usando mensaje personalizado');
+        throw new Error('Las bases del campeonato aún están en configuración. Por favor, espera a que el administrador complete la configuración.');
+      }
+
       if (serverMessage) {
+        console.log('🔥 Usando mensaje del servidor:', serverMessage);
         throw new Error(serverMessage);
       }
+
+      console.log('🔥 Usando mensaje genérico');
       throw new Error('Error al cargar resultados de equipos');
     }
   },
