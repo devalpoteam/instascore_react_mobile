@@ -31,6 +31,7 @@ type LiveResultsRouteProp = RouteProp<
       categoriaId: string; 
       nivelId: string;
       franjaId: string;
+      divisionId?: string;
       isFinished?: boolean 
     } 
   },
@@ -53,6 +54,7 @@ interface LiveResultsState {
   campeonatoNombre: string;
   categoriaNombre: string;
   categoriaDetalle?: any;
+  subdivisionLetra?: string;
 }
 
 export default function LiveResultsScreen() {
@@ -65,13 +67,15 @@ export default function LiveResultsScreen() {
     campeonatoId, 
     categoriaId, 
     nivelId, 
-    franjaId, 
+    franjaId,
+    divisionId,
     isFinished = false 
   } = route.params || {
     campeonatoId: "1",
     categoriaId: "cat1",
     nivelId: "nivel1",
     franjaId: "franja1",
+    divisionId: undefined,
     isFinished: false
   };
 
@@ -91,16 +95,25 @@ export default function LiveResultsScreen() {
     campeonatoNombre: "",
     categoriaNombre: "",
     categoriaDetalle: undefined,
+    subdivisionLetra: undefined,
   });
 
   useEffect(() => {
     const loadInitialData = async () => {
       await loadCampeonatoYCategoria();
-      await loadResultados('aparato');
-      await loadResultados('all around');
     };
     loadInitialData();
   }, [campeonatoId, categoriaId, nivelId, franjaId]);
+
+  useEffect(() => {
+    if (state.subdivisionLetra !== undefined) {
+      const loadResults = async () => {
+        await loadResultados('aparato');
+        await loadResultados('all around');
+      };
+      loadResults();
+    }
+  }, [state.subdivisionLetra]);
 
   const orderAparatosPorDisciplina = (aparatos: string[], disciplina?: string): string[] => {
     const aparatosGAF = ['Salto', 'Asimétricas', 'Viga', 'Suelo'];
@@ -197,18 +210,20 @@ export default function LiveResultsScreen() {
       const categoriaEncontrada = categorias.find(cat => 
         cat.idCategoria === categoriaId && 
         cat.idNivel === nivelId && 
-        cat.idFranja === franjaId
+        cat.idFranja === franjaId &&
+        (divisionId ? cat.idDivision === divisionId : true)
       );
 
       const categoriaNombre = categoriaEncontrada 
-        ? `${categoriaEncontrada.grupo} ${categoriaEncontrada.nivel} ${categoriaEncontrada.franja}`
+        ? `${categoriaEncontrada.grupo} ${categoriaEncontrada.nivel} ${categoriaEncontrada.franja}${categoriaEncontrada.division ? ` Subdiv. ${categoriaEncontrada.division}` : ''}`
         : "Categoría";
 
       setState(prev => ({
         ...prev,
         campeonatoNombre: campeonato.nombre,
         categoriaNombre: categoriaNombre,
-        categoriaDetalle: categoriaEncontrada
+        categoriaDetalle: categoriaEncontrada,
+        subdivisionLetra: categoriaEncontrada?.division
       }));
     } catch (error) {
       console.error('Error loading campeonato y categoria:', error);
@@ -225,7 +240,8 @@ export default function LiveResultsScreen() {
           categoriaId,
           nivelId,
           franjaId,
-          modalidad
+          modalidad,
+          subdivision: state.subdivisionLetra
         }),
         resultadosService.getResultadosEquipos({
           campeonatoId,
@@ -430,9 +446,9 @@ export default function LiveResultsScreen() {
 
           </View>
 
-          {/* Botón de reintentar */}
+          {/* Botón para ir a campeonatos */}
           <TouchableOpacity
-            onPress={() => loadResultados()}
+            onPress={() => navigation.navigate("Campeonatos")}
             style={{
               backgroundColor: getColor.primary[500],
               paddingHorizontal: responsive.spacing.lg,
@@ -447,7 +463,7 @@ export default function LiveResultsScreen() {
               fontWeight: "600",
               fontFamily: "Nunito",
             }}>
-              Verificar Nuevamente
+              Ir a Campeonatos
             </Text>
           </TouchableOpacity>
         </View>

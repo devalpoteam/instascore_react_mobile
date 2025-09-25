@@ -38,6 +38,7 @@ type MainNavigatorParamList = {
     categoriaId: string; 
     nivelId: string;
     franjaId: string;
+    divisionId?: string;
     isFinished?: boolean 
   };
   Gimnastas: undefined;
@@ -57,9 +58,11 @@ export default function CategorySelectorScreen() {
   const [campeonato, setCampeonato] = useState<CampeonatoDetalle | null>(null);
   const [categorias, setCategorias] = useState<CategoriaAgrupada[]>([]);
   const [participantesPorFranja, setParticipantesPorFranja] = useState<Record<string, number>>({});
+  const [categoriasAgrupadas, setCategoriasAgrupadas] = useState<{[key: string]: CategoriaAgrupada[]}>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadData();
@@ -78,7 +81,27 @@ export default function CategorySelectorScreen() {
       setCampeonato(campeonatoData);
       setCategorias(categoriasData);
       
-      // Cargar participantes reales para cada franja
+      const agrupadas = categoriasData.reduce((acc, categoria) => {
+        if (!acc[categoria.grupo]) {
+          acc[categoria.grupo] = [];
+        }
+        acc[categoria.grupo].push(categoria);
+        return acc;
+      }, {} as {[key: string]: CategoriaAgrupada[]});
+      
+      Object.keys(agrupadas).forEach(grupo => {
+        agrupadas[grupo].sort((a, b) => {
+          if (a.nivel !== b.nivel) {
+            return a.nivel.localeCompare(b.nivel);
+          }
+          if (a.franja !== b.franja) {
+            return a.franja.localeCompare(b.franja);
+          }
+          return a.division.localeCompare(b.division);
+        });
+      });
+      
+      setCategoriasAgrupadas(agrupadas);
       const participantesPromises = categoriasData.map(categoria => 
         liveService.getParticipantesPorSubdivision(categoria.idFranja)
           .then(count => ({ franjaId: categoria.idFranja, count }))
@@ -117,6 +140,7 @@ export default function CategorySelectorScreen() {
       categoriaId: categoria.idCategoria,
       nivelId: categoria.idNivel,
       franjaId: categoria.idFranja,
+      divisionId: categoria.idDivision,
       isFinished
     });
   };
@@ -153,6 +177,60 @@ export default function CategorySelectorScreen() {
 
   const construirNombreCategoria = (categoria: CategoriaAgrupada): string => {
     return `${categoria.grupo} ${categoria.nivel} ${categoria.franja}`;
+  };
+
+
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const handleSubdivisionPress = (categoria: CategoriaAgrupada) => {
+    console.log('Selected subdivision:', categoria.id);
+    navigation.navigate('LiveResults', { 
+      campeonatoId: categoria.idCampeonato,
+      categoriaId: categoria.idCategoria,
+      nivelId: categoria.idNivel,
+      franjaId: categoria.idFranja,
+      divisionId: categoria.idDivision,
+      isFinished
+    });
+  };
+
+  const getSubdivisionColor = (subdivision: string) => {
+    const colors = {
+      'A': { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD' },
+      'B': { bg: '#ECFDF5', text: '#065F46', border: '#BBF7D0' },
+      'C': { bg: '#FEF3C7', text: '#92400E', border: '#FDE68A' },
+      'D': { bg: '#FCE7F3', text: '#BE185D', border: '#FBCFE8' },
+      'E': { bg: '#F3E8FF', text: '#7C3AED', border: '#DDD6FE' },
+      'F': { bg: '#FFF2F1', text: '#DC2626', border: '#FECACA' },
+    };
+    return colors[subdivision as keyof typeof colors] || colors['A'];
+  };
+
+  const getGenderInfo = (categoriasGrupo: CategoriaAgrupada[]) => {
+    const disciplina = categoriasGrupo[0]?.disciplina;
+    return disciplina === 'GAF' 
+      ? { icon: 'woman', color: getColor.secondary[500], label: 'GAF' }
+      : { icon: 'man', color: getColor.primary[500], label: 'GAM' };
+  };
+
+  const getSubdivisionDots = (categoriasGrupo: CategoriaAgrupada[]) => {
+    const uniqueSubdivisions = [...new Set(categoriasGrupo.map(cat => cat.division))].sort();
+    return uniqueSubdivisions;
+  };
+
+  const getTotalParticipantesPorCategoria = (categoriasGrupo: CategoriaAgrupada[]) => {
+    return categoriasGrupo.reduce((total, categoria) => {
+      const participantes = participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes;
+      return total + participantes;
+    }, 0);
   };
 
   const displayTexts = getDisplayTexts();
@@ -458,96 +536,203 @@ export default function CategorySelectorScreen() {
           paddingHorizontal: responsive.spacing.md,
           paddingBottom: responsive.spacing.xl,
         }}>
-          {categorias.map((categoria) => (
-            <TouchableOpacity
-              key={categoria.id}
-              style={{
-                backgroundColor: getColor.background.primary,
-                borderRadius: 16,
-                padding: responsive.spacing.lg,
-                marginBottom: responsive.spacing.md,
-                borderWidth: 1,
-                borderColor: getColor.gray[200],
-                shadowColor: isFinished ? getColor.gray[500] : getColor.primary[500],
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-              onPress={() => handleCategoriaPress(categoria)}
-              activeOpacity={0.95}
-            >
-              <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    fontSize: responsive.fontSize.lg,
-                    fontWeight: '700',
-                    color: getColor.primary[600],
-                    fontFamily: 'Nunito',
-                    marginBottom: 2,
-                  }}>
-                    {construirNombreCategoria(categoria)}
-                  </Text>
-                  
-                  <Text style={{
-                    fontSize: responsive.fontSize.sm,
-                    color: getColor.gray[500],
-                    fontFamily: 'Nunito',
-                    marginBottom: responsive.spacing.xs,
-                  }}>
-                    {getGeneroSimple(categoria.disciplina)}
-                  </Text>
-
-                  <View style={{
+          {Object.entries(categoriasAgrupadas)
+            .sort(([grupoA], [grupoB]) => grupoA.localeCompare(grupoB))
+            .map(([grupoNombre, categoriasGrupo]) => {
+            const isExpanded = expandedCategories.has(grupoNombre);
+            
+            return (
+              <View
+                key={grupoNombre}
+                style={{
+                  backgroundColor: getColor.background.primary,
+                  borderRadius: 16,
+                  marginBottom: responsive.spacing.sm,
+                  borderWidth: 1,
+                  borderColor: getColor.gray[200],
+                  shadowColor: getColor.gray[400],
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 3,
+                  overflow: 'hidden',
+                }}
+              >
+                <TouchableOpacity
+                  style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                  }}>
-                    <Ionicons name="people" size={12} color={getColor.gray[400]} />
-                    <Text style={{
-                      fontSize: responsive.fontSize.xs,
-                      color: getColor.gray[500],
-                      fontFamily: 'Nunito',
-                      marginLeft: 2,
+                    justifyContent: 'space-between',
+                    padding: responsive.spacing.lg,
+                    backgroundColor: isExpanded ? getColor.primary[50] : getColor.background.primary,
+                  }}
+                  onPress={() => toggleCategory(grupoNombre)}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flex: 1 }}>
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: 4,
                     }}>
-                      {participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
-                    </Text>
+                      <Text style={{
+                        fontSize: responsive.fontSize.lg,
+                        fontWeight: '700',
+                        color: getColor.primary[600],
+                        fontFamily: 'Nunito',
+                        marginRight: 8,
+                      }}>
+                        {grupoNombre}
+                      </Text>
+                    </View>
+                    
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: 6,
+                    }}>
+                      <Ionicons name="people" size={12} color={getColor.gray[500]} />
+                      <Text style={{
+                        fontSize: responsive.fontSize.sm,
+                        color: getColor.gray[500],
+                        fontFamily: 'Nunito',
+                        marginLeft: 4,
+                      }}>
+                        {getTotalParticipantesPorCategoria(categoriasGrupo)} participantes
+                      </Text>
+                    </View>
+                    
+                    <View style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                      <Text style={{
+                        fontSize: responsive.fontSize.sm,
+                        color: getColor.gray[500],
+                        fontFamily: 'Nunito',
+                        marginRight: 8,
+                      }}>
+                        Subdivisiones:
+                      </Text>
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}>
+                        {getSubdivisionDots(categoriasGrupo).map((subdivision, index) => (
+                          <View
+                            key={subdivision}
+                            style={{
+                              backgroundColor: getSubdivisionColor(subdivision).bg,
+                              borderColor: getSubdivisionColor(subdivision).border,
+                              borderWidth: 1,
+                              borderRadius: 8,
+                              paddingHorizontal: 6,
+                              paddingVertical: 2,
+                              marginRight: index < getSubdivisionDots(categoriasGrupo).length - 1 ? 4 : 0,
+                            }}
+                          >
+                            <Text style={{
+                              fontSize: responsive.fontSize.xs,
+                              color: getSubdivisionColor(subdivision).text,
+                              fontFamily: 'Nunito',
+                              fontWeight: '600',
+                            }}>
+                              {subdivision}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
                   </View>
-                </View>
-                
-                <View style={{
-                  backgroundColor: displayTexts.categoryBadgeColor,
-                  borderRadius: 4,
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  marginRight: responsive.spacing.sm,
-                }}>
-                  <Text style={{
-                    fontSize: responsive.fontSize.xs,
-                    fontWeight: '600',
-                    color: getColor.background.primary,
-                    fontFamily: 'Nunito',
-                  }}>
-                    {displayTexts.categoryBadge}
-                  </Text>
-                </View>
-                
-                <View style={{
-                  backgroundColor: getColor.primary[500],
-                  borderRadius: 16,
-                  padding: 8,
-                }}>
-                  <Ionicons 
-                    name="chevron-forward" 
-                    size={18} 
-                    color={getColor.background.primary} 
+                  
+                  <Ionicons
+                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                    size={24}
+                    color={getColor.primary[500]}
                   />
-                </View>
+                </TouchableOpacity>
+
+                {isExpanded && (
+                  <View style={{
+                    backgroundColor: getColor.gray[50],
+                    borderTopWidth: 1,
+                    borderTopColor: getColor.gray[200],
+                  }}>
+                    {categoriasGrupo.map((categoria, index) => (
+                      <TouchableOpacity
+                        key={categoria.id}
+                        style={{
+                          paddingHorizontal: responsive.spacing.lg,
+                          paddingVertical: responsive.spacing.md,
+                          borderBottomWidth: index < categoriasGrupo.length - 1 ? 1 : 0,
+                          borderBottomColor: getColor.gray[200],
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                        onPress={() => handleSubdivisionPress(categoria)}
+                        activeOpacity={0.6}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginBottom: 6,
+                          }}>
+                            <Text style={{
+                              fontSize: responsive.fontSize.base,
+                              color: getColor.gray[700],
+                              fontFamily: 'Nunito',
+                              marginRight: 8,
+                            }}>
+                              {categoria.nivel} {categoria.franja}
+                            </Text>
+                            <View style={{
+                              backgroundColor: getSubdivisionColor(categoria.division).bg,
+                              borderColor: getSubdivisionColor(categoria.division).border,
+                              borderWidth: 1,
+                              borderRadius: 12,
+                              paddingHorizontal: 10,
+                              paddingVertical: 4,
+                            }}>
+                              <Text style={{
+                                fontSize: responsive.fontSize.sm,
+                                color: getSubdivisionColor(categoria.division).text,
+                                fontFamily: 'Nunito',
+                                fontWeight: '600',
+                              }}>
+                                Subdiv. {categoria.division}
+                              </Text>
+                            </View>
+                          </View>
+                          <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                          }}>
+                            <Ionicons name="people" size={12} color={getColor.gray[400]} />
+                            <Text style={{
+                              fontSize: responsive.fontSize.xs,
+                              color: getColor.gray[500],
+                              fontFamily: 'Nunito',
+                              marginLeft: 4,
+                            }}>
+                              {participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
+                            </Text>
+                          </View>
+                        </View>
+                        
+                        <Ionicons
+                          name="chevron-forward"
+                          size={18}
+                          color={getColor.gray[400]}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
-            </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
     </BaseLayout>

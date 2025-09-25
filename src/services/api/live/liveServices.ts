@@ -19,8 +19,10 @@ interface CategoriaAgrupadaApiResponse {
       IdCategoria: string;
       IdNivel: string;
       IdFranja: string;
+      IdDivision: string;
       nivel: string;
       franja: string;
+      division: string;
       disciplina: string;
       numeroParticipantes: number;
       numeroCategoria: number;
@@ -69,8 +71,10 @@ interface CategoriaAgrupada {
   idCategoria: string;
   idNivel: string;
   idFranja: string;
+  idDivision: string;
   nivel: string;
   franja: string;
+  division: string;
   disciplina: 'GAF' | 'GAM';
   numeroParticipantes: number;
   numeroCategoria: number;
@@ -149,12 +153,14 @@ export const liveService = {
             idCategoria: categoria.IdCategoria,
             idNivel: categoria.IdNivel,
             idFranja: categoria.IdFranja,
+            idDivision: categoria.IdDivision,
             nivel: categoria.nivel,
             franja: categoria.franja,
+            division: categoria.division,
             disciplina: mapearDisciplina(categoria.disciplina),
             numeroParticipantes: categoria.numeroParticipantes,
             numeroCategoria: categoria.numeroCategoria,
-            id: `${categoria.IdCampeonato}_${categoria.IdCategoria}_${categoria.IdNivel}_${categoria.IdFranja}`,
+            id: `${categoria.IdCampeonato}_${categoria.IdCategoria}_${categoria.IdNivel}_${categoria.IdFranja}_${categoria.IdDivision}`,
           });
         });
       });

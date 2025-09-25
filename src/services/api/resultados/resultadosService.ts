@@ -69,6 +69,7 @@ interface GetResultadosParams {
   franjaId: string;
   participanteId?: string;
   modalidad?: 'aparato' | 'all around';
+  subdivision?: string;
 }
 
 interface RankingCompletoAPI {
@@ -93,7 +94,7 @@ interface GetRankingParams {
 
 export const resultadosService = {
   async getResultadosIndividuales({
-    campeonatoId, categoriaId, nivelId, franjaId, participanteId, modalidad = 'aparato'
+    campeonatoId, categoriaId, nivelId, franjaId, participanteId, modalidad = 'aparato', subdivision
   }: GetResultadosParams): Promise<ResultadoIndividual[]> {
     try {
       const queryParams = new URLSearchParams({
@@ -106,6 +107,10 @@ export const resultadosService = {
 
       if (participanteId) {
         queryParams.append('participanteId', participanteId);
+      }
+
+      if (subdivision) {
+        queryParams.append('subdivision', subdivision);
       }
 
       const response = await apiClient.get<ResultadoIndividualAPI[]>(
