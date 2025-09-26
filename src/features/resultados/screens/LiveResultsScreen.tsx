@@ -873,23 +873,6 @@ export default function LiveResultsScreen() {
           )}
         </View>
 
-        <View style={{
-          padding: responsive.spacing.md,
-          alignItems: "center",
-          borderTopWidth: 1,
-          borderTopColor: getColor.gray[100],
-        }}>
-          <Text style={{
-            fontSize: responsive.fontSize.xs,
-            color: getColor.gray[400],
-            fontFamily: "Nunito",
-          }}>
-            {isFinished 
-              ? displayTexts.lastUpdateText
-              : `${displayTexts.lastUpdateText}: ${new Date().toLocaleTimeString()}`
-            }
-          </Text>
-        </View>
       </ScrollView>
     </BaseLayout>
   );
