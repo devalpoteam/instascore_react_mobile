@@ -1,7 +1,7 @@
 // src/core/config/api.config.ts
 const API_CONFIG = {
   SERVICES: {
-    AUTH: 'https://agy-mobile-instascore-uat.up.railway.app',
+    AUTH: 'https://agy-mobile-instascore-uat.up.railway.app', //dev: https://agymobileinstascore-develop.up.railway.app
   },
   
   ENDPOINTS: {
@@ -17,7 +17,8 @@ const API_CONFIG = {
     LIVE: {
       CAMPEONATOS_ACTIVOS: '/api/campeonatos/activos',
       CAMPEONATO_BY_ID: '/api/campeonatos',
-      CATEGORIAS_AGRUPADAS: '/api/campeonatos/categorias-agrupadas'
+      CATEGORIAS_AGRUPADAS: '/api/campeonatos/categorias-agrupadas',
+      PARTICIPANTES_POR_SUBDIVISION: '/api/Divisiones/ParticipantesPorSubdivision'
     },
     RESULTADOS: {
       INDIVIDUALES: '/api/PremiacionesResultados/individuales',

@@ -2,7 +2,6 @@
 import apiClient from '../apiClient';
 import API_CONFIG from '../../../core/config/api.config';
 
-// Interfaces locales para la API
 interface CampeonatoActivoApiResponse {
   id: string;
   nombre: string;
@@ -41,7 +40,6 @@ interface CampeonatoDetalleApiResponse {
   numeroCategorias: number;
 }
 
-// Interfaces para la app
 interface CampeonatoEnVivo {
   id: string;
   nombre: string;
@@ -63,10 +61,8 @@ interface CategoriaActiva {
   participantesActivos: number;
 }
 
-// ✅ INTERFACE ACTUALIZADA CON LOS NUEVOS IDs DE LA API
 interface CategoriaAgrupada {
   grupo: string;
-  // ✅ NUEVOS CAMPOS ID REALES DE LA BASE DE DATOS
   idCampeonato: string;
   idCategoria: string;
   idNivel: string;
@@ -78,7 +74,6 @@ interface CategoriaAgrupada {
   disciplina: 'GAF' | 'GAM';
   numeroParticipantes: number;
   numeroCategoria: number;
-  // ✅ ID COMPUESTO PARA IDENTIFICACIÓN ÚNICA EN LA APP
   id: string;
 }
 
@@ -110,19 +105,23 @@ export const liveService = {
     }
   },
 
-  getParticipantesPorSubdivision: async (idFranja: string): Promise<number> => {
+  getParticipantesPorSubdivision: async (idFranja: string, subdivision?: string): Promise<number> => {
     try {
       const response = await apiClient.get<Array<{
         Nombrefranja: string;
         Subdivision: string;
         numeroParticipantes: number;
       }>>(
-        `/api/Divisiones/ParticipantesPorSubdivision?idFranja=${idFranja}`
+        `${API_CONFIG.ENDPOINTS.LIVE.PARTICIPANTES_POR_SUBDIVISION}?idFranja=${idFranja}`
       );
       
-      // Sumar todos los participantes de todas las subdivisiones
-      const totalParticipantes = response.data?.reduce((total, subdivision) => {
-        return total + (subdivision.numeroParticipantes || 0);
+      if (subdivision) {
+        const subdivisionData = response.data?.find(item => item.Subdivision === subdivision);
+        return subdivisionData?.numeroParticipantes || 0;
+      }
+      
+      const totalParticipantes = response.data?.reduce((total, subdivisionItem) => {
+        return total + (subdivisionItem.numeroParticipantes || 0);
       }, 0) || 0;
       
       return totalParticipantes;
@@ -135,7 +134,6 @@ export const liveService = {
     }
   },
 
-  // ✅ MÉTODO ACTUALIZADO PARA MANEJAR LOS NUEVOS IDs
   getCategoriasAgrupadas: async (campeonatoId: string): Promise<CategoriaAgrupada[]> => {
     try {
       const response = await apiClient.get<CategoriaAgrupadaApiResponse>(
@@ -148,7 +146,6 @@ export const liveService = {
         categoriasGrupo.forEach((categoria) => {
           categorias.push({
             grupo: categoria.grupo,
-            // ✅ MAPEAR LOS NUEVOS CAMPOS ID
             idCampeonato: categoria.IdCampeonato,
             idCategoria: categoria.IdCategoria,
             idNivel: categoria.IdNivel,
@@ -192,7 +189,6 @@ export const liveService = {
   }
 };
 
-// Funciones auxiliares
 const extraerHora = (fechaCompleta: string): string => {
   try {
     const fecha = new Date(fechaCompleta);
@@ -210,5 +206,4 @@ const mapearDisciplina = (disciplina: string): 'GAF' | 'GAM' => {
   return disciplina === 'GAM' ? 'GAM' : 'GAF';
 };
 
-// ✅ EXPORTAR EL TIPO ACTUALIZADO
 export type { CategoriaAgrupada };

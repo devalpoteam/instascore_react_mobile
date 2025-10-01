@@ -103,17 +103,17 @@ export default function CategorySelectorScreen() {
       
       setCategoriasAgrupadas(agrupadas);
       const participantesPromises = categoriasData.map(categoria => 
-        liveService.getParticipantesPorSubdivision(categoria.idFranja)
-          .then(count => ({ franjaId: categoria.idFranja, count }))
+        liveService.getParticipantesPorSubdivision(categoria.idFranja, categoria.division)
+          .then(count => ({ categoriaId: categoria.id, count }))
           .catch(error => {
-            console.warn(`Error loading participants for franja ${categoria.idFranja}:`, error);
-            return { franjaId: categoria.idFranja, count: categoria.numeroParticipantes };
+            console.warn(`Error loading participants for categoria ${categoria.id}:`, error);
+            return { categoriaId: categoria.id, count: categoria.numeroParticipantes };
           })
       );
       
       const participantesResults = await Promise.all(participantesPromises);
-      const participantesMap = participantesResults.reduce((acc, { franjaId, count }) => {
-        acc[franjaId] = count;
+      const participantesMap = participantesResults.reduce((acc, { categoriaId, count }) => {
+        acc[categoriaId] = count;
         return acc;
       }, {} as Record<string, number>);
       
@@ -228,7 +228,7 @@ export default function CategorySelectorScreen() {
 
   const getTotalParticipantesPorCategoria = (categoriasGrupo: CategoriaAgrupada[]) => {
     return categoriasGrupo.reduce((total, categoria) => {
-      const participantes = participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes;
+      const participantes = participantesPorFranja[categoria.id] ?? categoria.numeroParticipantes;
       return total + participantes;
     }, 0);
   };
@@ -716,7 +716,7 @@ export default function CategorySelectorScreen() {
                               fontFamily: 'Nunito',
                               marginLeft: 4,
                             }}>
-                              {participantesPorFranja[categoria.idFranja] ?? categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
+                              {participantesPorFranja[categoria.id] ?? categoria.numeroParticipantes} {isFinished ? 'participaron' : 'participantes'}
                             </Text>
                           </View>
                         </View>
