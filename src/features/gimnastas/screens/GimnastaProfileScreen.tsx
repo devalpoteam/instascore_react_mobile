@@ -560,7 +560,7 @@ export default function GimnastaProfileScreen() {
                     fontFamily: "Nunito",
                     marginBottom: 4,
                   }}>
-                    RUT
+                    Club/Delegación
                   </Text>
                   <Text style={{
                     fontSize: responsive.fontSize.base,
@@ -568,11 +568,11 @@ export default function GimnastaProfileScreen() {
                     color: getColor.gray[800],
                     fontFamily: "Nunito",
                   }}>
-                    {gimnasta.rut}
+                    {gimnasta.club}
                   </Text>
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, marginLeft: 18 }}>
                   <Text style={{
                     fontSize: responsive.fontSize.xs,
                     color: getColor.gray[500],
@@ -603,25 +603,6 @@ export default function GimnastaProfileScreen() {
                     fontFamily: "Nunito",
                     marginBottom: 4,
                   }}>
-                    Club/Delegación
-                  </Text>
-                  <Text style={{
-                    fontSize: responsive.fontSize.base,
-                    fontWeight: "600",
-                    color: getColor.gray[800],
-                    fontFamily: "Nunito",
-                  }}>
-                    {gimnasta.club}
-                  </Text>
-                </View>
-
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    fontSize: responsive.fontSize.xs,
-                    color: getColor.gray[500],
-                    fontFamily: "Nunito",
-                    marginBottom: 4,
-                  }}>
                     Categoría
                   </Text>
                   <Text style={{
@@ -631,6 +612,25 @@ export default function GimnastaProfileScreen() {
                     fontFamily: "Nunito",
                   }}>
                     {datosActuales ? `${datosActuales.categoria} ${datosActuales.nivel}` : `${gimnasta.categoria} ${gimnasta.nivel}`}
+                  </Text>
+                </View>
+
+                <View style={{ flex: 1, marginLeft: 18 }}>
+                  <Text style={{
+                    fontSize: responsive.fontSize.xs,
+                    color: getColor.gray[500],
+                    fontFamily: "Nunito",
+                    marginBottom: 4,
+                  }}>
+                    Franja
+                  </Text>
+                  <Text style={{
+                    fontSize: responsive.fontSize.base,
+                    fontWeight: "600",
+                    color: getColor.gray[800],
+                    fontFamily: "Nunito",
+                  }}>
+                    {gimnasta.franja}
                   </Text>
                 </View>
               </View>
